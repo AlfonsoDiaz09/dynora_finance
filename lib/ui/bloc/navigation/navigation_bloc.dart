@@ -1,3 +1,4 @@
+import 'package:dynora_finance/main.dart';
 import 'package:dynora_finance/ui/router/router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,6 +16,7 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
     });
 
     on<RouteChanged>((event, emit) {
+      logger.i('CurrentRoute: ${event.route}');
       emit(state.copyWith(currentRoute: event.route, navigateTo: null, isPushNavigation: false));
     });
   }

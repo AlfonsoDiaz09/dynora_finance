@@ -23,5 +23,5 @@ class NavigationState {
     );
   }
 
-  static NavigationState initial() => NavigationState(currentRoute: AppRoutes.home);
+  static NavigationState initial() => NavigationState(currentRoute: AppRoutes.splash);
 }
