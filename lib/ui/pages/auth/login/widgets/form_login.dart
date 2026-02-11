@@ -1,10 +1,10 @@
-import 'package:dynora_finance/ui/pages/auth/login/widgets/button.dart';
-import 'package:dynora_finance/ui/pages/auth/login/widgets/input_field.dart';
+import 'package:dynora_finance/ui/pages/auth/widgets/button.dart';
+import 'package:dynora_finance/ui/pages/auth/widgets/input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class FormAuth extends StatelessWidget {
-  const FormAuth({super.key});
+class FormLogin extends StatelessWidget {
+  const FormLogin({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class FormAuth extends StatelessWidget {
           isPassword: true,
         ),
         SizedBox(height: 24.h),
-        Button(loading: false),
+        Button(text: "Entrar", loading: false),
         SizedBox(height: 16.h),
         TextButton(
           onPressed: () {},

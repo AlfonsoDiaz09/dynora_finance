@@ -1,11 +1,12 @@
 import 'dart:ui';
 
-import 'package:dynora_finance/ui/pages/auth/login/widgets/form_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CardForm extends StatelessWidget {
-  const CardForm({super.key});
+  const CardForm({super.key, required this.form});
+
+  final Widget form;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,7 @@ class CardForm extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
-          child: FormAuth(),
+          child: form,
         ),
       ),
     );

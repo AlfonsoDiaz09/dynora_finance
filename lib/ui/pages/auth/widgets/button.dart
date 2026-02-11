@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class Button extends StatefulWidget {
-  const Button({super.key, required this.loading});
+  const Button({super.key, required this.loading, required this.text});
 
+  final String text;
   final bool loading;
 
   @override
@@ -45,7 +46,7 @@ class _ButtonState extends State<Button> {
             child: loading
                 ? CircularProgressIndicator(color: Colors.white)
                 : Text(
-                    "Entrar",
+                    widget.text,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,

@@ -1,15 +1,15 @@
-import 'package:dynora_finance/ui/pages/auth/login/widgets/form_login.dart';
+import 'package:dynora_finance/ui/pages/auth/register/widgets/form_register.dart';
 import 'package:dynora_finance/ui/pages/auth/widgets/body.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
+class _RegisterPageState extends State<RegisterPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fade;
@@ -25,7 +25,12 @@ class _LoginPageState extends State<LoginPage>
     );
 
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _slide = Tween(begin: const Offset(0, .2), end: Offset.zero).animate(_fade);
+
+    _slide = Tween(
+      begin: const Offset(0, .15),
+      end: Offset.zero,
+    ).animate(_fade);
+
     _controller.forward();
   }
 
@@ -55,7 +60,7 @@ class _LoginPageState extends State<LoginPage>
             fade: _fade,
             slide: _slide,
             image: "assets/img/business_vision.svg",
-            form: FormLogin(),
+            form: FormRegister(),
           ),
         ),
       ),
