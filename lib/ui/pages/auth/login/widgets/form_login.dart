@@ -1,6 +1,9 @@
+import 'package:dynora_finance/ui/bloc/navigation/navigation_bloc.dart';
 import 'package:dynora_finance/ui/pages/auth/widgets/button.dart';
 import 'package:dynora_finance/ui/pages/auth/widgets/input_field.dart';
+import 'package:dynora_finance/ui/router/router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FormLogin extends StatelessWidget {
@@ -32,7 +35,9 @@ class FormLogin extends StatelessWidget {
         Button(text: "Entrar", loading: false),
         SizedBox(height: 16.h),
         TextButton(
-          onPressed: () {},
+          onPressed: () {
+            context.read<NavigationBloc>().add(NavigateTo(AppRoutes.register));
+          },
           child: Text("Crear cuenta", style: TextStyle(color: Colors.white70)),
         ),
       ],

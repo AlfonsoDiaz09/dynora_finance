@@ -3,6 +3,7 @@ import 'package:dynora_finance/ui/pages/about/about_page.dart';
 import 'package:dynora_finance/ui/pages/auth/login/login_page.dart';
 import 'package:dynora_finance/ui/pages/auth/register/register_page.dart';
 import 'package:dynora_finance/ui/pages/splash/splash_page.dart';
+import 'package:dynora_finance/ui/widgets/main_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,28 +23,33 @@ abstract class LoaderIds {
 GoRouter createRouter(NavigationBloc navigationBloc) {
   final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: AppRoutes.register,
+    initialLocation: AppRoutes.splash,
     routes: [
-      GoRoute(
-        path: AppRoutes.splash,
-        name: AppRoutes.splash,
-        builder: (_, __) => SplashPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.login,
-        name: AppRoutes.login,
-        builder: (_, __) => LoginPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.register,
-        name: AppRoutes.register,
-        builder: (_, __) => RegisterPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.about,
-        name: AppRoutes.about,
-        builder: (_, __) => AboutPage(),
-      ),
+      ShellRoute(
+        builder: (context, state, child) => MainLayout(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.splash,
+            name: AppRoutes.splash,
+            builder: (_, __) => SplashPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.login,
+            name: AppRoutes.login,
+            builder: (_, __) => LoginPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.register,
+            name: AppRoutes.register,
+            builder: (_, __) => RegisterPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.about,
+            name: AppRoutes.about,
+            builder: (_, __) => AboutPage(),
+          ),
+        ]
+      )
     ],
   );
 

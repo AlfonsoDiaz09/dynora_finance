@@ -76,10 +76,10 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Body(
+    return Body(
       fadeText: _fadeText, 
       slideText: _slideText, 
       fadeImage: _fadeImage, 
-      scaleImage: _scaleImage));
+      scaleImage: _scaleImage);
   }
 }

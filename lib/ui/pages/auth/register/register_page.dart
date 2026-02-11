@@ -42,28 +42,11 @@ class _RegisterPageState extends State<RegisterPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.fromRGBO(18, 18, 18, 1),
-              Color.fromRGBO(30, 30, 30, 1),
-              Color.fromRGBO(42, 42, 42, 1),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Body(
-            fade: _fade,
-            slide: _slide,
-            image: "assets/img/business_vision.svg",
-            form: FormRegister(),
-          ),
-        ),
-      ),
+    return Body(
+      fade: _fade,
+      slide: _slide,
+      image: "assets/img/business_vision.svg",
+      form: FormRegister(),
     );
   }
 }
