@@ -2,6 +2,7 @@ import 'package:dynora_finance/ui/bloc/navigation/navigation_bloc.dart';
 import 'package:dynora_finance/ui/pages/about/about_page.dart';
 import 'package:dynora_finance/ui/pages/auth/login/login_page.dart';
 import 'package:dynora_finance/ui/pages/auth/register/register_page.dart';
+import 'package:dynora_finance/ui/pages/main/main.dart';
 import 'package:dynora_finance/ui/pages/splash/splash_page.dart';
 import 'package:dynora_finance/ui/widgets/main_layout.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +12,10 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
 abstract class AppRoutes {
   static const splash = '/splash';
-  static const about = '/about';
   static const login = '/login';
   static const register = '/register';
+  static const about = '/about';
+  static const main = '/main';
 }
 
 abstract class LoaderIds {
@@ -23,7 +25,7 @@ abstract class LoaderIds {
 GoRouter createRouter(NavigationBloc navigationBloc) {
   final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: AppRoutes.splash,
+    initialLocation: AppRoutes.main,
     routes: [
       ShellRoute(
         builder: (context, state, child) => MainLayout(child: child),
@@ -47,6 +49,11 @@ GoRouter createRouter(NavigationBloc navigationBloc) {
             path: AppRoutes.about,
             name: AppRoutes.about,
             builder: (_, __) => AboutPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.main,
+            name: AppRoutes.main,
+            builder: (_, __) => Main(),
           ),
         ]
       )
