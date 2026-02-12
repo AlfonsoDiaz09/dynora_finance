@@ -2,7 +2,7 @@ import 'package:dynora_finance/ui/bloc/navigation/navigation_bloc.dart';
 import 'package:dynora_finance/ui/pages/about/about_page.dart';
 import 'package:dynora_finance/ui/pages/auth/login/login_page.dart';
 import 'package:dynora_finance/ui/pages/auth/register/register_page.dart';
-import 'package:dynora_finance/ui/pages/main/main.dart';
+import 'package:dynora_finance/ui/pages/main/main_page.dart';
 import 'package:dynora_finance/ui/pages/splash/splash_page.dart';
 import 'package:dynora_finance/ui/widgets/main_layout.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +53,7 @@ GoRouter createRouter(NavigationBloc navigationBloc) {
           GoRoute(
             path: AppRoutes.main,
             name: AppRoutes.main,
-            builder: (_, __) => Main(),
+            builder: (_, __) => MainPage(),
           ),
         ]
       )

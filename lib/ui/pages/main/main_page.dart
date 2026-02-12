@@ -4,18 +4,18 @@ import 'package:dynora_finance/ui/pages/movements/movements_page.dart';
 import 'package:dynora_finance/ui/pages/profile/profile_page.dart';
 import 'package:dynora_finance/ui/pages/stats/stats_page.dart';
 import 'package:dynora_finance/ui/widgets/add_transaction_sheet.dart';
-import 'package:dynora_finance/ui/widgets/custom_bottom_navigation.dart';
+import 'package:dynora_finance/ui/widgets/bottom_nav/bottom_nav_bar.dart';
+import 'package:dynora_finance/ui/widgets/bottom_nav/quick_action_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class Main extends StatefulWidget {
-  const Main({super.key});
+class MainPage extends StatefulWidget {
+  const MainPage({super.key});
 
   @override
-  State<Main> createState() => _MainState();
+  State<MainPage> createState() => _MainPageState();
 }
 
-class _MainState extends State<Main> {
+class _MainPageState extends State<MainPage> {
   int _currentIndex = 2;
 
   final List<Widget> _pages = const [
@@ -47,38 +47,15 @@ class _MainState extends State<Main> {
       extendBody: true,
       backgroundColor: const Color(0xff0F0F1A),
       body: IndexedStack(index: _currentIndex, children: _pages),
-      floatingActionButton: GestureDetector(
-        onTap: () => _onItemTapped(2),
-        onLongPress: _onFastActionTap,
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 200),
-          width: 60.w,
-          height: 60.h,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [Color(0xff7F00FF), Color(0xffE100FF)],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.purpleAccent,
-                blurRadius: 15,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Icon(
-            _currentIndex == 2 ? Icons.home_rounded : Icons.home_outlined,
-            color: Colors.white,
-            size: 28.sp,
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: CustomBottomNavigation(
+      floatingActionButton: QuickActionButton(
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
         onFastActionTap: _onFastActionTap,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: _onItemTapped
       ),
     );
   }

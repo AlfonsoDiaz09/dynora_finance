@@ -1,16 +1,15 @@
+import 'package:dynora_finance/ui/widgets/bottom_nav/bottom_nav_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class CustomBottomNavigation extends StatelessWidget {
+class BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
-  final VoidCallback onFastActionTap;
 
-  const CustomBottomNavigation({
+  const BottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
-    required this.onFastActionTap,
   });
 
   @override
@@ -32,33 +31,14 @@ class CustomBottomNavigation extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _navItem(Icons.swap_horiz, 0),
-              _navItem(Icons.bar_chart_rounded, 1),
+              BottomNavItem(icon: Icons.swap_horiz, index: 0, currentIndex: currentIndex, onTap: onTap),
+              BottomNavItem(icon: Icons.bar_chart_rounded, index: 1, currentIndex: currentIndex, onTap: onTap),
               SizedBox(width: 60),
-              _navItem(Icons.pie_chart_outline, 3),
-              _navItem(Icons.person_outline, 4),
+              BottomNavItem(icon: Icons.pie_chart_outline, index: 3, currentIndex: currentIndex, onTap: onTap),
+              BottomNavItem(icon: Icons.person_outline, index: 4, currentIndex: currentIndex, onTap: onTap),
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _navItem(IconData icon, int index) {
-    final bool isActive = currentIndex == index;
-
-    return GestureDetector(
-      onTap: () => onTap(index),
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 250),
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
-        child: Icon(
-          icon,
-          size: 26.sp,
-          color: isActive
-              ? Color(0xffE100FF)
-              : Colors.white.withValues(alpha: 0.4),
-        ),
       ),
     );
   }
