@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class UpcomingPaymentItem extends StatelessWidget {
   const UpcomingPaymentItem({
@@ -21,18 +22,18 @@ class UpcomingPaymentItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(18),
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(18.r),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: urgencyColor.withOpacity(0.2),
+            backgroundColor: urgencyColor.withValues(alpha: 0.2),
             child: Icon(Icons.credit_card, color: urgencyColor),
           ),
-          SizedBox(width: 14),
+          SizedBox(width: 14.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,8 +48,8 @@ class UpcomingPaymentItem extends StatelessWidget {
                 Text(
                   "Vence: $dueDate",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
-                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 12.sp,
                   ),
                 ),
               ],

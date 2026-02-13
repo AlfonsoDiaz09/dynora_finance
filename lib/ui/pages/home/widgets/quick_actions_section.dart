@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'quick_action_card.dart';
 
 class QuickActionsSection extends StatelessWidget {
@@ -13,11 +14,11 @@ class QuickActionsSection extends StatelessWidget {
           "Acciones rápidas",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 18.sp,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 16),
+        SizedBox(height: 16.h),
         GridView.count(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
