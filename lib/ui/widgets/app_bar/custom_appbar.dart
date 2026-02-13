@@ -1,4 +1,5 @@
 import 'package:dynora_finance/ui/bloc/navigation/navigation_bloc.dart';
+import 'package:dynora_finance/ui/router/router.dart';
 import 'package:dynora_finance/ui/widgets/app_bar/appbar_help.dart';
 import 'package:dynora_finance/ui/widgets/app_bar/appbar_notifications.dart';
 import 'package:dynora_finance/ui/widgets/app_bar/appbar_profile.dart';
@@ -6,7 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-final excludedRoutesAppbar = [];
+final excludedRoutesAppbar = [
+  AppRoutes.splash,
+  AppRoutes.login,
+  AppRoutes.register,
+];
 
 final includedRoutesAppbar = [];
 
