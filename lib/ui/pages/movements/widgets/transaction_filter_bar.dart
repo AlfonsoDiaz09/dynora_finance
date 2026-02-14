@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class TransactionFilterBar extends StatelessWidget {
   const TransactionFilterBar({super.key});
@@ -7,44 +8,33 @@ class TransactionFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-
-        /// Selector de mes
         Expanded(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12.r),
+              color: Colors.white.withValues(alpha: 0.05),
             ),
-            child: const Text(
-              "Febrero 2026",
-              style: TextStyle(color: Colors.white),
-            ),
+            child: Text("Febrero 2026", style: TextStyle(color: Colors.white)),
           ),
         ),
-
-        const SizedBox(width: 12),
-
-        /// Filtro tipo
+        SizedBox(width: 12.w),
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
           ),
-          child: const Icon(Icons.filter_list, color: Colors.white),
+          child: Icon(Icons.filter_list, color: Colors.white),
         ),
-
-        const SizedBox(width: 12),
-
-        /// Buscar
+        SizedBox(width: 12.w),
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
           ),
-          child: const Icon(Icons.search, color: Colors.white),
+          child: Icon(Icons.search, color: Colors.white),
         ),
       ],
     );

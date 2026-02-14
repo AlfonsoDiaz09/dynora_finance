@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class TransactionItem extends StatelessWidget {
   final String title;
@@ -20,28 +21,28 @@ class TransactionItem extends StatelessWidget {
     final prefix = isExpense ? "-" : "+";
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16.r),
+        color: Colors.white.withValues(alpha: 0.05),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: color.withOpacity(0.2),
+            backgroundColor: color.withValues(alpha: 0.2),
             child: Icon(
               isExpense ? Icons.arrow_upward : Icons.arrow_downward,
               color: color,
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
@@ -49,8 +50,8 @@ class TransactionItem extends StatelessWidget {
                 Text(
                   category,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
-                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 12.sp,
                   ),
                 ),
               ],
@@ -58,10 +59,7 @@ class TransactionItem extends StatelessWidget {
           ),
           Text(
             "$prefix\$${amount.toStringAsFixed(2)}",
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: color, fontWeight: FontWeight.bold),
           ),
         ],
       ),

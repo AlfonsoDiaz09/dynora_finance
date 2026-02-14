@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class TransactionsSummaryCard extends StatelessWidget {
   const TransactionsSummaryCard({super.key});
@@ -6,14 +7,14 @@ class TransactionsSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20.r),
+        color: Colors.white.withValues(alpha: 0.05),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
+        children: [
           _SummaryItem(
             title: "Ingresos",
             amount: "\$18,000",
@@ -45,13 +46,13 @@ class _SummaryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(color: Colors.white70)),
-        const SizedBox(height: 6),
+        Text(title, style: TextStyle(color: Colors.white70)),
+        SizedBox(height: 6.h),
         Text(
           amount,
           style: TextStyle(
             color: color,
-            fontSize: 18,
+            fontSize: 18.sp,
             fontWeight: FontWeight.bold,
           ),
         ),

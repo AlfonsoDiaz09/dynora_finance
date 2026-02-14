@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'transaction_item.dart';
 
 class TransactionGroup extends StatelessWidget {
@@ -14,27 +15,22 @@ class TransactionGroup extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Text(
           date,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white70,
             fontWeight: FontWeight.bold,
           ),
         ),
-
-        const SizedBox(height: 12),
-
-        const TransactionItem(
+        SizedBox(height: 12.h),
+        TransactionItem(
           title: "Amazon",
           category: "Compras",
           amount: 320,
           isExpense: true,
         ),
-
-        const SizedBox(height: 12),
-
-        const TransactionItem(
+        SizedBox(height: 12.h),
+        TransactionItem(
           title: "Nómina",
           category: "Ingreso",
           amount: 15000,
