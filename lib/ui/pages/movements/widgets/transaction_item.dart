@@ -1,37 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class UpcomingPaymentItem extends StatelessWidget {
-  const UpcomingPaymentItem({
+class TransactionItem extends StatelessWidget {
+  final String title;
+  final String category;
+  final double amount;
+  final bool isExpense;
+
+  const TransactionItem({
     super.key,
-    required this.cardName,
-    required this.dueDate,
-    required this.daysLeft,
+    required this.title,
+    required this.category,
+    required this.amount,
+    required this.isExpense,
   });
-
-  final String cardName;
-  final String dueDate;
-  final int daysLeft;
-
-  Color get urgencyColor {
-    if (daysLeft <= 3) return Colors.redAccent;
-    if (daysLeft <= 7) return Colors.orangeAccent;
-    return Colors.greenAccent;
-  }
 
   @override
   Widget build(BuildContext context) {
+    final color = isExpense ? Colors.redAccent : Colors.greenAccent;
+    final prefix = isExpense ? "-" : "+";
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16.r),
         color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(18.r),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: urgencyColor.withValues(alpha: 0.2),
-            child: Icon(Icons.credit_card, color: urgencyColor),
+            backgroundColor: color.withValues(alpha: 0.2),
+            child: Icon(
+              isExpense ? Icons.arrow_upward : Icons.arrow_downward,
+              color: color,
+            ),
           ),
           SizedBox(width: 14.w),
           Expanded(
@@ -39,14 +41,14 @@ class UpcomingPaymentItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  cardName,
+                  title,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
-                  "Vence: $dueDate",
+                  category,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 12.sp,
@@ -56,8 +58,8 @@ class UpcomingPaymentItem extends StatelessWidget {
             ),
           ),
           Text(
-            "$daysLeft días",
-            style: TextStyle(color: urgencyColor, fontWeight: FontWeight.bold),
+            "$prefix\$${amount.toStringAsFixed(2)}",
+            style: TextStyle(color: color, fontWeight: FontWeight.bold),
           ),
         ],
       ),

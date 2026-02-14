@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 enum TransactionType { income, expense, payment }
 
@@ -35,15 +36,15 @@ class RecentTransactionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(14),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: amountColor.withOpacity(0.2),
+            backgroundColor: amountColor.withValues(alpha: 0.2),
             child: Icon(
               type == TransactionType.income
                   ? Icons.arrow_downward
@@ -51,7 +52,7 @@ class RecentTransactionItem extends StatelessWidget {
               color: amountColor,
             ),
           ),
-          SizedBox(width: 14),
+          SizedBox(width: 14.h),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,8 +67,8 @@ class RecentTransactionItem extends StatelessWidget {
                 Text(
                   date,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
-                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 12.sp,
                   ),
                 ),
               ],

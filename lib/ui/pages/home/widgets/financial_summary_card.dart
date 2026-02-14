@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FinancialSummaryCard extends StatelessWidget {
   const FinancialSummaryCard({super.key});
@@ -6,9 +7,9 @@ class FinancialSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(22),
+      padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 22.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(24.r),
         gradient: LinearGradient(
           colors: [Color(0xff7F00FF), Color(0xffE100FF)],
         ),
@@ -17,16 +18,16 @@ class FinancialSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text("Balance total", style: TextStyle(color: Colors.white70)),
-          SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             "\$24,580.00",
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 28.sp,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          SizedBox(height: 18),
+          SizedBox(height: 18.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -65,13 +66,13 @@ class _MiniSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(color: Colors.white70)),
-        SizedBox(height: 4),
+        SizedBox(height: 4.h),
         Text(
           value,
           style: TextStyle(
             color: color,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: 16.sp,
           ),
         ),
       ],

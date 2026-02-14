@@ -3,6 +3,7 @@ import 'package:dynora_finance/ui/pages/about/about_page.dart';
 import 'package:dynora_finance/ui/pages/auth/login/login_page.dart';
 import 'package:dynora_finance/ui/pages/auth/register/register_page.dart';
 import 'package:dynora_finance/ui/pages/main/main_page.dart';
+import 'package:dynora_finance/ui/pages/movements/movements_page.dart';
 import 'package:dynora_finance/ui/pages/splash/splash_page.dart';
 import 'package:dynora_finance/ui/widgets/main_layout.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ abstract class AppRoutes {
   static const register = '/register';
   static const about = '/about';
   static const main = '/main';
+  static const movements = '/movements';
 }
 
 abstract class LoaderIds {
@@ -54,6 +56,11 @@ GoRouter createRouter(NavigationBloc navigationBloc) {
             path: AppRoutes.main,
             name: AppRoutes.main,
             builder: (_, __) => MainPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.movements,
+            name: AppRoutes.movements,
+            builder: (_, __) => MovementsPage(),
           ),
         ]
       )
