@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CategoryBudgetCard extends StatelessWidget {
   final String category;
@@ -18,58 +19,43 @@ class CategoryBudgetCard extends StatelessWidget {
     double remaining = total - spent;
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 18.h),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(16),
+        color: Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Título + restante
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 category,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 16.sp),
               ),
               Text(
                 "\$${remaining.toStringAsFixed(0)} libres",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 14.sp),
               ),
             ],
           ),
-
-          const SizedBox(height: 10),
-
-          /// Barra de progreso
+          SizedBox(height: 10.h),
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(10.r),
             child: LinearProgressIndicator(
               value: percent,
-              minHeight: 8,
+              minHeight: 8.h,
               backgroundColor: Colors.grey.shade800,
               valueColor: AlwaysStoppedAnimation<Color>(
                 percent > 0.9 ? Colors.red : Colors.purpleAccent,
               ),
             ),
           ),
-
-          const SizedBox(height: 8),
-
+          SizedBox(height: 8.h),
           Text(
             "\$${spent.toStringAsFixed(0)} de \$${total.toStringAsFixed(0)}",
-            style: const TextStyle(
-              color: Colors.white54,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: Colors.white54, fontSize: 13.sp),
           ),
         ],
       ),

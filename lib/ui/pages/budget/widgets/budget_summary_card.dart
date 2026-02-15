@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BudgetSummaryCard extends StatelessWidget {
   const BudgetSummaryCard({super.key});
@@ -11,47 +12,40 @@ class BudgetSummaryCard extends StatelessWidget {
     double percent = spent / total;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
+        borderRadius: BorderRadius.circular(20.r),
+        gradient: LinearGradient(
           colors: [Color(0xff7F00FF), Color(0xffE100FF)],
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Presupuesto mensual",
-            style: TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 8),
+          Text("Presupuesto mensual", style: TextStyle(color: Colors.white70)),
+          SizedBox(height: 8.h),
           Text(
             "\$${remaining.toStringAsFixed(0)} disponibles",
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 22,
+              fontSize: 22.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 20),
-
-          /// Barra de progreso
+          SizedBox(height: 20.h),
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(10.r),
             child: LinearProgressIndicator(
               value: percent,
-              minHeight: 10,
+              minHeight: 10.h,
               backgroundColor: Colors.white24,
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ),
-
-          const SizedBox(height: 10),
-
+          SizedBox(height: 10.h),
           Text(
             "\$${spent.toStringAsFixed(0)} de \$${total.toStringAsFixed(0)} usados",
-            style: const TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.white70),
           ),
         ],
       ),
