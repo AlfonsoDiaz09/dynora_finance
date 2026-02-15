@@ -1,3 +1,4 @@
+import 'package:dynora_finance/ui/pages/movements/widgets/summary_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -15,48 +16,18 @@ class TransactionsSummaryCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _SummaryItem(
+          SummaryItem(
             title: "Ingresos",
             amount: "\$18,000",
             color: Colors.greenAccent,
           ),
-          _SummaryItem(
+          SummaryItem(
             title: "Gastos",
             amount: "\$7,540",
             color: Colors.redAccent,
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SummaryItem extends StatelessWidget {
-  final String title;
-  final String amount;
-  final Color color;
-
-  const _SummaryItem({
-    required this.title,
-    required this.amount,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(title, style: TextStyle(color: Colors.white70)),
-        SizedBox(height: 6.h),
-        Text(
-          amount,
-          style: TextStyle(
-            color: color,
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
     );
   }
 }
