@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({super.key});
@@ -7,49 +8,42 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        /// Avatar
         Container(
-          width: 70,
-          height: 70,
+          width: 70.w,
+          height: 70.h,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               colors: [Color(0xff7F00FF), Color(0xffE100FF)],
             ),
           ),
-          child: const Center(
+          child: Center(
             child: Text(
               "A",
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 28.sp,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ),
-
-        const SizedBox(width: 20),
-
-        /// Nombre y correo
+        SizedBox(width: 20.w),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               "Alfonso",
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
+                fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Text(
               "alfonso@email.com",
-              style: TextStyle(
-                color: Colors.white54,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.white54, fontSize: 14.sp),
             ),
           ],
         ),

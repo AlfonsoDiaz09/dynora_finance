@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProfileOptionTile extends StatelessWidget {
   final IconData icon;
@@ -15,39 +16,29 @@ class ProfileOptionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+      padding: EdgeInsets.only(bottom: 15.h),
       child: GestureDetector(
         onTap: () {},
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 18.h),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(16),
+            color: Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(16.r),
           ),
           child: Row(
             children: [
-              Icon(
-                icon,
-                color: isDanger ? Colors.red : Colors.white,
-              ),
-
-              const SizedBox(width: 15),
-
+              Icon(icon, color: isDanger ? Colors.red : Colors.white),
+              SizedBox(width: 15.w),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
                     color: isDanger ? Colors.red : Colors.white,
-                    fontSize: 15,
+                    fontSize: 15.sp,
                   ),
                 ),
               ),
-
-              const Icon(
-                Icons.arrow_forward_ios,
-                size: 14,
-                color: Colors.white54,
-              ),
+              Icon(Icons.arrow_forward_ios, size: 14.sp, color: Colors.white54),
             ],
           ),
         ),
