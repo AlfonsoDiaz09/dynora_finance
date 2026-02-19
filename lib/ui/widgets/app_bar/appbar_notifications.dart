@@ -6,7 +6,7 @@ class AppbarNotifications extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: () {},
       child: Container(
         padding: EdgeInsets.all(8.w),

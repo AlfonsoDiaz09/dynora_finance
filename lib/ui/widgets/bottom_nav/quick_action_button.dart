@@ -14,7 +14,7 @@ class QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
         onTap: () => onTap(2),
         onLongPress: onFastActionTap,
         child: AnimatedContainer(

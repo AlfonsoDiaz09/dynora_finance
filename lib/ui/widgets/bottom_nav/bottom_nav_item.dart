@@ -19,7 +19,7 @@ class BottomNavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isActive = currentIndex == index;
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => onTap(index),
       child: AnimatedContainer(
         duration: Duration(milliseconds: 250),

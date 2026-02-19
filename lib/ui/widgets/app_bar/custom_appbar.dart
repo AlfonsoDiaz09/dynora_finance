@@ -47,7 +47,7 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
           toolbarHeight: height ?? 60.h,
           backgroundColor: Color(0xFF1B0234),
           leading: canBack
-              ? GestureDetector(
+              ? InkWell(
                   onTap: () {},
                   child: Icon(Icons.arrow_back_rounded, color: Colors.white),
                 )

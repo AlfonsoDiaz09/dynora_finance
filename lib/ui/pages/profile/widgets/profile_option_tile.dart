@@ -17,7 +17,7 @@ class ProfileOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(bottom: 15.h),
-      child: GestureDetector(
+      child: InkWell(
         onTap: () {},
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 18.h),
