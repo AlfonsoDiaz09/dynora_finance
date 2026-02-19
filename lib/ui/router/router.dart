@@ -1,11 +1,10 @@
 import 'package:dynora_finance/ui/bloc/navigation/navigation_bloc.dart';
+import 'package:dynora_finance/ui/layouts/app_shell.dart';
+import 'package:dynora_finance/ui/layouts/main_navigation.dart';
 import 'package:dynora_finance/ui/pages/about/about_page.dart';
 import 'package:dynora_finance/ui/pages/auth/login/login_page.dart';
 import 'package:dynora_finance/ui/pages/auth/register/register_page.dart';
-import 'package:dynora_finance/ui/pages/main/main_page.dart';
-import 'package:dynora_finance/ui/pages/movements/movements_page.dart';
 import 'package:dynora_finance/ui/pages/splash/splash_page.dart';
-import 'package:dynora_finance/ui/widgets/main_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,7 +16,6 @@ abstract class AppRoutes {
   static const register = '/register';
   static const about = '/about';
   static const main = '/main';
-  static const movements = '/movements';
 }
 
 abstract class LoaderIds {
@@ -29,24 +27,24 @@ GoRouter createRouter(NavigationBloc navigationBloc) {
     navigatorKey: navigatorKey,
     initialLocation: AppRoutes.main,
     routes: [
+      GoRoute(
+        path: AppRoutes.splash,
+        name: AppRoutes.splash,
+        builder: (_, __) => SplashPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.login,
+        name: AppRoutes.login,
+        builder: (_, __) => LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        name: AppRoutes.register,
+        builder: (_, __) => RegisterPage(),
+      ),
       ShellRoute(
-        builder: (context, state, child) => MainLayout(child: child),
+        builder: (context, state, child) => AppShell(child: child),
         routes: [
-          GoRoute(
-            path: AppRoutes.splash,
-            name: AppRoutes.splash,
-            builder: (_, __) => SplashPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.login,
-            name: AppRoutes.login,
-            builder: (_, __) => LoginPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.register,
-            name: AppRoutes.register,
-            builder: (_, __) => RegisterPage(),
-          ),
           GoRoute(
             path: AppRoutes.about,
             name: AppRoutes.about,
@@ -55,12 +53,7 @@ GoRouter createRouter(NavigationBloc navigationBloc) {
           GoRoute(
             path: AppRoutes.main,
             name: AppRoutes.main,
-            builder: (_, __) => MainPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.movements,
-            name: AppRoutes.movements,
-            builder: (_, __) => MovementsPage(),
+            builder: (_, __) => MainNavigation(),
           ),
         ]
       )

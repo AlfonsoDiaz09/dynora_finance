@@ -11,7 +11,6 @@ final excludedRoutesAppbar = [
   AppRoutes.splash,
   AppRoutes.login,
   AppRoutes.register,
-  AppRoutes.movements,
 ];
 
 final includedRoutesAppbar = [];
