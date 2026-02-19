@@ -2,23 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProfileOptionTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final bool isDanger;
-
   const ProfileOptionTile({
     super.key,
     required this.icon,
     required this.title,
     this.isDanger = false,
+    required this.onTap,
   });
+
+  final IconData icon;
+  final String title;
+  final bool isDanger;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(bottom: 15.h),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 18.h),
           decoration: BoxDecoration(
