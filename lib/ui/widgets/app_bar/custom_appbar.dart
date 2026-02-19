@@ -13,18 +13,28 @@ final excludedRoutesAppbar = [
   AppRoutes.register,
 ];
 
-final includedRoutesAppbar = [];
+final excludedIndexAppbar = [];
 
 class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppbar({super.key, this.height});
+  const CustomAppbar({
+    super.key,
+    this.height,
+    this.indexCurrent,
+    this.canBack = false,
+    this.title,
+  });
 
   final double? height;
+  final int? indexCurrent;
+  final bool canBack;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
     return BlocSelector<NavigationBloc, NavigationState, String?>(
       selector: (state) {
-        if (excludedRoutesAppbar.contains(state.currentRoute)) {
+        if (excludedRoutesAppbar.contains(state.currentRoute) ||
+            excludedIndexAppbar.contains(indexCurrent)) {
           return null;
         }
         return state.currentRoute;
@@ -36,21 +46,42 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
         return AppBar(
           toolbarHeight: height ?? 60.h,
           backgroundColor: Color(0xFF1B0234),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AppbarProfile(),
-              Row(
-                children: [
-                  AppbarNotifications(),
-                  SizedBox(width: 12.w),
-                  AppbarHelp(),
-                ],
-              ),
-            ],
-          ),
+          leading: canBack
+              ? GestureDetector(
+                  onTap: () {},
+                  child: Icon(Icons.arrow_back_rounded, color: Colors.white),
+                )
+              : null,
+          title: indexCurrent == 2 ? _appbarProfile() : _appbarTitle(),
         );
       },
+    );
+  }
+
+  Widget _appbarProfile() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        AppbarProfile(),
+        Row(
+          children: [
+            AppbarNotifications(),
+            SizedBox(width: 12.w),
+            AppbarHelp(),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _appbarTitle() {
+    return Text(
+      title ?? '',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 22.sp,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 

@@ -15,15 +15,6 @@ class BudgetPage extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           children: [
             SizedBox(height: 20.h),
-            Text(
-              "Presupuesto",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 20.h),
             BudgetSummaryCard(),
             SizedBox(height: 30.h),
             Text(

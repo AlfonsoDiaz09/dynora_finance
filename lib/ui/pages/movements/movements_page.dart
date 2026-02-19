@@ -14,14 +14,6 @@ class MovementsPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              alignment: Alignment.centerLeft,
-              padding: EdgeInsets.only(left: 20.w, right: 20.w, top: 20.h),
-              child: Text(
-                "Movimientos",
-                style: TextStyle(color: Colors.white, fontSize: 21.sp),
-              ),
-            ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
               child: TransactionsSummaryCard(),

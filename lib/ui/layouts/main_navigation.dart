@@ -19,13 +19,23 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 2;
 
-  final List<Widget> _pages = const [
+  final List<Widget> _pages = [
     MovementsPage(),
     StatsPage(),
     HomePage(),
     BudgetPage(),
     ProfilePage(),
   ];
+
+  final List _names = [
+    'Movimientos',
+    'Estadisticas',
+    'Inicio',
+    'Presupuesto',
+    'Perfil',
+  ];
+
+  final List _canBack = [true, true, false, true, false];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -42,31 +52,25 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  bool get _shouldShowAppBar {
-    return _currentIndex != 0;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xff0F0F1A),
-      appBar: _shouldShowAppBar ? const CustomAppbar() : null,
-
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
+      appBar: CustomAppbar(
+        indexCurrent: _currentIndex,
+        title: _names[_currentIndex],
+        canBack: _canBack[_currentIndex],
       ),
-
+      body: SafeArea(
+        child: IndexedStack(index: _currentIndex, children: _pages),
+      ),
       floatingActionButton: QuickActionButton(
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
         onFastActionTap: _onFastActionTap,
       ),
-
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.centerDocked,
-
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onItemTapped,

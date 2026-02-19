@@ -21,15 +21,6 @@ class StatsPage extends StatelessWidget {
             bottom: 40.h,
           ),
           children: [
-            Text(
-              "Estadísticas",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 20.h),
             MonthSelector(),
             SizedBox(height: 20.h),
             StatisticsSummaryCard(),
