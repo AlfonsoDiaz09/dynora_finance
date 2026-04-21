@@ -1,10 +1,10 @@
 import 'package:dynora_finance/ui/bloc/navigation/navigation_bloc.dart';
 import 'package:dynora_finance/ui/layouts/app_shell.dart';
 import 'package:dynora_finance/ui/layouts/main_navigation.dart';
-import 'package:dynora_finance/ui/pages/about/about_page.dart';
-import 'package:dynora_finance/ui/pages/auth/login/login_page.dart';
-import 'package:dynora_finance/ui/pages/auth/register/register_page.dart';
-import 'package:dynora_finance/ui/pages/splash/splash_page.dart';
+import 'package:dynora_finance/features/about/presentation/pages/about/about_page.dart';
+import 'package:dynora_finance/features/auth/presentation/pages/login/login_page.dart';
+import 'package:dynora_finance/features/auth/presentation/pages/register/register_page.dart';
+import 'package:dynora_finance/features/splash/presentation/pages/splash/splash_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 

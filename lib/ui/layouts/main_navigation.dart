@@ -1,8 +1,8 @@
-import 'package:dynora_finance/ui/pages/budget/budget_page.dart';
-import 'package:dynora_finance/ui/pages/home/home_page.dart';
-import 'package:dynora_finance/ui/pages/movements/movements_page.dart';
-import 'package:dynora_finance/ui/pages/profile/profile_page.dart';
-import 'package:dynora_finance/ui/pages/stats/stats_page.dart';
+import 'package:dynora_finance/features/budget/presentation/pages/budget/budget_page.dart';
+import 'package:dynora_finance/features/home/presentation/pages/home/home_page.dart';
+import 'package:dynora_finance/features/movements/presentation/pages/movements/movements_page.dart';
+import 'package:dynora_finance/features/profile/presentation/pages/profile/profile_page.dart';
+import 'package:dynora_finance/features/stats/presentation/pages/stats/stats_page.dart';
 import 'package:dynora_finance/ui/widgets/add_transaction_sheet.dart';
 import 'package:dynora_finance/ui/widgets/app_bar/custom_appbar.dart';
 import 'package:dynora_finance/ui/widgets/bottom_nav/bottom_nav_bar.dart';
