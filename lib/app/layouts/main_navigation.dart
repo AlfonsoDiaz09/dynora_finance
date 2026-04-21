@@ -3,10 +3,10 @@ import 'package:dynora_finance/features/home/presentation/pages/home/home_page.d
 import 'package:dynora_finance/features/movements/presentation/pages/movements/movements_page.dart';
 import 'package:dynora_finance/features/profile/presentation/pages/profile/profile_page.dart';
 import 'package:dynora_finance/features/stats/presentation/pages/stats/stats_page.dart';
-import 'package:dynora_finance/ui/widgets/add_transaction_sheet.dart';
-import 'package:dynora_finance/ui/widgets/app_bar/custom_appbar.dart';
-import 'package:dynora_finance/ui/widgets/bottom_nav/bottom_nav_bar.dart';
-import 'package:dynora_finance/ui/widgets/bottom_nav/quick_action_button.dart';
+import 'package:dynora_finance/shared/widgets/add_transaction_sheet.dart';
+import 'package:dynora_finance/shared/widgets/app_bar/custom_appbar.dart';
+import 'package:dynora_finance/shared/widgets/bottom_nav/bottom_nav_bar.dart';
+import 'package:dynora_finance/shared/widgets/bottom_nav/quick_action_button.dart';
 import 'package:flutter/material.dart';
 
 class MainNavigation extends StatefulWidget {

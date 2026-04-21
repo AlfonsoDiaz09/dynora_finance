@@ -1,7 +1,7 @@
-import 'package:dynora_finance/ui/bloc/navigation/navigation_bloc.dart';
+import 'package:dynora_finance/app/bloc/navigation/navigation_bloc.dart';
 import 'package:dynora_finance/features/auth/presentation/pages/widgets/button.dart';
 import 'package:dynora_finance/features/auth/presentation/pages/widgets/input_field.dart';
-import 'package:dynora_finance/ui/router/router.dart';
+import 'package:dynora_finance/app/router/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

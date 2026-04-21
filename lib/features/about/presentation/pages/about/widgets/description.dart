@@ -1,4 +1,4 @@
-import 'package:dynora_finance/ui/widgets/info_card.dart';
+import 'package:dynora_finance/shared/widgets/info_card.dart';
 import 'package:flutter/material.dart';
 
 class Description extends StatelessWidget {

@@ -8,20 +8,21 @@ class NavigationState {
   const NavigationState({
     required this.currentRoute,
     this.navigateTo,
-    this.isPushNavigation = false
+    this.isPushNavigation = false,
   });
 
   NavigationState copyWith({
     String? currentRoute,
     String? navigateTo,
-    bool? isPushNavigation
+    bool? isPushNavigation,
   }) {
     return NavigationState(
       currentRoute: currentRoute ?? this.currentRoute,
       navigateTo: navigateTo,
-      isPushNavigation: isPushNavigation ?? this.isPushNavigation
+      isPushNavigation: isPushNavigation ?? this.isPushNavigation,
     );
   }
 
-  static NavigationState initial() => NavigationState(currentRoute: AppRoutes.splash);
+  static NavigationState initial() =>
+      NavigationState(currentRoute: AppRoutes.splash);
 }

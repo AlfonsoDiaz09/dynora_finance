@@ -1,6 +1,6 @@
-import 'package:dynora_finance/ui/bloc/navigation/navigation_bloc.dart';
-import 'package:dynora_finance/ui/layouts/app_shell.dart';
-import 'package:dynora_finance/ui/layouts/main_navigation.dart';
+import 'package:dynora_finance/app/bloc/navigation/navigation_bloc.dart';
+import 'package:dynora_finance/app/layouts/app_shell.dart';
+import 'package:dynora_finance/app/layouts/main_navigation.dart';
 import 'package:dynora_finance/features/about/presentation/pages/about/about_page.dart';
 import 'package:dynora_finance/features/auth/presentation/pages/login/login_page.dart';
 import 'package:dynora_finance/features/auth/presentation/pages/register/register_page.dart';
@@ -55,8 +55,8 @@ GoRouter createRouter(NavigationBloc navigationBloc) {
             name: AppRoutes.main,
             builder: (_, __) => MainNavigation(),
           ),
-        ]
-      )
+        ],
+      ),
     ],
   );
 

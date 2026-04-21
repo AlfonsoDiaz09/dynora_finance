@@ -1,4 +1,4 @@
-import 'package:dynora_finance/ui/widgets/bottom_nav/bottom_nav_item.dart';
+import 'package:dynora_finance/shared/widgets/bottom_nav/bottom_nav_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -31,11 +31,31 @@ class BottomNavBar extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              BottomNavItem(icon: Icons.swap_horiz, index: 0, currentIndex: currentIndex, onTap: onTap),
-              BottomNavItem(icon: Icons.bar_chart_rounded, index: 1, currentIndex: currentIndex, onTap: onTap),
+              BottomNavItem(
+                icon: Icons.swap_horiz,
+                index: 0,
+                currentIndex: currentIndex,
+                onTap: onTap,
+              ),
+              BottomNavItem(
+                icon: Icons.bar_chart_rounded,
+                index: 1,
+                currentIndex: currentIndex,
+                onTap: onTap,
+              ),
               SizedBox(width: 60),
-              BottomNavItem(icon: Icons.pie_chart_outline, index: 3, currentIndex: currentIndex, onTap: onTap),
-              BottomNavItem(icon: Icons.person_outline, index: 4, currentIndex: currentIndex, onTap: onTap),
+              BottomNavItem(
+                icon: Icons.pie_chart_outline,
+                index: 3,
+                currentIndex: currentIndex,
+                onTap: onTap,
+              ),
+              BottomNavItem(
+                icon: Icons.person_outline,
+                index: 4,
+                currentIndex: currentIndex,
+                onTap: onTap,
+              ),
             ],
           ),
         ],
