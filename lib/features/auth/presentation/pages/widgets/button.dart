@@ -35,24 +35,21 @@ class _ButtonState extends State<Button> {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16.r),
-          onTap: () {
-            setState(() => loading = true);
-          },
-          child: Center(
-            child: loading
-                ? CircularProgressIndicator(color: Colors.white)
-                : Text(
-                    widget.text,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16.r),
+        onTap: () {
+          setState(() => loading = true);
+        },
+        child: Center(
+          child: loading
+              ? CircularProgressIndicator(color: Colors.white)
+              : Text(
+                  widget.text,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
                   ),
-          ),
+                ),
         ),
       ),
     );

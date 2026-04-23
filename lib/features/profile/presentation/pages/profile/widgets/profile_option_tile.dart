@@ -21,6 +21,7 @@ class ProfileOptionTile extends StatelessWidget {
       padding: EdgeInsets.only(bottom: 15.h),
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(16.r),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 18.h),
           decoration: BoxDecoration(

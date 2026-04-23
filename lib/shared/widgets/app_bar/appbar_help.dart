@@ -8,6 +8,7 @@ class AppbarHelp extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {},
+      borderRadius: BorderRadius.circular(100.r),
       child: Container(
         padding: EdgeInsets.all(8.w),
         decoration: BoxDecoration(

@@ -17,6 +17,7 @@ class QuickActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => onTap(2),
+      borderRadius: BorderRadius.circular(100.r),
       onLongPress: onFastActionTap,
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200),

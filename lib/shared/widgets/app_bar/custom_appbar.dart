@@ -41,6 +41,7 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
             backgroundColor: Color(0xFF1B0234),
             leading: canBack && context.canPop()
                 ? InkWell(
+                    borderRadius: BorderRadius.circular(100.r),
                     onTap: () {
                       if (context.canPop()) {
                         context.pop();

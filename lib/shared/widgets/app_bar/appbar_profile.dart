@@ -8,6 +8,10 @@ class AppbarProfile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {},
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      focusColor: Colors.transparent,
       child: Row(
         children: [
           Container(
