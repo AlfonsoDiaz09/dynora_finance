@@ -1,4 +1,3 @@
-import 'package:dynora_finance/app/bloc/navigation/navigation_bloc.dart';
 import 'package:dynora_finance/app/router/router.dart';
 import 'package:dynora_finance/shared/widgets/app_bar/appbar_help.dart';
 import 'package:dynora_finance/shared/widgets/app_bar/appbar_notifications.dart';
@@ -6,6 +5,7 @@ import 'package:dynora_finance/shared/widgets/app_bar/appbar_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 final excludedRoutesAppbar = [
   AppRoutes.splash,
@@ -13,49 +13,48 @@ final excludedRoutesAppbar = [
   AppRoutes.register,
 ];
 
-final excludedIndexAppbar = [];
+final hasProfileAppbar = [AppRoutes.home];
 
 class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppbar({
     super.key,
     this.height,
-    this.indexCurrent,
+    this.indexCurrent = 0,
     this.canBack = false,
     this.title,
   });
 
   final double? height;
-  final int? indexCurrent;
+  final int indexCurrent;
   final bool canBack;
   final String? title;
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<NavigationBloc, NavigationState, String?>(
-      selector: (state) {
-        if (excludedRoutesAppbar.contains(state.currentRoute) ||
-            excludedIndexAppbar.contains(indexCurrent)) {
-          return null;
-        }
-        return state.currentRoute;
-      },
-      builder: (context, state) {
-        if (state == null) {
-          return SizedBox.shrink();
-        }
-        return AppBar(
-          toolbarHeight: height ?? 60.h,
-          backgroundColor: Color(0xFF1B0234),
-          leading: canBack
-              ? InkWell(
-                  onTap: () {},
-                  child: Icon(Icons.arrow_back_rounded, color: Colors.white),
-                )
-              : null,
-          title: indexCurrent == 2 ? _appbarProfile() : _appbarTitle(),
-        );
-      },
-    );
+    final location = GoRouterState.of(context).uri.toString();
+    final showAppBar = !excludedRoutesAppbar.contains(location);
+
+    return !showAppBar
+        ? SizedBox.shrink()
+        : AppBar(
+            toolbarHeight: height ?? 60.h,
+            backgroundColor: Color(0xFF1B0234),
+            leading: canBack && context.canPop()
+                ? InkWell(
+                    onTap: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go(AppRoutes.home);
+                      }
+                    },
+                    child: Icon(Icons.arrow_back_rounded, color: Colors.white),
+                  )
+                : null,
+            title: hasProfileAppbar.contains(location)
+                ? _appbarProfile()
+                : _appbarTitle(),
+          );
   }
 
   Widget _appbarProfile() {

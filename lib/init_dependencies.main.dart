@@ -8,5 +8,5 @@ Future<void> initDependencies() async {
 }
 
 void _initApp(){
-   serviceLocator.registerLazySingleton(() => NavigationBloc());
+   serviceLocator.registerLazySingleton(() => NavigationCubit());
 }

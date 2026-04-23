@@ -1,9 +1,6 @@
-import 'package:dynora_finance/app/bloc/navigation/navigation_bloc.dart';
 import 'package:dynora_finance/features/auth/presentation/pages/widgets/button.dart';
 import 'package:dynora_finance/features/auth/presentation/pages/widgets/input_field.dart';
-import 'package:dynora_finance/app/router/router.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FormRegister extends StatelessWidget {
@@ -44,7 +41,7 @@ class FormRegister extends StatelessWidget {
         SizedBox(height: 16.h),
         TextButton(
           onPressed: () {
-            context.read<NavigationBloc>().add(NavigateTo(AppRoutes.login));
+            // TODO: Navigate to login
           },
           child: Text(
             "Ya tengo cuenta",
