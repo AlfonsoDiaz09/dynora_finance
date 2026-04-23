@@ -24,9 +24,10 @@ class QuickActionButton extends StatelessWidget {
         height: 60.h,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [Color(0xff7F00FF), Color(0xffE100FF)],
-          ),
+          color: currentIndex == 2 ? null : Color(0xff1A1A2E),
+          gradient: currentIndex == 2
+              ? LinearGradient(colors: [Color(0xff7F00FF), Color(0xffE100FF)])
+              : null,
           boxShadow: [
             BoxShadow(
               color: Colors.purpleAccent,
@@ -36,8 +37,10 @@ class QuickActionButton extends StatelessWidget {
           ],
         ),
         child: Icon(
-          currentIndex == 2 ? Icons.home_rounded : Icons.home_outlined,
-          color: Colors.white,
+          Icons.home_rounded,
+          color: currentIndex == 2
+              ? Colors.white
+              : Colors.white.withValues(alpha: 0.4),
           size: 28.sp,
         ),
       ),

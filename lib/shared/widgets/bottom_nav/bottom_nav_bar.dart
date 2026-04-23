@@ -45,13 +45,13 @@ class BottomNavBar extends StatelessWidget {
               ),
               SizedBox(width: 60),
               BottomNavItem(
-                icon: Icons.pie_chart_outline,
+                icon: Icons.pie_chart,
                 index: 3,
                 currentIndex: currentIndex,
                 onTap: onTap,
               ),
               BottomNavItem(
-                icon: Icons.person_outline,
+                icon: Icons.person_rounded,
                 index: 4,
                 currentIndex: currentIndex,
                 onTap: onTap,
