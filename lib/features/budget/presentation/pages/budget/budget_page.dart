@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'widgets/budget_summary_card.dart';
@@ -9,7 +10,7 @@ class BudgetPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF121212),
+      backgroundColor: AppColors.background,
       body: ListView(
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         children: [

@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/about/presentation/pages/about/widgets/body.dart';
 import 'package:flutter/material.dart';
 
@@ -9,8 +10,8 @@ class AboutPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Acerca de", style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF121212),
-        shadowColor: const Color(0xFF121212),
+        backgroundColor: AppColors.background,
+        shadowColor: AppColors.background,
         elevation: 0,
       ),
       body: Body(),

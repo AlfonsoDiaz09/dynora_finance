@@ -1,9 +1,9 @@
 import 'package:dynora_finance/app/router/router.dart';
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/shared/widgets/app_bar/appbar_help.dart';
 import 'package:dynora_finance/shared/widgets/app_bar/appbar_notifications.dart';
 import 'package:dynora_finance/shared/widgets/app_bar/appbar_profile.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -38,7 +38,7 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
         ? SizedBox.shrink()
         : AppBar(
             toolbarHeight: height ?? 60.h,
-            backgroundColor: Color(0xFF1B0234),
+            backgroundColor: AppColors.background,
             leading: canBack && context.canPop()
                 ? InkWell(
                     borderRadius: BorderRadius.circular(100.r),
