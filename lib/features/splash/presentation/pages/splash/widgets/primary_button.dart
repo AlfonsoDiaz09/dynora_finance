@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -17,7 +18,7 @@ class PrimaryButton extends StatelessWidget {
         height: 54.h,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Color(0xFFB14CFF),
+          color: AppColors.primary70,
           borderRadius: BorderRadius.circular(18.r),
         ),
         child: Text(

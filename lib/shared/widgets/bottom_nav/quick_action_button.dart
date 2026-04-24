@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -27,7 +28,7 @@ class QuickActionButton extends StatelessWidget {
           shape: BoxShape.circle,
           color: currentIndex == 2 ? null : Color(0xff1A1A2E),
           gradient: currentIndex == 2
-              ? LinearGradient(colors: [Color(0xff7F00FF), Color(0xffE100FF)])
+              ? LinearGradient(colors: [AppColors.primary, Color(0xffE100FF)])
               : null,
           boxShadow: [
             BoxShadow(

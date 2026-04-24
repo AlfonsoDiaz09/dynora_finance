@@ -14,4 +14,8 @@ class AppColors {
   static const error = Colors.redAccent;
   static const warning = Colors.orangeAccent;
   static const info = Colors.blueAccent;
+
+  static Color primary20 = AppColors.primary.withValues(alpha: 0.2);
+  static Color primary40 = AppColors.primary.withValues(alpha: 0.4);
+  static Color primary70 = AppColors.primary.withValues(alpha: 0.7);
 }

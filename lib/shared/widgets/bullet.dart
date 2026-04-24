@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -17,7 +18,7 @@ class Bullet extends StatelessWidget {
             height: 6.h,
             margin: EdgeInsets.only(right: 10.w),
             decoration: BoxDecoration(
-              color: Color(0xFFB14CFF),
+              color: AppColors.primary70,
               shape: BoxShape.circle,
             ),
           ),

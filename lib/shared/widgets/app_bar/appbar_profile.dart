@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -19,7 +20,7 @@ class AppbarProfile extends StatelessWidget {
             height: 40.w,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(0xff7F00FF).withValues(alpha: 0.2),
+              color: AppColors.primary20,
               border: Border.all(color: Color(0xffE100FF), width: 1.5),
             ),
             child: Icon(Icons.person, color: Colors.white, size: 20),

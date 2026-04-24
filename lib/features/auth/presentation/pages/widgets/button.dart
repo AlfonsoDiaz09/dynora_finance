@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -26,11 +27,11 @@ class _ButtonState extends State<Button> {
       duration: Duration(milliseconds: 300),
       height: 52.h,
       decoration: BoxDecoration(
-        color: Color(0xFFB14CFF),
+        color: AppColors.primary70,
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFFB14CFF).withValues(alpha: 0.4),
+            color: AppColors.primary40,
             blurRadius: 16.r,
           ),
         ],
