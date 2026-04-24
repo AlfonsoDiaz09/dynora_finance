@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/stats/presentation/pages/stats/widgets/summary_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,7 +13,7 @@ class StatisticsSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20.r),
         gradient: LinearGradient(
-          colors: [Color(0xff1E1E2D), Color(0xff25253A)],
+          colors: [AppColors.surface, Color(0xff25253A)],
         ),
       ),
       child: Column(

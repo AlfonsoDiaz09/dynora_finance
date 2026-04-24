@@ -26,7 +26,7 @@ class QuickActionButton extends StatelessWidget {
         height: 60.h,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: currentIndex == 2 ? null : Color(0xff1A1A2E),
+          color: currentIndex == 2 ? null : AppColors.surface,
           gradient: currentIndex == 2
               ? LinearGradient(colors: [AppColors.primary, AppColors.secondary])
               : null,

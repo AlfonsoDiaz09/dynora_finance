@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/shared/widgets/bottom_nav/bottom_nav_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,7 +19,7 @@ class BottomNavBar extends StatelessWidget {
       height: 50.h,
       margin: EdgeInsets.only(bottom: 10.h, left: 15.w, right: 15.w),
       decoration: BoxDecoration(
-        color: Color(0xff1A1A2E),
+        color: AppColors.surface,
         borderRadius: BorderRadius.all(Radius.circular(25.r)),
         boxShadow: [
           BoxShadow(color: Colors.purpleAccent, blurRadius: 5, spreadRadius: 2),

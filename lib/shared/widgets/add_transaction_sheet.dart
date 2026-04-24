@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class AddTransactionSheet extends StatelessWidget {
@@ -8,7 +9,7 @@ class AddTransactionSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
-        color: Color(0xff1A1A2E),
+        color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Column(
