@@ -23,7 +23,7 @@ class BudgetSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Presupuesto mensual", style: TextStyle(color: Colors.white70)),
+          Text("Presupuesto mensual", style: TextStyle(color: AppColors.textPrimary70)),
           SizedBox(height: 8.h),
           Text(
             "\$${remaining.toStringAsFixed(0)} disponibles",
@@ -46,7 +46,7 @@ class BudgetSummaryCard extends StatelessWidget {
           SizedBox(height: 10.h),
           Text(
             "\$${spent.toStringAsFixed(0)} de \$${total.toStringAsFixed(0)} usados",
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: AppColors.textPrimary70),
           ),
         ],
       ),

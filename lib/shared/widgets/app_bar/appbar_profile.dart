@@ -39,7 +39,7 @@ class AppbarProfile extends StatelessWidget {
               SizedBox(width: 6.w),
               Icon(
                 Icons.chevron_right,
-                color: Colors.white.withValues(alpha: 0.6),
+                color: AppColors.textPrimary70,
                 size: 20.sp,
               ),
             ],

@@ -42,7 +42,7 @@ class QuickActionButton extends StatelessWidget {
           Icons.home_rounded,
           color: currentIndex == 2
               ? Colors.white
-              : Colors.white.withValues(alpha: 0.4),
+              : AppColors.textPrimary38,
           size: 28.sp,
         ),
       ),

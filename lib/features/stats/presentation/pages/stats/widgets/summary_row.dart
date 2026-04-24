@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -18,7 +19,7 @@ class SummaryRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Colors.white70)),
+        Text(label, style: TextStyle(color: AppColors.textPrimary70)),
         Text(
           value,
           style: TextStyle(

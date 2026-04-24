@@ -19,7 +19,7 @@ class BudgetPage extends StatelessWidget {
           SizedBox(height: 30.h),
           Text(
             "Por categoría",
-            style: TextStyle(color: Colors.white70, fontSize: 16.sp),
+            style: TextStyle(color: AppColors.textPrimary70, fontSize: 16.sp),
           ),
           SizedBox(height: 15.h),
           CategoryBudgetCard(category: "Comida", spent: 320, total: 500),

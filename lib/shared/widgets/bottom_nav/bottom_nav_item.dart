@@ -30,7 +30,7 @@ class BottomNavItem extends StatelessWidget {
           size: 26.sp,
           color: isActive
               ? AppColors.secondary
-              : Colors.white.withValues(alpha: 0.4),
+              : AppColors.textPrimary38,
         ),
       ),
     );

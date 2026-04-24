@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -50,7 +51,7 @@ class TransactionItem extends StatelessWidget {
                 Text(
                   category,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: AppColors.textPrimary70,
                     fontSize: 12.sp,
                   ),
                 ),

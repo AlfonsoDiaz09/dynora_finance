@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/auth/presentation/pages/widgets/button.dart';
 import 'package:dynora_finance/features/auth/presentation/pages/widgets/input_field.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class FormLogin extends StatelessWidget {
           onPressed: () {
             // TODO: Navigate to register
           },
-          child: Text("Crear cuenta", style: TextStyle(color: Colors.white70)),
+          child: Text("Crear cuenta", style: TextStyle(color: AppColors.textPrimary70)),
         ),
       ],
     );

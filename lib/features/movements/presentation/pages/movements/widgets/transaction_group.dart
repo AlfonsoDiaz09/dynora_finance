@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'transaction_item.dart';
@@ -14,7 +15,7 @@ class TransactionGroup extends StatelessWidget {
       children: [
         Text(
           date,
-          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.textPrimary70, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 12.h),
         TransactionItem(

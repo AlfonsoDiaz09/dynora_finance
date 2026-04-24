@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -32,7 +33,7 @@ class InfoCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 14.sp,
               height: 1.6.h,
-              color: Colors.white70,
+              color: AppColors.textPrimary70,
             ),
             child: child,
           ),

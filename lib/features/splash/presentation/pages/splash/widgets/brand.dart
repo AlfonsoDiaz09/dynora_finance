@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -13,7 +14,7 @@ class Brand extends StatelessWidget {
       child: Text(
         'Dynora Finanzas',
         style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.85),
+          color: AppColors.textPrimary85,
           fontSize: 22.sp,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,

@@ -18,7 +18,7 @@ class FinancialSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Balance total", style: TextStyle(color: Colors.white70)),
+          Text("Balance total", style: TextStyle(color: AppColors.textPrimary70)),
           SizedBox(height: 8.h),
           Text(
             "\$24,580.00",
@@ -66,7 +66,7 @@ class _MiniSummary extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.white70)),
+        Text(label, style: TextStyle(color: AppColors.textPrimary70)),
         SizedBox(height: 4.h),
         Text(
           value,

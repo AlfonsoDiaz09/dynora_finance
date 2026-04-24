@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -20,8 +21,8 @@ class InputField extends StatelessWidget {
       style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white38),
-        prefixIcon: Icon(icon, color: Colors.white54),
+        hintStyle: TextStyle(color: AppColors.textPrimary38),
+        prefixIcon: Icon(icon, color: AppColors.textPrimary70),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(

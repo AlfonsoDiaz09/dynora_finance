@@ -23,7 +23,7 @@ class Bullet extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(text, style: TextStyle(color: Colors.white70)),
+            child: Text(text, style: TextStyle(color: AppColors.textPrimary70)),
           ),
         ],
       ),

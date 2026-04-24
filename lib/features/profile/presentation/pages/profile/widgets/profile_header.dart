@@ -44,7 +44,7 @@ class ProfileHeader extends StatelessWidget {
             SizedBox(height: 4.h),
             Text(
               "alfonso@email.com",
-              style: TextStyle(color: Colors.white54, fontSize: 14.sp),
+              style: TextStyle(color: AppColors.textPrimary70, fontSize: 14.sp),
             ),
           ],
         ),

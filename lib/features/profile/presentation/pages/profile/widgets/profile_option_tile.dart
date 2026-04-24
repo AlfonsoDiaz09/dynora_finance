@@ -42,7 +42,7 @@ class ProfileOptionTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, size: 14.sp, color: Colors.white54),
+              Icon(Icons.arrow_forward_ios, size: 14.sp, color: AppColors.textPrimary70),
             ],
           ),
         ),

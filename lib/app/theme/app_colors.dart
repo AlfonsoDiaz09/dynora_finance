@@ -18,4 +18,7 @@ class AppColors {
   static Color primary20 = AppColors.primary.withValues(alpha: 0.2);
   static Color primary40 = AppColors.primary.withValues(alpha: 0.4);
   static Color primary70 = AppColors.primary.withValues(alpha: 0.7);
+  static Color textPrimary38 = AppColors.textPrimary.withValues(alpha: 0.38);
+  static Color textPrimary70 = AppColors.textPrimary.withValues(alpha: 0.7);
+  static Color textPrimary85 = AppColors.textPrimary.withValues(alpha: 0.85);
 }

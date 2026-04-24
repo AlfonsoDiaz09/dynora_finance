@@ -37,7 +37,7 @@ class CategoryBudgetCard extends StatelessWidget {
               ),
               Text(
                 "\$${remaining.toStringAsFixed(0)} libres",
-                style: TextStyle(color: Colors.white70, fontSize: 14.sp),
+                style: TextStyle(color: AppColors.textPrimary70, fontSize: 14.sp),
               ),
             ],
           ),
@@ -56,7 +56,7 @@ class CategoryBudgetCard extends StatelessWidget {
           SizedBox(height: 8.h),
           Text(
             "\$${spent.toStringAsFixed(0)} de \$${total.toStringAsFixed(0)}",
-            style: TextStyle(color: Colors.white54, fontSize: 13.sp),
+            style: TextStyle(color: AppColors.textPrimary70, fontSize: 13.sp),
           ),
         ],
       ),
