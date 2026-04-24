@@ -17,7 +17,7 @@ class BudgetSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20.r),
         gradient: LinearGradient(
-          colors: [AppColors.primary, Color(0xffE100FF)],
+          colors: [AppColors.primary, AppColors.secondary],
         ),
       ),
       child: Column(

@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -28,7 +29,7 @@ class BottomNavItem extends StatelessWidget {
           icon,
           size: 26.sp,
           color: isActive
-              ? Color(0xffE100FF)
+              ? AppColors.secondary
               : Colors.white.withValues(alpha: 0.4),
         ),
       ),

@@ -21,7 +21,7 @@ class AppbarProfile extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.primary20,
-              border: Border.all(color: Color(0xffE100FF), width: 1.5),
+              border: Border.all(color: AppColors.secondary, width: 1.5),
             ),
             child: Icon(Icons.person, color: Colors.white, size: 20),
           ),

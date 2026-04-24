@@ -28,7 +28,7 @@ class QuickActionButton extends StatelessWidget {
           shape: BoxShape.circle,
           color: currentIndex == 2 ? null : Color(0xff1A1A2E),
           gradient: currentIndex == 2
-              ? LinearGradient(colors: [AppColors.primary, Color(0xffE100FF)])
+              ? LinearGradient(colors: [AppColors.primary, AppColors.secondary])
               : null,
           boxShadow: [
             BoxShadow(
