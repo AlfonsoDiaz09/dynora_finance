@@ -1,4 +1,5 @@
 import 'package:dynora_finance/app/bloc/navigation_cubit/navigation_cubit.dart';
+import 'package:dynora_finance/app/theme/app_theme.dart';
 import 'package:dynora_finance/core/logs/logger_output.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/app/router/router.dart';
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
         splitScreenMode: true,
         child: MaterialApp.router(
           title: 'DynoraFinanceApp',
+          theme: AppTheme.dark,
           routerConfig: router,
           localizationsDelegates: [
             GlobalMaterialLocalizations.delegate,
