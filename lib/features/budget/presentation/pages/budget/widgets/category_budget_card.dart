@@ -47,7 +47,7 @@ class CategoryBudgetCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: percent,
               minHeight: 8.h,
-              backgroundColor: Colors.grey.shade800,
+              backgroundColor: AppColors.surfaceVariant,
               valueColor: AlwaysStoppedAnimation<Color>(
                 percent > 0.9 ? Colors.red : Colors.purpleAccent,
               ),

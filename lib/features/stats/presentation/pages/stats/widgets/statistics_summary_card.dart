@@ -13,7 +13,7 @@ class StatisticsSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20.r),
         gradient: LinearGradient(
-          colors: [AppColors.surface, Color(0xff25253A)],
+          colors: [AppColors.surface, AppColors.surfaceVariant],
         ),
       ),
       child: Column(
