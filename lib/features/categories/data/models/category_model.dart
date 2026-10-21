@@ -22,7 +22,7 @@ class CategoryModel {
   @Index()
   late MovementType type;
 
-  late int iconCodePoint;
+  late String iconKey;
   late int colorValue;
   late DateTime createdAt;
   late DateTime updatedAt;
@@ -42,7 +42,7 @@ class CategoryModel {
       id: uid,
       name: name,
       type: type,
-      iconCodePoint: iconCodePoint,
+      iconKey: iconKey,
       colorValue: colorValue,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -53,7 +53,7 @@ class CategoryModel {
   void applyEntity(CategoryEntity entity) {
     name = entity.name;
     type = entity.type;
-    iconCodePoint = entity.iconCodePoint;
+    iconKey = entity.iconKey;
     colorValue = entity.colorValue;
   }
 }

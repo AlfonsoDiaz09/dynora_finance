@@ -19,7 +19,7 @@ class AddCategory implements UseCase<CategoryEntity, AddCategoryParams> {
     return _repository.createCategory(
       name: params.name.trim(),
       type: params.type,
-      iconCodePoint: params.iconCodePoint,
+      iconKey: params.iconKey,
       colorValue: params.colorValue,
     );
   }
@@ -29,12 +29,12 @@ class AddCategoryParams {
   const AddCategoryParams({
     required this.name,
     required this.type,
-    required this.iconCodePoint,
+    required this.iconKey,
     required this.colorValue,
   });
 
   final String name;
   final MovementType type;
-  final int iconCodePoint;
+  final String iconKey;
   final int colorValue;
 }

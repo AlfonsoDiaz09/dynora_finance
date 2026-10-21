@@ -1,6 +1,7 @@
 import 'package:dynora_finance/core/enums/movement_type.dart';
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
+import 'package:dynora_finance/features/categories/domain/entities/default_categories.dart';
 import 'package:fpdart/fpdart.dart';
 
 abstract interface class CategoryRepository {
@@ -18,7 +19,7 @@ abstract interface class CategoryRepository {
   Future<Either<Failure, CategoryEntity>> createCategory({
     required String name,
     required MovementType type,
-    required int iconCodePoint,
+    required String iconKey,
     required int colorValue,
   });
 
@@ -27,4 +28,7 @@ abstract interface class CategoryRepository {
   );
 
   Future<Either<Failure, Unit>> deleteCategory(String id);
+
+  /// Inserts [defaults] only when no category was ever stored.
+  Future<Either<Failure, Unit>> seedDefaults(List<DefaultCategory> defaults);
 }

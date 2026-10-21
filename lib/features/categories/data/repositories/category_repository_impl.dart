@@ -9,6 +9,7 @@ import 'package:dynora_finance/core/sync/sync_status.dart';
 import 'package:dynora_finance/features/categories/data/datasources/local/category_local_data_source.dart';
 import 'package:dynora_finance/features/categories/data/models/category_model.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
+import 'package:dynora_finance/features/categories/domain/entities/default_categories.dart';
 import 'package:dynora_finance/features/categories/domain/repositories/category_repository.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:uuid/uuid.dart';
@@ -58,7 +59,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
   Future<Either<Failure, CategoryEntity>> createCategory({
     required String name,
     required MovementType type,
-    required int iconCodePoint,
+    required String iconKey,
     required int colorValue,
   }) {
     return guard(() async {
@@ -67,7 +68,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
         ..uid = _uuid.v4()
         ..name = name
         ..type = type
-        ..iconCodePoint = iconCodePoint
+        ..iconKey = iconKey
         ..colorValue = colorValue
         ..createdAt = now
         ..updatedAt = now
@@ -112,6 +113,30 @@ class CategoryRepositoryImpl implements CategoryRepository {
         await _local.save(model);
         _requestSync();
       }
+      return unit;
+    });
+  }
+
+  @override
+  Future<Either<Failure, Unit>> seedDefaults(List<DefaultCategory> defaults) {
+    return guard(() async {
+      if (!await _local.isEmpty()) return unit;
+
+      final now = DateTime.now();
+      final models = [
+        for (final category in defaults)
+          CategoryModel()
+            ..uid = category.id
+            ..name = category.name
+            ..type = category.type
+            ..iconKey = category.iconKey
+            ..colorValue = category.colorValue
+            ..createdAt = now
+            ..updatedAt = now
+            ..syncStatus = SyncStatus.pendingCreate,
+      ];
+      await _local.saveAll(models);
+      _requestSync();
       return unit;
     });
   }

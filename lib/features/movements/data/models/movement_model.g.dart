@@ -139,7 +139,7 @@ const MovementModelSchema = CollectionSchema(
   getId: _movementModelGetId,
   getLinks: _movementModelGetLinks,
   attach: _movementModelAttach,
-  version: '3.3.1',
+  version: '3.3.0',
 );
 
 int _movementModelEstimateSize(

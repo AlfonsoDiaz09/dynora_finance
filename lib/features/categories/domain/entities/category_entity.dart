@@ -6,7 +6,7 @@ class CategoryEntity extends Equatable {
     required this.id,
     required this.name,
     required this.type,
-    required this.iconCodePoint,
+    required this.iconKey,
     required this.colorValue,
     required this.createdAt,
     required this.updatedAt,
@@ -18,8 +18,8 @@ class CategoryEntity extends Equatable {
   /// Whether the category groups incomes or expenses.
   final MovementType type;
 
-  /// `IconData.codePoint` (Material icons font).
-  final int iconCodePoint;
+  /// Key of the icon in the presentation icon catalog.
+  final String iconKey;
 
   /// ARGB value of the category color.
   final int colorValue;
@@ -29,14 +29,14 @@ class CategoryEntity extends Equatable {
   CategoryEntity copyWith({
     String? name,
     MovementType? type,
-    int? iconCodePoint,
+    String? iconKey,
     int? colorValue,
   }) {
     return CategoryEntity(
       id: id,
       name: name ?? this.name,
       type: type ?? this.type,
-      iconCodePoint: iconCodePoint ?? this.iconCodePoint,
+      iconKey: iconKey ?? this.iconKey,
       colorValue: colorValue ?? this.colorValue,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -48,7 +48,7 @@ class CategoryEntity extends Equatable {
     id,
     name,
     type,
-    iconCodePoint,
+    iconKey,
     colorValue,
     createdAt,
     updatedAt,

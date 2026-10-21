@@ -8,11 +8,19 @@ class UpcomingPaymentItem extends StatelessWidget {
     required this.cardName,
     required this.dueDate,
     required this.daysLeft,
+    this.onTap,
   });
 
   final String cardName;
   final String dueDate;
   final int daysLeft;
+  final VoidCallback? onTap;
+
+  String get daysLeftLabel => switch (daysLeft) {
+    0 => "Hoy",
+    1 => "1 día",
+    _ => "$daysLeft días",
+  };
 
   Color get urgencyColor {
     if (daysLeft <= 3) return Colors.redAccent;
@@ -22,45 +30,52 @@ class UpcomingPaymentItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(18.r),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: urgencyColor.withValues(alpha: 0.2),
-            child: Icon(Icons.credit_card, color: urgencyColor),
-          ),
-          SizedBox(width: 14.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  cardName,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  "Vence: $dueDate",
-                  style: TextStyle(
-                    color: AppColors.textPrimary70,
-                    fontSize: 12.sp,
-                  ),
-                ),
-              ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(18.r),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: urgencyColor.withValues(alpha: 0.2),
+              child: Icon(Icons.credit_card, color: urgencyColor),
             ),
-          ),
-          Text(
-            "$daysLeft días",
-            style: TextStyle(color: urgencyColor, fontWeight: FontWeight.bold),
-          ),
-        ],
+            SizedBox(width: 14.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cardName,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    "Vence: $dueDate",
+                    style: TextStyle(
+                      color: AppColors.textPrimary70,
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              daysLeftLabel,
+              style: TextStyle(
+                color: urgencyColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

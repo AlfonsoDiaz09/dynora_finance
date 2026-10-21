@@ -24,6 +24,9 @@ abstract interface class CategoryLocalDataSource {
 
   /// Records with local changes not yet pushed to the remote provider.
   Future<List<CategoryModel>> getPendingSync();
+
+  /// `true` when no category was ever stored (tombstones count as stored).
+  Future<bool> isEmpty();
 }
 
 class CategoryLocalDataSourceImpl implements CategoryLocalDataSource {
@@ -82,6 +85,11 @@ class CategoryLocalDataSourceImpl implements CategoryLocalDataSource {
           .syncStatusEqualTo(SyncStatus.synced)
           .findAll(),
     );
+  }
+
+  @override
+  Future<bool> isEmpty() {
+    return _run(() async => await _collection.count() == 0);
   }
 
   QueryBuilder<CategoryModel, CategoryModel, QAfterSortBy> _query(

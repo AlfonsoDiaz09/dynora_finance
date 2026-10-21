@@ -3,7 +3,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'quick_action_card.dart';
 
 class QuickActionsSection extends StatelessWidget {
-  const QuickActionsSection({super.key});
+  const QuickActionsSection({
+    super.key,
+    required this.onAddExpense,
+    required this.onAddIncome,
+    required this.onCards,
+    required this.onStats,
+  });
+
+  final VoidCallback onAddExpense;
+  final VoidCallback onAddIncome;
+  final VoidCallback onCards;
+  final VoidCallback onStats;
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +38,26 @@ class QuickActionsSection extends StatelessWidget {
           mainAxisSpacing: 16,
           childAspectRatio: 1.2,
           children: [
-            QuickActionCard(icon: Icons.add, title: "Agregar gasto"),
-            QuickActionCard(icon: Icons.trending_up, title: "Agregar ingreso"),
-            QuickActionCard(icon: Icons.credit_card, title: "Tarjetas"),
-            QuickActionCard(icon: Icons.bar_chart, title: "Estadísticas"),
+            QuickActionCard(
+              icon: Icons.add,
+              title: "Agregar gasto",
+              onTap: onAddExpense,
+            ),
+            QuickActionCard(
+              icon: Icons.trending_up,
+              title: "Agregar ingreso",
+              onTap: onAddIncome,
+            ),
+            QuickActionCard(
+              icon: Icons.credit_card,
+              title: "Tarjetas",
+              onTap: onCards,
+            ),
+            QuickActionCard(
+              icon: Icons.bar_chart,
+              title: "Estadísticas",
+              onTap: onStats,
+            ),
           ],
         ),
       ],

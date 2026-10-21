@@ -1,9 +1,17 @@
 import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/summary_item.dart';
+import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MovementsSummaryCard extends StatelessWidget {
-  const MovementsSummaryCard({super.key});
+  const MovementsSummaryCard({
+    super.key,
+    required this.income,
+    required this.expense,
+  });
+
+  final double income;
+  final double expense;
 
   @override
   Widget build(BuildContext context) {
@@ -18,12 +26,12 @@ class MovementsSummaryCard extends StatelessWidget {
         children: [
           SummaryItem(
             title: "Ingresos",
-            amount: "\$18,000",
+            amount: Formatters.currencyNoDecimals(income),
             color: Colors.greenAccent,
           ),
           SummaryItem(
             title: "Gastos",
-            amount: "\$7,540",
+            amount: Formatters.currencyNoDecimals(expense),
             color: Colors.redAccent,
           ),
         ],

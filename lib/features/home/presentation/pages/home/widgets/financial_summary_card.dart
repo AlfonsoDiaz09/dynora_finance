@@ -1,9 +1,19 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
+import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FinancialSummaryCard extends StatelessWidget {
-  const FinancialSummaryCard({super.key});
+  const FinancialSummaryCard({
+    super.key,
+    required this.balance,
+    required this.monthIncome,
+    required this.monthExpense,
+  });
+
+  final double balance;
+  final double monthIncome;
+  final double monthExpense;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +31,7 @@ class FinancialSummaryCard extends StatelessWidget {
           Text("Balance total", style: TextStyle(color: AppColors.textPrimary70)),
           SizedBox(height: 8.h),
           Text(
-            "\$24,580.00",
+            Formatters.currency(balance),
             style: TextStyle(
               fontSize: 28.sp,
               fontWeight: FontWeight.bold,
@@ -34,12 +44,12 @@ class FinancialSummaryCard extends StatelessWidget {
             children: [
               _MiniSummary(
                 label: "Ingresos",
-                value: "\$3,200",
+                value: Formatters.currencyNoDecimals(monthIncome),
                 color: Colors.greenAccent,
               ),
               _MiniSummary(
                 label: "Gastos",
-                value: "\$1,850",
+                value: Formatters.currencyNoDecimals(monthExpense),
                 color: Colors.redAccent,
               ),
             ],

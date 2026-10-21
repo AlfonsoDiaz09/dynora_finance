@@ -8,7 +8,7 @@ class CategoryDto {
     required this.id,
     required this.name,
     required this.type,
-    required this.iconCodePoint,
+    required this.iconKey,
     required this.colorValue,
     required this.createdAt,
     required this.updatedAt,
@@ -18,7 +18,7 @@ class CategoryDto {
   final String id;
   final String name;
   final String type;
-  final int iconCodePoint;
+  final String iconKey;
   final int colorValue;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -29,7 +29,7 @@ class CategoryDto {
       id: json['id'] as String,
       name: json['name'] as String,
       type: json['type'] as String,
-      iconCodePoint: json['icon_code_point'] as int,
+      iconKey: json['icon_key'] as String,
       colorValue: json['color_value'] as int,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -42,7 +42,7 @@ class CategoryDto {
       'id': id,
       'name': name,
       'type': type,
-      'icon_code_point': iconCodePoint,
+      'icon_key': iconKey,
       'color_value': colorValue,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
@@ -55,7 +55,7 @@ class CategoryDto {
       id: model.uid,
       name: model.name,
       type: model.type.name,
-      iconCodePoint: model.iconCodePoint,
+      iconKey: model.iconKey,
       colorValue: model.colorValue,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
@@ -69,7 +69,7 @@ class CategoryDto {
       ..uid = id
       ..name = name
       ..type = MovementType.values.byName(type)
-      ..iconCodePoint = iconCodePoint
+      ..iconKey = iconKey
       ..colorValue = colorValue
       ..createdAt = createdAt.toLocal()
       ..updatedAt = updatedAt.toLocal()

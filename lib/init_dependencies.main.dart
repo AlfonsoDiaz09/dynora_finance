@@ -8,6 +8,9 @@ Future<void> initDependencies() async {
   _initApp();
   _initCategories();
   _initMovements();
+  _initCards();
+  _initBudget();
+  _initScreens();
 }
 
 Future<void> _initCore() async {
@@ -15,6 +18,8 @@ Future<void> _initCore() async {
     SyncMetadataModelSchema,
     CategoryModelSchema,
     MovementModelSchema,
+    CardModelSchema,
+    BudgetModelSchema,
   ]);
 
   serviceLocator
@@ -23,7 +28,12 @@ Future<void> _initCore() async {
     // Offline only for now. To enable online mode, implement the remote data
     // sources and register instead:
     // RemoteSyncEngine(
-    //   handlers: [CategorySyncHandler(...), MovementSyncHandler(...)],
+    //   handlers: [
+    //     CategorySyncHandler(...),
+    //     MovementSyncHandler(...),
+    //     CardSyncHandler(...),
+    //     BudgetSyncHandler(...),
+    //   ],
     //   metadata: SyncMetadataLocalDataSourceImpl(serviceLocator()),
     // )
     ..registerLazySingleton<SyncEngine>(() => const OfflineSyncEngine());
@@ -49,7 +59,8 @@ void _initCategories() {
     ..registerFactory(() => WatchCategories(serviceLocator()))
     ..registerFactory(() => AddCategory(serviceLocator()))
     ..registerFactory(() => UpdateCategory(serviceLocator()))
-    ..registerFactory(() => DeleteCategory(serviceLocator()));
+    ..registerFactory(() => DeleteCategory(serviceLocator()))
+    ..registerFactory(() => EnsureDefaultCategories(serviceLocator()));
 }
 
 void _initMovements() {
@@ -69,4 +80,68 @@ void _initMovements() {
     ..registerFactory(() => AddMovement(serviceLocator()))
     ..registerFactory(() => UpdateMovement(serviceLocator()))
     ..registerFactory(() => DeleteMovement(serviceLocator()));
+}
+
+void _initCards() {
+  serviceLocator
+    ..registerLazySingleton<CardLocalDataSource>(
+      () => CardLocalDataSourceImpl(serviceLocator()),
+    )
+    ..registerLazySingleton<CardRepository>(
+      () => CardRepositoryImpl(
+        local: serviceLocator(),
+        syncEngine: serviceLocator(),
+        uuid: serviceLocator(),
+      ),
+    )
+    ..registerFactory(() => WatchCards(serviceLocator()))
+    ..registerFactory(() => AddCard(serviceLocator()))
+    ..registerFactory(() => UpdateCard(serviceLocator()))
+    ..registerFactory(() => DeleteCard(serviceLocator()));
+}
+
+void _initBudget() {
+  serviceLocator
+    ..registerLazySingleton<BudgetLocalDataSource>(
+      () => BudgetLocalDataSourceImpl(serviceLocator()),
+    )
+    ..registerLazySingleton<BudgetRepository>(
+      () => BudgetRepositoryImpl(
+        local: serviceLocator(),
+        syncEngine: serviceLocator(),
+      ),
+    )
+    ..registerFactory(() => WatchBudgets(serviceLocator()))
+    ..registerFactory(() => SetBudget(serviceLocator()))
+    ..registerFactory(() => DeleteBudget(serviceLocator()));
+}
+
+void _initScreens() {
+  serviceLocator
+    ..registerFactory(
+      () => HomeCubit(
+        watchMovements: serviceLocator(),
+        watchCategories: serviceLocator(),
+        watchCards: serviceLocator(),
+      ),
+    )
+    ..registerFactory(
+      () => MovementsCubit(
+        watchMovements: serviceLocator(),
+        watchCategories: serviceLocator(),
+      ),
+    )
+    ..registerFactory(
+      () => StatsCubit(
+        watchMovements: serviceLocator(),
+        watchCategories: serviceLocator(),
+      ),
+    )
+    ..registerFactory(
+      () => BudgetCubit(
+        watchBudgets: serviceLocator(),
+        watchCategories: serviceLocator(),
+        watchMovements: serviceLocator(),
+      ),
+    );
 }

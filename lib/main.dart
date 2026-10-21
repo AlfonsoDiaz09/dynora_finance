@@ -1,6 +1,8 @@
 import 'package:dynora_finance/app/bloc/navigation_cubit/navigation_cubit.dart';
 import 'package:dynora_finance/app/theme/app_theme.dart';
 import 'package:dynora_finance/core/logs/logger_output.dart';
+import 'package:dynora_finance/core/usecase/usecase.dart';
+import 'package:dynora_finance/features/categories/domain/usecases/ensure_default_categories.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/app/router/router.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +16,10 @@ var logger = LoggerOutput().logger;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initDependencies();
+  (await serviceLocator<EnsureDefaultCategories>()(const NoParams())).match(
+    (failure) => logger.e('Default categories not seeded: ${failure.message}'),
+    (_) {},
+  );
 
   final routerconfig = createRouter();
 
