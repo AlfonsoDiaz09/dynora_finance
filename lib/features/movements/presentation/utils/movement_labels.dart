@@ -1,7 +1,10 @@
 import 'package:dynora_finance/core/enums/movement_type.dart';
 import 'package:dynora_finance/core/enums/payment_method.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
+import 'package:dynora_finance/shared/utils/category_icons.dart';
+import 'package:flutter/material.dart';
 
 extension PaymentMethodLabel on PaymentMethod {
   String get label => switch (this) {
@@ -21,6 +24,24 @@ extension MovementCategoryLabel on MovementEntity {
   /// Whether lists show it as money going out. Cash withdrawals bring money
   /// in, so they show as income outside the card's statement.
   bool get showsAsExpense => isExpense && !isCashWithdrawal;
+
+  /// Icon of its category (an ATM for cash withdrawals).
+  IconData? categoryIcon(Map<String, CategoryEntity> categories) =>
+      isCashWithdrawal
+      ? Icons.local_atm_rounded
+      : switch (categories[categoryId]) {
+          final category? => CategoryIcons.of(category.iconKey),
+          null => null,
+        };
+
+  /// Color of its category.
+  Color? categoryColor(Map<String, CategoryEntity> categories) =>
+      isCashWithdrawal
+      ? AppColors.info
+      : switch (categories[categoryId]) {
+          final category? => Color(category.colorValue),
+          null => null,
+        };
 
   /// Type used for color and sign outside the card's statement.
   MovementType get displayType =>

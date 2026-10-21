@@ -114,6 +114,8 @@ class StatementSection extends StatelessWidget {
                 category: _subtitle(charge),
                 amount: charge.amount,
                 isExpense: charge.movement.isExpense,
+                icon: charge.movement.categoryIcon(categories),
+                iconColor: charge.movement.categoryColor(categories),
                 onTap: () => onMovementTap(charge.movement),
                 footer: _avatarsFor(context, charge.movement),
               ),

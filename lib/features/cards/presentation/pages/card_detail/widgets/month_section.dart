@@ -69,6 +69,8 @@ class MonthSection extends StatelessWidget {
               category: movement.categoryName(categories),
               amount: movement.amount,
               isExpense: movement.isExpense,
+              icon: movement.categoryIcon(categories),
+              iconColor: movement.categoryColor(categories),
               onTap: () => onMovementTap(movement),
               footer: switch (debtors[movement.id]) {
                 final list? when list.isNotEmpty => DebtorAvatars(

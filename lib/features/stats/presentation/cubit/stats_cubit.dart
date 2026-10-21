@@ -17,12 +17,16 @@ import 'package:rxdart/rxdart.dart';
 class CategoryExpense extends Equatable {
   const CategoryExpense({
     required this.name,
+    required this.iconKey,
     required this.colorValue,
     required this.amount,
     required this.share,
   });
 
   final String name;
+
+  /// Category icon (see `CategoryIcons`); empty for unknown categories.
+  final String iconKey;
   final int colorValue;
   final double amount;
 
@@ -30,7 +34,7 @@ class CategoryExpense extends Equatable {
   final double share;
 
   @override
-  List<Object?> get props => [name, colorValue, amount, share];
+  List<Object?> get props => [name, iconKey, colorValue, amount, share];
 }
 
 class StatsState extends Equatable {
@@ -55,6 +59,22 @@ class StatsState extends Equatable {
   double? get expenseTrend => previousExpense == 0
       ? null
       : (summary.expense - previousExpense) / previousExpense;
+
+  /// Share of the income not spent (0.25 = 25%), `null` without income.
+  double? get savingsRate =>
+      summary.income > 0 ? summary.balance / summary.income : null;
+
+  /// Average expense per day: days elapsed for the current month, every day
+  /// of the month otherwise.
+  double dailyAverage(DateTime now) {
+    final daysInMonth = DateTime(
+      month.start.year,
+      month.start.month + 1,
+      0,
+    ).day;
+    final days = month.contains(now) ? now.day : daysInMonth;
+    return summary.expense / days;
+  }
 
   @override
   List<Object?> get props => [
@@ -102,7 +122,10 @@ class StatsCubit extends Cubit<StatsState> {
 
   void nextMonth() => _changeMonth(state.month.next);
 
+  void currentMonth() => _changeMonth(MonthRange(DateTime.now()));
+
   void _changeMonth(MonthRange month) {
+    if (month == state.month) return;
     emit(StatsState(month: month));
     _month.add(month);
   }
@@ -147,6 +170,7 @@ class StatsCubit extends Cubit<StatsState> {
       for (final entry in summary.expenseByCategory.entries)
         CategoryExpense(
           name: categories[entry.key]?.name ?? 'Sin categoría',
+          iconKey: categories[entry.key]?.iconKey ?? '',
           colorValue: categories[entry.key]?.colorValue ?? 0xFF9E9E9E,
           amount: entry.value,
           share: entry.value / summary.expense,

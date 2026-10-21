@@ -1,10 +1,24 @@
 part of 'init_dependencies.dart';
 
-
 final serviceLocator = GetIt.instance;
 
-Future<void> initDependencies() async {
-  await _initCore();
+/// Every Isar collection of the app.
+const List<CollectionSchema<dynamic>> isarSchemas = [
+  SyncMetadataModelSchema,
+  CategoryModelSchema,
+  MovementModelSchema,
+  CardModelSchema,
+  CardPaymentModelSchema,
+  BudgetModelSchema,
+  PersonModelSchema,
+  DebtModelSchema,
+  LoanModelSchema,
+  LoanPaymentModelSchema,
+];
+
+/// Registers every dependency. [isar] replaces the app database (tests).
+Future<void> initDependencies({Isar? isar}) async {
+  await _initCore(isar);
   _initApp();
   _initCategories();
   _initMovements();
@@ -15,19 +29,8 @@ Future<void> initDependencies() async {
   _initScreens();
 }
 
-Future<void> _initCore() async {
-  final isar = await IsarDatabase.open([
-    SyncMetadataModelSchema,
-    CategoryModelSchema,
-    MovementModelSchema,
-    CardModelSchema,
-    CardPaymentModelSchema,
-    BudgetModelSchema,
-    PersonModelSchema,
-    DebtModelSchema,
-    LoanModelSchema,
-    LoanPaymentModelSchema,
-  ]);
+Future<void> _initCore(Isar? database) async {
+  final isar = database ?? await IsarDatabase.open(isarSchemas);
 
   serviceLocator
     ..registerSingleton<Isar>(isar)
@@ -51,8 +54,8 @@ Future<void> _initCore() async {
     ..registerLazySingleton<SyncEngine>(() => const OfflineSyncEngine());
 }
 
-void _initApp(){
-   serviceLocator.registerLazySingleton(() => NavigationCubit());
+void _initApp() {
+  serviceLocator.registerLazySingleton(() => NavigationCubit());
 }
 
 void _initCategories() {

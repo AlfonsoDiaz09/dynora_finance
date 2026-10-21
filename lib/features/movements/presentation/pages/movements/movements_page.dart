@@ -2,14 +2,14 @@ import 'package:dynora_finance/features/movements/presentation/cubit/movements_c
 import 'package:dynora_finance/features/movements/presentation/widgets/movement_form_sheet.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/shared/bloc/view_status.dart';
-import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/shared/widgets/empty_state.dart';
+import 'package:dynora_finance/shared/widgets/month_switcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'widgets/movements_summary_card.dart';
-import 'widgets/movement_filter_bar.dart';
+import 'widgets/movement_filters.dart';
 import 'widgets/movement_group.dart';
+import 'widgets/movements_summary_card.dart';
 
 class MovementsPage extends StatelessWidget {
   const MovementsPage({super.key});
@@ -22,86 +22,102 @@ class MovementsPage extends StatelessWidget {
         builder: (context, state) {
           final cubit = context.read<MovementsCubit>();
 
-          return Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-                child: MovementsSummaryCard(
-                  income: state.summary.income,
-                  expense: state.summary.expense,
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 0),
+                sliver: SliverList.list(
+                  children: [
+                    MonthSwitcher(
+                      month: state.month.start,
+                      onPrevious: cubit.previousMonth,
+                      onNext: cubit.nextMonth,
+                      onToday: cubit.currentMonth,
+                    ),
+                    SizedBox(height: 12.h),
+                    MovementsSummaryCard(
+                      income: state.summary.income,
+                      expense: state.summary.expense,
+                    ),
+                    SizedBox(height: 16.h),
+                    MovementFilters(
+                      typeFilter: state.typeFilter,
+                      query: state.query,
+                      onTypeChanged: cubit.changeTypeFilter,
+                      onSearch: cubit.search,
+                    ),
+                    SizedBox(height: 8.h),
+                  ],
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: MovementFilterBar(
-                  monthLabel: Formatters.monthYear(state.month.start),
-                  onPreviousMonth: cubit.previousMonth,
-                  onNextMonth: cubit.nextMonth,
-                ),
-              ),
-              SizedBox(height: 20.h),
-              Expanded(child: _MovementsList(state: state)),
+              ..._list(context, state),
             ],
           );
         },
       ),
     );
   }
-}
 
-class _MovementsList extends StatelessWidget {
-  const _MovementsList({required this.state});
+  List<Widget> _list(BuildContext context, MovementsState state) {
+    Widget message(Widget child) => SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+      sliver: SliverToBoxAdapter(child: child),
+    );
 
-  final MovementsState state;
-
-  @override
-  Widget build(BuildContext context) {
     switch (state.status) {
       case ViewStatus.loading:
-        return const Center(child: CircularProgressIndicator());
+        return [
+          SliverPadding(
+            padding: EdgeInsets.only(top: 40.h),
+            sliver: const SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ),
+        ];
       case ViewStatus.failure:
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: EmptyState(
+        return [
+          message(
+            EmptyState(
               icon: Icons.error_outline_rounded,
               message: state.error ?? 'No se pudieron cargar los movimientos',
             ),
           ),
-        );
+        ];
       case ViewStatus.loaded:
-        if (state.groups.isEmpty) {
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: EmptyState(
-                icon: Icons.receipt_long_rounded,
-                message:
-                    'Sin movimientos este mes.\n'
-                    'Mantén presionado el botón de inicio para agregar uno.',
+        final groups = state.groups;
+        if (groups.isEmpty) {
+          return [
+            message(
+              EmptyState(
+                icon: state.isFiltered
+                    ? Icons.search_off_rounded
+                    : Icons.receipt_long_rounded,
+                message: state.isFiltered
+                    ? 'Ningún movimiento coincide con tu búsqueda'
+                    : 'Sin movimientos este mes.\n'
+                          'Mantén presionado el botón de inicio para '
+                          'agregar uno.',
               ),
             ),
-          );
+          ];
         }
-        return ListView.separated(
-          padding: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 50.h),
-          itemCount: state.groups.length,
-          separatorBuilder: (_, __) => SizedBox(height: 20.h),
-          itemBuilder: (context, index) {
-            final group = state.groups[index];
-            return MovementGroup(
-              date: Formatters.relativeDay(group.day),
-              movements: group.movements,
-              categories: state.categories,
-              cards: state.cards,
-              debts: state.debts,
-              onMovementTap: (movement) =>
-                  MovementFormSheet.show(context, movement: movement),
-            );
-          },
-        );
+        return [
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 110.h),
+            sliver: SliverList.separated(
+              itemCount: groups.length,
+              separatorBuilder: (_, __) => SizedBox(height: 20.h),
+              itemBuilder: (context, index) => MovementGroup(
+                group: groups[index],
+                categories: state.categories,
+                cards: state.cards,
+                debts: state.debts,
+                onMovementTap: (movement) =>
+                    MovementFormSheet.show(context, movement: movement),
+              ),
+            ),
+          ),
+        ];
     }
   }
 }

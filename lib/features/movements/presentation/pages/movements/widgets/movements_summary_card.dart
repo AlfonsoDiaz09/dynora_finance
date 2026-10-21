@@ -1,8 +1,9 @@
-import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/summary_item.dart';
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+/// Income, expenses and balance of the month.
 class MovementsSummaryCard extends StatelessWidget {
   const MovementsSummaryCard({
     super.key,
@@ -15,27 +16,93 @@ class MovementsSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final balance = income - expense;
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20.r),
-        color: Colors.white.withValues(alpha: 0.05),
+        gradient: const LinearGradient(
+          colors: [AppColors.surface, AppColors.surfaceVariant],
+        ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SummaryItem(
-            title: "Ingresos",
-            amount: Formatters.currencyNoDecimals(income),
-            color: Colors.greenAccent,
+          Expanded(
+            child: _Figure(
+              label: 'Ingresos',
+              value: Formatters.currency(income),
+              color: Colors.greenAccent,
+            ),
           ),
-          SummaryItem(
-            title: "Gastos",
-            amount: Formatters.currencyNoDecimals(expense),
-            color: Colors.redAccent,
+          _Divider(),
+          Expanded(
+            child: _Figure(
+              label: 'Gastos',
+              value: Formatters.currency(expense),
+              color: Colors.redAccent,
+            ),
+          ),
+          _Divider(),
+          Expanded(
+            child: _Figure(
+              label: 'Balance',
+              value:
+                  '${balance < 0 ? '-' : ''}${Formatters.currency(balance.abs())}',
+              color: balance < 0 ? Colors.redAccent : Colors.white,
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _Figure extends StatelessWidget {
+  const _Figure({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(color: AppColors.textPrimary70, fontSize: 12.sp),
+        ),
+        SizedBox(height: 4.h),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: TextStyle(
+              color: color,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 32.h,
+      margin: EdgeInsets.symmetric(horizontal: 6.w),
+      color: Colors.white12,
     );
   }
 }

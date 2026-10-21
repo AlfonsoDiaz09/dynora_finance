@@ -10,6 +10,10 @@ class MovementItem extends StatelessWidget {
   final bool isExpense;
   final VoidCallback? onTap;
 
+  /// Category icon and color; an in/out arrow when not given.
+  final IconData? icon;
+  final Color? iconColor;
+
   /// Extra content under the subtitle (e.g. who owes you for it).
   final Widget? footer;
 
@@ -20,60 +24,83 @@ class MovementItem extends StatelessWidget {
     required this.amount,
     required this.isExpense,
     this.onTap,
+    this.icon,
+    this.iconColor,
     this.footer,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = isExpense ? Colors.redAccent : Colors.greenAccent;
+    final amountColor = isExpense ? Colors.redAccent : Colors.greenAccent;
     final prefix = isExpense ? "-" : "+";
+    final badgeColor = iconColor ?? amountColor;
 
-    return InkWell(
-      onTap: onTap,
+    return Material(
+      color: Colors.white.withValues(alpha: 0.05),
       borderRadius: BorderRadius.circular(16.r),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
-          color: Colors.white.withValues(alpha: 0.05),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: color.withValues(alpha: 0.2),
-              child: Icon(
-                isExpense ? Icons.arrow_upward : Icons.arrow_downward,
-                color: color,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+          child: Row(
+            children: [
+              Container(
+                width: 40.r,
+                height: 40.r,
+                decoration: BoxDecoration(
+                  color: badgeColor.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(
+                  icon ??
+                      (isExpense
+                          ? Icons.arrow_upward_rounded
+                          : Icons.arrow_downward_rounded),
+                  color: badgeColor,
+                  size: 20.sp,
+                ),
               ),
-            ),
-            SizedBox(width: 14.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14.sp,
+                      ),
                     ),
-                  ),
-                  Text(
-                    category,
-                    style: TextStyle(
-                      color: AppColors.textPrimary70,
-                      fontSize: 12.sp,
+                    SizedBox(height: 2.h),
+                    Text(
+                      category,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.textPrimary70,
+                        fontSize: 12.sp,
+                      ),
                     ),
-                  ),
-                  ?footer,
-                ],
+                    ?footer,
+                  ],
+                ),
               ),
-            ),
-            Text(
-              "$prefix${Formatters.currency(amount)}",
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
-            ),
-          ],
+              SizedBox(width: 8.w),
+              Text(
+                "$prefix${Formatters.currency(amount)}",
+                style: TextStyle(
+                  color: amountColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
