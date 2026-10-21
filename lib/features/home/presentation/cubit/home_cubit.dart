@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/usecase/usecase.dart';
-import 'package:dynora_finance/core/utils/month_range.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_payment_entity.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
@@ -14,7 +13,7 @@ import 'package:dynora_finance/features/movements/domain/entities/movement_entit
 import 'package:dynora_finance/features/movements/domain/entities/movement_filter.dart';
 import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
-import 'package:dynora_finance/features/home/domain/entities/cash_flow.dart';
+import 'package:dynora_finance/features/home/domain/entities/spending_overview.dart';
 import 'package:dynora_finance/features/loans/domain/entities/loan_entity.dart';
 import 'package:dynora_finance/features/loans/domain/entities/loan_payment_entity.dart';
 import 'package:dynora_finance/features/loans/domain/entities/loan_summary.dart';
@@ -29,8 +28,7 @@ import 'package:rxdart/rxdart.dart';
 class HomeState extends Equatable {
   const HomeState({
     this.status = ViewStatus.loading,
-    this.balance = 0,
-    this.monthCashFlow = CashFlow.empty,
+    this.overview = SpendingOverview.empty,
     this.recentMovements = const [],
     this.categories = const {},
     this.upcomingPayments = const [],
@@ -43,11 +41,8 @@ class HomeState extends Equatable {
 
   final ViewStatus status;
 
-  /// All-time cash balance (see [CashFlow]).
-  final double balance;
-
-  /// Cash in and out during the current month.
-  final CashFlow monthCashFlow;
+  /// Money available to spend, card debt deducted as it is incurred.
+  final SpendingOverview overview;
   final List<MovementEntity> recentMovements;
   final Map<String, CategoryEntity> categories;
 
@@ -68,9 +63,12 @@ class HomeState extends Equatable {
   @override
   List<Object?> get props => [
     status,
-    balance,
-    monthCashFlow.income,
-    monthCashFlow.expense,
+    overview.available,
+    overview.cash,
+    overview.cardDebt,
+    overview.futureInstallments,
+    overview.monthIncome,
+    overview.monthExpense,
     recentMovements,
     categories,
     upcomingPayments,
@@ -152,26 +150,17 @@ class HomeCubit extends Cubit<HomeState> {
               HomeState(status: ViewStatus.failure, error: failure.message),
           (data) {
             final now = DateTime.now();
-            final month = MonthRange(now);
 
             return HomeState(
               status: ViewStatus.loaded,
-              balance: CashFlow.of(
+              overview: SpendingOverview.of(
                 movements: data.$1,
                 cards: data.$3,
-                payments: data.$4,
+                cardPayments: data.$4,
                 debts: data.$5,
                 loans: data.$6,
                 loanPayments: data.$7,
-              ).balance,
-              monthCashFlow: CashFlow.of(
-                movements: data.$1,
-                cards: data.$3,
-                payments: data.$4,
-                debts: data.$5,
-                loans: data.$6,
-                loanPayments: data.$7,
-                month: month,
+                now: now,
               ),
               recentMovements: data.$1.take(recentLimit).toList(),
               categories: {for (final c in data.$2) c.id: c},

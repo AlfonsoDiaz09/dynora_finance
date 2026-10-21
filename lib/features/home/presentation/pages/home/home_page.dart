@@ -96,11 +96,7 @@ class HomePage extends StatelessWidget {
                   ),
                   SizedBox(height: 28.h),
                 ],
-                FinancialSummaryCard(
-                  balance: state.balance,
-                  monthIncome: state.monthCashFlow.income,
-                  monthExpense: state.monthCashFlow.expense,
-                ),
+                FinancialSummaryCard(overview: state.overview),
                 SizedBox(height: 28.h),
                 UpcomingPaymentsSection(
                   payments: state.upcomingPayments,

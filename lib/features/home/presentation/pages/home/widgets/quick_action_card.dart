@@ -19,7 +19,7 @@ class QuickActionCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(18.r),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 10.h),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(18.r),
@@ -27,12 +27,16 @@ class QuickActionCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white),
-            SizedBox(height: 10.h),
-            Text(
-              title,
-              style: TextStyle(color: Colors.white),
-              textAlign: TextAlign.center,
+            Icon(icon, color: Colors.white, size: 22.sp),
+            SizedBox(height: 8.h),
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.white, fontSize: 12.sp),
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
