@@ -2,8 +2,9 @@ import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
 import 'package:dynora_finance/features/cards/presentation/utils/statement_status_style.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
-import 'package:dynora_finance/features/debts/domain/entities/movement_debts.dart';
-import 'package:dynora_finance/features/debts/presentation/utils/debt_labels.dart';
+import 'package:dynora_finance/features/debts/presentation/utils/debtor.dart';
+import 'package:dynora_finance/features/debts/presentation/widgets/debtor_avatars.dart';
+import 'package:dynora_finance/features/debts/presentation/widgets/debtors_sheet.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_item.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
@@ -16,14 +17,14 @@ class StatementSection extends StatelessWidget {
     super.key,
     required this.statement,
     required this.categories,
-    this.debts = const {},
+    this.debtors = const {},
     required this.onMovementTap,
     required this.onPaymentTap,
   });
 
   final CardStatement statement;
   final Map<String, CategoryEntity> categories;
-  final Map<String, MovementDebts> debts;
+  final Map<String, List<Debtor>> debtors;
   final ValueChanged<MovementEntity> onMovementTap;
 
   /// Opens the form to register or edit the payment of [statement].
@@ -50,6 +51,10 @@ class StatementSection extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        if (_periodDebtors() case final debtors when debtors.isNotEmpty) ...[
+          SizedBox(height: 10.h),
+          _PeriodDebtors(debtors: debtors),
+        ],
         if (payment != null) ...[
           SizedBox(height: 12.h),
           _PaymentBanner(
@@ -95,10 +100,32 @@ class StatementSection extends StatelessWidget {
               amount: charge.amount,
               isExpense: charge.movement.isExpense,
               onTap: () => onMovementTap(charge.movement),
+              footer: _avatarsFor(context, charge.movement),
             ),
           ],
       ],
     );
+  }
+
+  Widget? _avatarsFor(BuildContext context, MovementEntity movement) {
+    final list = debtors[movement.id];
+    if (list == null || list.isEmpty) return null;
+    return DebtorAvatars(
+      debtors: list,
+      onTap: () =>
+          DebtorsSheet.show(context, title: movement.title, debtors: list),
+    );
+  }
+
+  /// Debts of every movement in the period (installments count once).
+  List<Debtor> _periodDebtors() {
+    final seen = <String>{};
+    return [
+      for (final charge in statement.charges)
+        if (seen.add(charge.movement.id))
+          for (final debtor in debtors[charge.movement.id] ?? const <Debtor>[])
+            debtor.withDetail(charge.movement.title),
+    ];
   }
 
   String _subtitle(StatementCharge charge) {
@@ -107,7 +134,6 @@ class StatementSection extends StatelessWidget {
       categories[movement.categoryId]?.name ?? 'Sin categoría',
       if (charge.isInstallment) _installmentLabel(charge),
       Formatters.shortDate(movement.date),
-      ?debtTag(debts[movement.id]),
     ].join(' · ');
   }
 }
@@ -157,6 +183,59 @@ class _PaymentBanner extends StatelessWidget {
             child: Text(action, style: TextStyle(color: color)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Te deben de este periodo" line with everyone who owes you in it.
+class _PeriodDebtors extends StatelessWidget {
+  const _PeriodDebtors({required this.debtors});
+
+  final List<Debtor> debtors;
+
+  @override
+  Widget build(BuildContext context) {
+    final pending = debtors
+        .where((d) => !d.isPaid)
+        .fold<double>(0, (sum, d) => sum + d.amount);
+
+    void open() => DebtorsSheet.show(
+      context,
+      title: 'Te deben de este periodo',
+      debtors: debtors,
+    );
+
+    return InkWell(
+      onTap: open,
+      borderRadius: BorderRadius.circular(14.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(14.r),
+        ),
+        child: Row(
+          children: [
+            Text(
+              'Te deben',
+              style: TextStyle(color: AppColors.textPrimary85, fontSize: 13.sp),
+            ),
+            SizedBox(width: 10.w),
+            DebtorAvatars(debtors: debtors, onTap: open, maxVisible: 4),
+            const Spacer(),
+            Text(
+              pending > 0
+                  ? '${Formatters.currency(pending)} pendiente'
+                  : 'Todo pagado',
+              style: TextStyle(
+                color: pending > 0 ? AppColors.warning : AppColors.success,
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

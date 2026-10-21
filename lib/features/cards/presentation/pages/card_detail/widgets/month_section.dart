@@ -1,8 +1,9 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/cards/presentation/cubit/card_detail_cubit.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
-import 'package:dynora_finance/features/debts/domain/entities/movement_debts.dart';
-import 'package:dynora_finance/features/debts/presentation/utils/debt_labels.dart';
+import 'package:dynora_finance/features/debts/presentation/utils/debtor.dart';
+import 'package:dynora_finance/features/debts/presentation/widgets/debtor_avatars.dart';
+import 'package:dynora_finance/features/debts/presentation/widgets/debtors_sheet.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_item.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
@@ -15,13 +16,13 @@ class MonthSection extends StatelessWidget {
     super.key,
     required this.month,
     required this.categories,
-    this.debts = const {},
+    this.debtors = const {},
     required this.onMovementTap,
   });
 
   final MonthMovements month;
   final Map<String, CategoryEntity> categories;
-  final Map<String, MovementDebts> debts;
+  final Map<String, List<Debtor>> debtors;
   final ValueChanged<MovementEntity> onMovementTap;
 
   @override
@@ -60,11 +61,21 @@ class MonthSection extends StatelessWidget {
             category: [
               categories[movement.categoryId]?.name ?? 'Sin categoría',
               Formatters.relativeDay(movement.date),
-              ?debtTag(debts[movement.id]),
             ].join(' · '),
             amount: movement.amount,
             isExpense: movement.isExpense,
             onTap: () => onMovementTap(movement),
+            footer: switch (debtors[movement.id]) {
+              final list? when list.isNotEmpty => DebtorAvatars(
+                debtors: list,
+                onTap: () => DebtorsSheet.show(
+                  context,
+                  title: movement.title,
+                  debtors: list,
+                ),
+              ),
+              _ => null,
+            },
           ),
         ],
       ],

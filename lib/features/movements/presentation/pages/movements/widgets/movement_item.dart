@@ -10,6 +10,9 @@ class MovementItem extends StatelessWidget {
   final bool isExpense;
   final VoidCallback? onTap;
 
+  /// Extra content under the subtitle (e.g. who owes you for it).
+  final Widget? footer;
+
   const MovementItem({
     super.key,
     required this.title,
@@ -17,6 +20,7 @@ class MovementItem extends StatelessWidget {
     required this.amount,
     required this.isExpense,
     this.onTap,
+    this.footer,
   });
 
   @override
@@ -61,6 +65,7 @@ class MovementItem extends StatelessWidget {
                       fontSize: 12.sp,
                     ),
                   ),
+                  ?footer,
                 ],
               ),
             ),

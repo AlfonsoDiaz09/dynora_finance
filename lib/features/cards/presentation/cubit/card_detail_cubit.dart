@@ -11,8 +11,10 @@ import 'package:dynora_finance/features/cards/domain/usecases/watch_card_payment
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
-import 'package:dynora_finance/features/debts/domain/entities/movement_debts.dart';
+import 'package:dynora_finance/features/debts/domain/entities/person_entity.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/watch_people.dart';
+import 'package:dynora_finance/features/debts/presentation/utils/debtor.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_filter.dart';
@@ -46,7 +48,7 @@ class CardDetailState extends Equatable {
     this.months = const [],
     this.selectedMonth,
     this.categories = const {},
-    this.debts = const {},
+    this.debtors = const {},
     this.error,
   });
 
@@ -64,8 +66,8 @@ class CardDetailState extends Equatable {
   final MonthRange? selectedMonth;
   final Map<String, CategoryEntity> categories;
 
-  /// Movement id → what others owe you for it.
-  final Map<String, MovementDebts> debts;
+  /// Movement id → people who owe you part of it.
+  final Map<String, List<Debtor>> debtors;
   final String? error;
 
   CardStatement? get selectedStatement =>
@@ -86,7 +88,7 @@ class CardDetailState extends Equatable {
       months: months,
       selectedMonth: selectedMonth ?? this.selectedMonth,
       categories: categories,
-      debts: debts,
+      debtors: debtors,
       error: error,
     );
   }
@@ -100,7 +102,7 @@ class CardDetailState extends Equatable {
     months,
     selectedMonth,
     categories,
-    debts,
+    debtors,
     error,
   ];
 }
@@ -113,11 +115,13 @@ class CardDetailCubit extends Cubit<CardDetailState> {
     required WatchCategories watchCategories,
     required WatchCardPayments watchCardPayments,
     required WatchDebts watchDebts,
+    required WatchPeople watchPeople,
   }) : _watchCards = watchCards,
        _watchMovements = watchMovements,
        _watchCategories = watchCategories,
        _watchCardPayments = watchCardPayments,
        _watchDebts = watchDebts,
+       _watchPeople = watchPeople,
        super(const CardDetailState());
 
   final String cardId;
@@ -126,15 +130,17 @@ class CardDetailCubit extends Cubit<CardDetailState> {
   final WatchCategories _watchCategories;
   final WatchCardPayments _watchCardPayments;
   final WatchDebts _watchDebts;
+  final WatchPeople _watchPeople;
   StreamSubscription<CardDetailState>? _subscription;
 
   void start() {
-    _subscription = Rx.combineLatest5(
+    _subscription = Rx.combineLatest6(
       _watchCards(const NoParams()),
       _watchMovements(MovementFilter(cardId: cardId)),
       _watchCategories(null),
       _watchCardPayments(const NoParams()),
       _watchDebts(const NoParams()),
+      _watchPeople(const NoParams()),
       _buildState,
     ).listen(emit);
   }
@@ -151,12 +157,16 @@ class CardDetailCubit extends Cubit<CardDetailState> {
     Either<Failure, List<CategoryEntity>> categories,
     Either<Failure, List<CardPaymentEntity>> payments,
     Either<Failure, List<DebtEntity>> debts,
+    Either<Failure, List<PersonEntity>> people,
   ) {
     return cards
         .flatMap(
           (c) => movements.flatMap(
             (m) => categories.flatMap(
-              (k) => payments.flatMap((p) => debts.map((d) => (c, m, k, p, d))),
+              (k) => payments.flatMap(
+                (p) =>
+                    debts.flatMap((d) => people.map((n) => (c, m, k, p, d, n))),
+              ),
             ),
           ),
         )
@@ -172,7 +182,7 @@ class CardDetailCubit extends Cubit<CardDetailState> {
               return CardDetailState(
                 status: ViewStatus.loaded,
                 categories: categoriesById,
-                debts: MovementDebts.byMovement(data.$5),
+                debtors: Debtor.byMovement(data.$5, data.$6),
               );
             }
 
@@ -201,7 +211,7 @@ class CardDetailCubit extends Cubit<CardDetailState> {
                     ? upcoming
                     : card.billingPeriodFor(now),
                 categories: categoriesById,
-                debts: MovementDebts.byMovement(data.$5),
+                debtors: Debtor.byMovement(data.$5, data.$6),
               );
             }
 
@@ -214,7 +224,7 @@ class CardDetailCubit extends Cubit<CardDetailState> {
               months: months,
               selectedMonth: keep ? previous : MonthRange(now),
               categories: categoriesById,
-              debts: MovementDebts.byMovement(data.$5),
+              debtors: Debtor.byMovement(data.$5, data.$6),
             );
           },
         );
