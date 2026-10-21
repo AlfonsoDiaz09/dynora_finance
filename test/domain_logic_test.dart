@@ -53,33 +53,50 @@ MovementEntity movement(double amount, MovementType type, String category) =>
     );
 
 void main() {
-  group('Billing periods (cutoff 25, payment 5)', () {
-    final nu = card();
-
-    test('purchase between Aug 26 and Sep 25 is paid Oct 5', () {
+  group('Billing periods', () {
+    test('cutoff 29 and payment 29: Sep 29 – Oct 28, paid Oct 29', () {
+      final c = card(cutoff: 29, payment: 29);
       final expected = BillingPeriod(
-        start: DateTime(2026, 8, 26),
-        end: DateTime(2026, 9, 25),
-        paymentDate: DateTime(2026, 10, 5),
+        start: DateTime(2026, 9, 29),
+        end: DateTime(2026, 10, 28),
+        paymentDate: DateTime(2026, 10, 29),
       );
-      expect(nu.billingPeriodFor(DateTime(2026, 8, 26)), expected);
-      expect(nu.billingPeriodFor(DateTime(2026, 9, 10, 18)), expected);
-      expect(nu.billingPeriodFor(DateTime(2026, 9, 25, 23, 59)), expected);
+      expect(c.billingPeriodFor(DateTime(2026, 9, 29)), expected);
+      expect(c.billingPeriodFor(DateTime(2026, 10, 15, 18)), expected);
+      expect(c.billingPeriodFor(DateTime(2026, 10, 28, 23, 59)), expected);
+
+      // The cutoff day opens the next period.
+      final next = c.billingPeriodFor(DateTime(2026, 10, 29));
+      expect(next.start, DateTime(2026, 10, 29));
+      expect(next.end, DateTime(2026, 11, 28));
+      expect(next.paymentDate, DateTime(2026, 11, 29));
     });
 
-    test('the day after the cutoff starts the next period', () {
-      final period = nu.billingPeriodFor(DateTime(2026, 9, 26));
-      expect(period.start, DateTime(2026, 9, 26));
-      expect(period.end, DateTime(2026, 10, 25));
-      expect(period.paymentDate, DateTime(2026, 11, 5));
+    test('cutoff 2 and payment 20: Sep 2 – Oct 1, paid Oct 20', () {
+      final c = card(cutoff: 2, payment: 20);
+      final expected = BillingPeriod(
+        start: DateTime(2026, 9, 2),
+        end: DateTime(2026, 10, 1),
+        paymentDate: DateTime(2026, 10, 20),
+      );
+      expect(c.billingPeriodFor(DateTime(2026, 9, 2)), expected);
+      expect(c.billingPeriodFor(DateTime(2026, 10, 1)), expected);
+      expect(
+        c.billingPeriodFor(DateTime(2026, 9, 1)).paymentDate,
+        DateTime(2026, 9, 20),
+      );
     });
 
-    test('funded with the salary of the payment month', () {
-      final period = nu.billingPeriodFor(DateTime(2026, 9, 10));
+    test('cutoff 25 and payment 5: Aug 25 – Sep 24, paid Oct 5', () {
+      final period = card().billingPeriodFor(DateTime(2026, 9, 10));
+      expect(period.start, DateTime(2026, 8, 25));
+      expect(period.end, DateTime(2026, 9, 24));
+      expect(period.paymentDate, DateTime(2026, 10, 5));
       expect(period.fundingMonth(), MonthRange(DateTime(2026, 10)));
     });
 
     test('upcoming payment switches after the payment date', () {
+      final nu = card();
       expect(
         nu.upcomingPeriod(DateTime(2026, 10, 1)).paymentDate,
         DateTime(2026, 10, 5),
@@ -94,11 +111,21 @@ void main() {
       );
     });
 
+    test('payment on the cutoff day is due that same day', () {
+      final c = card(cutoff: 29, payment: 29);
+      final today = DateTime(2026, 10, 29, 9);
+      final upcoming = c.upcomingPeriod(today);
+      expect(upcoming.end, DateTime(2026, 10, 28));
+      expect(upcoming.isAwaitingPayment(today), isTrue);
+      expect(upcoming.daysUntilPayment(today), 0);
+    });
+
     test('statement total and grouping by period', () {
+      final nu = card();
       final movements = [
         cardMovement(DateTime(2026, 9, 1), 100),
-        cardMovement(DateTime(2026, 9, 25), 50),
-        cardMovement(DateTime(2026, 9, 26), 30),
+        cardMovement(DateTime(2026, 9, 24), 50),
+        cardMovement(DateTime(2026, 9, 25), 30),
         cardMovement(DateTime(2026, 9, 2), 999, cardId: 'other'),
       ];
       final statements = CardStatement.build(
@@ -107,8 +134,8 @@ void main() {
         DateTime(2026, 10, 1),
       );
       expect(statements.map((s) => s.period.end), [
-        DateTime(2026, 10, 25),
-        DateTime(2026, 9, 25),
+        DateTime(2026, 10, 24),
+        DateTime(2026, 9, 24),
       ]);
       expect(statements.map((s) => s.total), [30, 150]);
 
@@ -123,30 +150,20 @@ void main() {
   });
 
   group('Billing period edge cases', () {
-    test('cutoff before payment pays in the same month', () {
-      final period = card(
-        cutoff: 5,
-        payment: 25,
-      ).billingPeriodFor(DateTime(2026, 9, 3));
-      expect(period.start, DateTime(2026, 8, 6));
-      expect(period.end, DateTime(2026, 9, 5));
-      expect(period.paymentDate, DateTime(2026, 9, 25));
-    });
-
     test('day 31 clamps to short months without gaps', () {
       final c = card(cutoff: 31, payment: 10);
       final feb = c.billingPeriodFor(DateTime(2026, 2, 15));
-      expect(feb.start, DateTime(2026, 2, 1));
-      expect(feb.end, DateTime(2026, 2, 28));
-      expect(
-        c.billingPeriodFor(DateTime(2026, 3, 1)).start,
-        DateTime(2026, 3, 1),
-      );
+      expect(feb.start, DateTime(2026, 1, 31));
+      expect(feb.end, DateTime(2026, 2, 27));
+      final mar = c.billingPeriodFor(DateTime(2026, 2, 28));
+      expect(mar.start, DateTime(2026, 2, 28));
+      expect(mar.end, DateTime(2026, 3, 30));
     });
 
     test('rolls over the year', () {
       final period = card().billingPeriodFor(DateTime(2026, 12, 28));
-      expect(period.end, DateTime(2027, 1, 25));
+      expect(period.start, DateTime(2026, 12, 25));
+      expect(period.end, DateTime(2027, 1, 24));
       expect(period.paymentDate, DateTime(2027, 2, 5));
     });
 
@@ -191,15 +208,18 @@ void main() {
       expect(validate(), isNull);
     });
 
-    test('credit needs cutoff and payment days, debit does not', () {
-      expect(validate(cutoff: null), isNotNull);
-      expect(validate(payment: 32), isNotNull);
-      expect(validate(cutoff: 5, payment: 5), isNotNull);
-      expect(
-        validate(type: CardType.debit, cutoff: null, payment: null),
-        isNull,
-      );
-    });
+    test(
+      'credit needs cutoff and payment days (can be equal), debit does not',
+      () {
+        expect(validate(cutoff: null), isNotNull);
+        expect(validate(payment: 32), isNotNull);
+        expect(validate(cutoff: 29, payment: 29), isNull);
+        expect(
+          validate(type: CardType.debit, cutoff: null, payment: null),
+          isNull,
+        );
+      },
+    );
   });
 
   group('MonthRange', () {

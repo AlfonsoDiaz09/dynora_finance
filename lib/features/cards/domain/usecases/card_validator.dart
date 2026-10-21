@@ -30,11 +30,6 @@ class CardValidator {
     if (!_isDay(paymentDueDay)) {
       return const ValidationFailure('El día de pago debe estar entre 1 y 31');
     }
-    if (cutoffDay == paymentDueDay) {
-      return const ValidationFailure(
-        'El día de pago debe ser distinto al día de corte',
-      );
-    }
     return null;
   }
 

@@ -13,10 +13,10 @@ class BillingPeriod extends Equatable {
     required this.paymentDate,
   });
 
-  /// First day of the period (the day after the previous cutoff).
+  /// First day of the period (a cutoff day).
   final DateTime start;
 
-  /// Cutoff day, last day of the period.
+  /// Last day of the period (the day before the next cutoff).
   final DateTime end;
   final DateTime paymentDate;
 

@@ -249,7 +249,8 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
 }
 
 String _periodHint(BillingPeriod period) =>
-    'Entra al corte del ${Formatters.shortDate(period.end)} · '
+    'Periodo ${Formatters.shortDate(period.start)} – '
+    '${Formatters.shortDate(period.end)} · '
     'se paga el ${Formatters.shortDate(period.paymentDate)}';
 
 class _PaymentChip extends StatelessWidget {

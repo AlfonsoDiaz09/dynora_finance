@@ -36,24 +36,37 @@ class CardEntity extends Equatable {
 
   /// Period that contains [date]. Only valid when [hasBillingCycle].
   ///
-  /// Cutoff and payment days past the end of a month are clamped to its last
-  /// day (e.g. day 31 in February). The cutoff day belongs to the period it
-  /// closes, and the payment is the first payment day after the cutoff.
+  /// A period starts on a cutoff day and ends the day before the next
+  /// cutoff; it is paid on the first payment day on or after that next
+  /// cutoff (it can be the cutoff day itself). Examples:
+  /// - cutoff 29, payment 29: Sep 29 – Oct 28, paid Oct 29.
+  /// - cutoff 2, payment 20: Sep 2 – Oct 1, paid Oct 20.
+  ///
+  /// Days past the end of a month are clamped to its last day (e.g. day 31
+  /// in February).
   BillingPeriod billingPeriodFor(DateTime date) {
     assert(hasBillingCycle, 'Card $id has no billing cycle');
     final day = DateTime(date.year, date.month, date.day);
-    var end = _dayIn(day.year, day.month, cutoffDay!);
-    if (day.isAfter(end)) end = _dayIn(day.year, day.month + 1, cutoffDay!);
+    final cutoffThisMonth = _dayIn(day.year, day.month, cutoffDay!);
 
-    final previousEnd = _dayIn(end.year, end.month - 1, cutoffDay!);
-    var payment = _dayIn(end.year, end.month, paymentDueDay!);
-    if (!payment.isAfter(end)) {
-      payment = _dayIn(end.year, end.month + 1, paymentDueDay!);
+    final DateTime start;
+    final DateTime nextCutoff;
+    if (day.isBefore(cutoffThisMonth)) {
+      start = _dayIn(day.year, day.month - 1, cutoffDay!);
+      nextCutoff = cutoffThisMonth;
+    } else {
+      start = cutoffThisMonth;
+      nextCutoff = _dayIn(day.year, day.month + 1, cutoffDay!);
+    }
+
+    var payment = _dayIn(nextCutoff.year, nextCutoff.month, paymentDueDay!);
+    if (payment.isBefore(nextCutoff)) {
+      payment = _dayIn(nextCutoff.year, nextCutoff.month + 1, paymentDueDay!);
     }
 
     return BillingPeriod(
-      start: DateTime(previousEnd.year, previousEnd.month, previousEnd.day + 1),
-      end: end,
+      start: start,
+      end: DateTime(nextCutoff.year, nextCutoff.month, nextCutoff.day - 1),
       paymentDate: payment,
     );
   }
