@@ -39,6 +39,7 @@ class MovementFormState extends Equatable {
     this.installmentCount = 3,
     this.people = const [],
     this.share = const ShareDraft(),
+    this.isWithdrawal = false,
     this.status = FormStatus.idle,
     this.error,
   });
@@ -60,6 +61,18 @@ class MovementFormState extends Equatable {
 
   /// Who owes you part of this expense.
   final ShareDraft share;
+
+  /// Cash withdrawal from a credit card (an expense on the card, income
+  /// for you).
+  final bool isWithdrawal;
+
+  /// Cards offered: only billed cards for withdrawals.
+  List<CardEntity> get availableCards => isWithdrawal
+      ? [
+          for (final c in cards)
+            if (c.hasBillingCycle) c,
+        ]
+      : cards;
   final FormStatus status;
   final String? error;
 
@@ -71,7 +84,9 @@ class MovementFormState extends Equatable {
 
   /// Installments are only offered for expenses on billed cards.
   bool get canUseInstallments =>
-      type == MovementType.expense && (selectedCard?.hasBillingCycle ?? false);
+      !isWithdrawal &&
+      type == MovementType.expense &&
+      (selectedCard?.hasBillingCycle ?? false);
 
   MovementFormState copyWith({
     MovementType? type,
@@ -85,6 +100,7 @@ class MovementFormState extends Equatable {
     int? installmentCount,
     List<PersonEntity>? people,
     ShareDraft? share,
+    bool? isWithdrawal,
     FormStatus? status,
     String? Function()? error,
   }) {
@@ -100,6 +116,7 @@ class MovementFormState extends Equatable {
       installmentCount: installmentCount ?? this.installmentCount,
       people: people ?? this.people,
       share: share ?? this.share,
+      isWithdrawal: isWithdrawal ?? this.isWithdrawal,
       status: status ?? this.status,
       error: error != null ? error() : this.error,
     );
@@ -118,6 +135,7 @@ class MovementFormState extends Equatable {
     installmentCount,
     people,
     share,
+    isWithdrawal,
     status,
     error,
   ];
@@ -160,7 +178,10 @@ class MovementFormCubit extends Cubit<MovementFormState> {
            installmentMode: _modeOf(editing),
            installmentCount: (editing?.installmentCount ?? 1) > 1
                ? editing!.installmentCount!
+               : (editing?.isCashWithdrawal ?? false)
+               ? 1
                : 3,
+           isWithdrawal: editing?.isCashWithdrawal ?? false,
          ),
        );
 
@@ -224,10 +245,32 @@ class MovementFormCubit extends Cubit<MovementFormState> {
   }
 
   void changeType(MovementType type) {
-    if (type == state.type) return;
+    if (type == state.type && !state.isWithdrawal) return;
     emit(
       _normalized(
-        state.copyWith(type: type, categoryId: () => null, error: () => null),
+        state.copyWith(
+          type: type,
+          isWithdrawal: false,
+          categoryId: () => null,
+          error: () => null,
+        ),
+      ),
+    );
+  }
+
+  /// Switches to a cash withdrawal from a credit card.
+  void selectWithdrawal() {
+    if (state.isWithdrawal) return;
+    emit(
+      _normalized(
+        state.copyWith(
+          type: MovementType.expense,
+          isWithdrawal: true,
+          categoryId: () => null,
+          installmentCount: 1,
+          share: state.share.copyWith(enabled: false),
+          error: () => null,
+        ),
       ),
     );
   }
@@ -267,10 +310,21 @@ class MovementFormCubit extends Cubit<MovementFormState> {
 
   /// Falls back to a single charge when installments stop being possible
   /// (cards not loaded yet are not a reason to drop an edited plan).
-  MovementFormState _normalized(MovementFormState next) =>
-      next.canUseInstallments || next.cards.isEmpty
-      ? next
-      : next.copyWith(installmentMode: InstallmentMode.single);
+  MovementFormState _normalized(MovementFormState next) {
+    if (next.cards.isEmpty) return next;
+    var result = next;
+    // Withdrawals only come from credit or departmental cards.
+    if (result.isWithdrawal &&
+        !(result.selectedCard?.hasBillingCycle ?? false)) {
+      result = result.copyWith(
+        cardId: () => null,
+        paymentMethod: PaymentMethod.cash,
+      );
+    }
+    return result.canUseInstallments || result.isWithdrawal
+        ? result
+        : result.copyWith(installmentMode: InstallmentMode.single);
+  }
 
   static InstallmentMode _modeOf(MovementEntity? movement) {
     if (movement == null || !movement.hasInstallments) {
@@ -343,7 +397,12 @@ class MovementFormCubit extends Cubit<MovementFormState> {
       emit(state.copyWith(error: () => 'Ingresa un monto válido'));
       return;
     }
-    if (state.categoryId == null) {
+    final withdrawal = state.isWithdrawal;
+    if (withdrawal && state.cardId == null) {
+      emit(state.copyWith(error: () => 'Elige la tarjeta de crédito'));
+      return;
+    }
+    if (!withdrawal && state.categoryId == null) {
       emit(state.copyWith(error: () => 'Selecciona una categoría'));
       return;
     }
@@ -355,16 +414,28 @@ class MovementFormCubit extends Cubit<MovementFormState> {
       emit(state.copyWith(error: () => 'Ingresa la tasa de interés'));
       return;
     }
-    final installmentCount = mode == InstallmentMode.single
-        ? null
-        : state.installmentCount;
-    final installmentRate = mode == InstallmentMode.withInterest
-        ? interestRate
-        : null;
+    final int? installmentCount;
+    final double? installmentRate;
+    if (withdrawal) {
+      installmentCount = state.installmentCount > 1
+          ? state.installmentCount
+          : null;
+      installmentRate = (interestRate ?? 0) > 0 ? interestRate : null;
+    } else {
+      installmentCount = mode == InstallmentMode.single
+          ? null
+          : state.installmentCount;
+      installmentRate = mode == InstallmentMode.withInterest
+          ? interestRate
+          : null;
+    }
+    final categoryId = withdrawal
+        ? MovementEntity.cashWithdrawalCategoryId
+        : state.categoryId!;
 
     // Validated before saving so an invalid split doesn't leave the
     // movement half saved. Incomes are never shared.
-    final sharesResult = state.type == MovementType.expense
+    final sharesResult = state.type == MovementType.expense && !withdrawal
         ? state.share.shares(amount, customShares)
         : right<String, Map<String, double>>(const {});
     if (sharesResult case Left(value: final message)) {
@@ -383,13 +454,14 @@ class MovementFormCubit extends Cubit<MovementFormState> {
               title: title,
               amount: amount,
               type: state.type,
-              categoryId: state.categoryId!,
+              categoryId: categoryId,
               date: state.date,
               note: cleanNote,
               cardId: state.cardId,
               paymentMethod: state.paymentMethod,
               installmentCount: installmentCount,
               installmentRate: installmentRate,
+              isCashWithdrawal: withdrawal,
             ),
           )
         : await _updateMovement(
@@ -398,13 +470,14 @@ class MovementFormCubit extends Cubit<MovementFormState> {
               title: title,
               amount: amount,
               type: state.type,
-              categoryId: state.categoryId!,
+              categoryId: categoryId,
               date: state.date,
               note: cleanNote,
               cardId: state.cardId,
               paymentMethod: state.paymentMethod,
               installmentCount: installmentCount,
               installmentRate: installmentRate,
+              isCashWithdrawal: withdrawal,
               createdAt: current.createdAt,
               updatedAt: current.updatedAt,
             ),

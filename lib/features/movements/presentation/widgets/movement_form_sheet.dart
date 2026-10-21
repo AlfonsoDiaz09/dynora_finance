@@ -133,17 +133,33 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
                   child: SegmentOption(
                     label: 'Gasto',
                     color: AppColors.error,
-                    selected: state.type == MovementType.expense,
+                    selected:
+                        state.type == MovementType.expense &&
+                        !state.isWithdrawal,
                     onTap: () => cubit.changeType(MovementType.expense),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 8.w),
                 Expanded(
                   child: SegmentOption(
                     label: 'Ingreso',
                     color: AppColors.success,
                     selected: state.type == MovementType.income,
                     onTap: () => cubit.changeType(MovementType.income),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: SegmentOption(
+                    label: 'Disposición',
+                    color: AppColors.info,
+                    selected: state.isWithdrawal,
+                    onTap: () {
+                      cubit.selectWithdrawal();
+                      if (_title.text.trim().isEmpty) {
+                        _title.text = 'Disposición de efectivo';
+                      }
+                    },
                   ),
                 ),
               ],
@@ -164,30 +180,32 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
               ),
               inputFormatters: amountInputFormatters,
             ),
-            SizedBox(height: 16.h),
-            const FormLabel('Categoría'),
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: [
-                for (final category in state.categoriesOfType)
-                  ChoiceChip(
-                    avatar: Icon(
-                      CategoryIcons.of(category.iconKey),
-                      size: 18.sp,
-                      color: Color(category.colorValue),
+            if (!state.isWithdrawal) ...[
+              SizedBox(height: 16.h),
+              const FormLabel('Categoría'),
+              Wrap(
+                spacing: 8.w,
+                runSpacing: 8.h,
+                children: [
+                  for (final category in state.categoriesOfType)
+                    ChoiceChip(
+                      avatar: Icon(
+                        CategoryIcons.of(category.iconKey),
+                        size: 18.sp,
+                        color: Color(category.colorValue),
+                      ),
+                      label: Text(category.name),
+                      selected: state.categoryId == category.id,
+                      onSelected: (_) => cubit.selectCategory(category.id),
+                      showCheckmark: false,
+                      labelStyle: const TextStyle(color: Colors.white),
+                      backgroundColor: Colors.white.withValues(alpha: 0.05),
+                      selectedColor: AppColors.primary40,
+                      side: BorderSide.none,
                     ),
-                    label: Text(category.name),
-                    selected: state.categoryId == category.id,
-                    onSelected: (_) => cubit.selectCategory(category.id),
-                    showCheckmark: false,
-                    labelStyle: const TextStyle(color: Colors.white),
-                    backgroundColor: Colors.white.withValues(alpha: 0.05),
-                    selectedColor: AppColors.primary40,
-                    side: BorderSide.none,
-                  ),
-              ],
-            ),
+                ],
+              ),
+            ],
             SizedBox(height: 16.h),
             const FormLabel('Fecha'),
             InkWell(
@@ -215,24 +233,27 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
               ),
             ),
             SizedBox(height: 16.h),
-            const FormLabel('Pagado con'),
+            FormLabel(state.isWithdrawal ? 'Tarjeta de crédito' : 'Pagado con'),
             Wrap(
               spacing: 8.w,
               runSpacing: 8.h,
               children: [
-                _PaymentChip(
-                  label: 'Efectivo',
-                  icon: Icons.payments_rounded,
-                  selected: state.paymentMethod == PaymentMethod.cash,
-                  onSelected: () => cubit.selectMethod(PaymentMethod.cash),
-                ),
-                _PaymentChip(
-                  label: 'Transferencia',
-                  icon: Icons.swap_horiz_rounded,
-                  selected: state.paymentMethod == PaymentMethod.transfer,
-                  onSelected: () => cubit.selectMethod(PaymentMethod.transfer),
-                ),
-                for (final card in state.cards)
+                if (!state.isWithdrawal) ...[
+                  _PaymentChip(
+                    label: 'Efectivo',
+                    icon: Icons.payments_rounded,
+                    selected: state.paymentMethod == PaymentMethod.cash,
+                    onSelected: () => cubit.selectMethod(PaymentMethod.cash),
+                  ),
+                  _PaymentChip(
+                    label: 'Transferencia',
+                    icon: Icons.swap_horiz_rounded,
+                    selected: state.paymentMethod == PaymentMethod.transfer,
+                    onSelected: () =>
+                        cubit.selectMethod(PaymentMethod.transfer),
+                  ),
+                ],
+                for (final card in state.availableCards)
                   _PaymentChip(
                     label: card.shortLabel,
                     icon: Icons.credit_card_rounded,
@@ -242,7 +263,14 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
                   ),
               ],
             ),
-            if (state.canUseInstallments)
+            if (state.isWithdrawal && state.selectedCard != null)
+              _WithdrawalSection(
+                state: state,
+                amount: _amount,
+                rate: _rate,
+                onCountChanged: cubit.selectInstallmentCount,
+              )
+            else if (state.canUseInstallments)
               _InstallmentSection(
                 state: state,
                 amount: _amount,
@@ -262,7 +290,7 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
                   ),
                 ),
               ),
-            if (state.type == MovementType.expense)
+            if (state.type == MovementType.expense && !state.isWithdrawal)
               _ShareSection(
                 state: state,
                 amount: _amount,
@@ -482,17 +510,8 @@ class _InstallmentSection extends StatelessWidget {
         'Total ${Formatters.currency(preview.totalWithInterest)}\n$schedule';
   }
 
-  String _scheduleHint(CardEntity card, int count) {
-    final first = card.billingPeriodFor(state.date);
-    var last = first;
-    for (var i = 1; i < count; i++) {
-      last = card.billingPeriodFor(
-        DateTime(last.end.year, last.end.month, last.end.day + 1),
-      );
-    }
-    return 'Primer pago el ${Formatters.shortDate(first.paymentDate)} · '
-        'último el ${Formatters.shortDate(last.paymentDate)}';
-  }
+  String _scheduleHint(CardEntity card, int count) =>
+      _paymentSchedule(card, state.date, count);
 }
 
 /// Who owes you part of this expense: people, split mode and summary.
@@ -704,5 +723,118 @@ class _ShareSection extends StatelessWidget {
         true,
       );
     });
+  }
+}
+
+/// `Primer pago el 20 Nov · último el 20 Abr 2027` (or the single date).
+String _paymentSchedule(CardEntity card, DateTime date, int count) {
+  final first = card.billingPeriodFor(date);
+  if (count <= 1) {
+    return 'Se paga el ${Formatters.shortDate(first.paymentDate)}';
+  }
+  var last = first;
+  for (var i = 1; i < count; i++) {
+    last = card.billingPeriodFor(
+      DateTime(last.end.year, last.end.month, last.end.day + 1),
+    );
+  }
+  return 'Primer pago el ${Formatters.shortDate(first.paymentDate)} · '
+      'último el ${Formatters.shortDate(last.paymentDate)}';
+}
+
+/// Payments and interest of a cash withdrawal, with what you receive and
+/// what you will pay.
+class _WithdrawalSection extends StatelessWidget {
+  const _WithdrawalSection({
+    required this.state,
+    required this.amount,
+    required this.rate,
+    required this.onCountChanged,
+  });
+
+  static const List<int> _counts = [1, 3, 6, 9, 12, 18, 24];
+
+  final MovementFormState state;
+  final TextEditingController amount;
+  final TextEditingController rate;
+  final ValueChanged<int> onCountChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final counts = {..._counts, state.installmentCount}.toList()..sort();
+
+    return Padding(
+      padding: EdgeInsets.only(top: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const FormLabel('¿En cuántos pagos?'),
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            children: [
+              for (final count in counts)
+                ChoiceChip(
+                  label: Text(count == 1 ? '1 pago' : '$count pagos'),
+                  selected: state.installmentCount == count,
+                  onSelected: (_) => onCountChanged(count),
+                  showCheckmark: false,
+                  labelStyle: const TextStyle(color: Colors.white),
+                  backgroundColor: Colors.white.withValues(alpha: 0.05),
+                  selectedColor: AppColors.primary40,
+                  side: BorderSide.none,
+                ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          AppTextField(
+            controller: rate,
+            hint: 'Interés o comisión fija % (opcional)',
+            icon: Icons.percent_rounded,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: amountInputFormatters,
+          ),
+          SizedBox(height: 10.h),
+          ListenableBuilder(
+            listenable: Listenable.merge([amount, rate]),
+            builder: (context, _) => Text(
+              _summary(),
+              style: TextStyle(color: AppColors.textPrimary70, fontSize: 12.sp),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// `Recibes $5,000.00 · Pagarás $5,750.00 en 6 pagos de $958.33`
+  String _summary() {
+    final card = state.selectedCard!;
+    final count = state.installmentCount;
+    final schedule = _paymentSchedule(card, state.date, count);
+    final received = parseAmount(amount.text);
+    if (received == null || received <= 0) return schedule;
+
+    final preview = MovementEntity(
+      id: '',
+      title: '',
+      amount: received,
+      type: MovementType.expense,
+      categoryId: MovementEntity.cashWithdrawalCategoryId,
+      date: state.date,
+      cardId: card.id,
+      installmentCount: count > 1 ? count : null,
+      installmentRate: parseAmount(rate.text),
+      isCashWithdrawal: true,
+      createdAt: state.date,
+      updatedAt: state.date,
+    );
+    final payments = preview.installmentAmounts;
+    final plan = count > 1
+        ? 'en $count pagos de ${Formatters.currency(payments.first)}'
+        : 'en 1 pago';
+    return 'Recibes ${Formatters.currency(received)} · '
+        'Pagarás ${Formatters.currency(preview.totalWithInterest)} $plan\n'
+        '$schedule';
   }
 }

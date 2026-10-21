@@ -20,6 +20,7 @@ class MovementDto {
     required this.paymentMethod,
     this.installmentCount,
     this.installmentRate,
+    this.isCashWithdrawal = false,
     required this.createdAt,
     required this.updatedAt,
     required this.isDeleted,
@@ -36,6 +37,7 @@ class MovementDto {
   final String paymentMethod;
   final int? installmentCount;
   final double? installmentRate;
+  final bool isCashWithdrawal;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -53,6 +55,7 @@ class MovementDto {
       paymentMethod: json['payment_method'] as String? ?? 'cash',
       installmentCount: json['installment_count'] as int?,
       installmentRate: (json['installment_rate'] as num?)?.toDouble(),
+      isCashWithdrawal: json['is_cash_withdrawal'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       isDeleted: json['is_deleted'] as bool? ?? false,
@@ -72,6 +75,7 @@ class MovementDto {
       'payment_method': paymentMethod,
       'installment_count': installmentCount,
       'installment_rate': installmentRate,
+      'is_cash_withdrawal': isCashWithdrawal,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
       'is_deleted': isDeleted,
@@ -91,6 +95,7 @@ class MovementDto {
       paymentMethod: model.paymentMethod.name,
       installmentCount: model.installmentCount,
       installmentRate: model.installmentRate,
+      isCashWithdrawal: model.isCashWithdrawal,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
       isDeleted: model.isDeleted,
@@ -111,6 +116,7 @@ class MovementDto {
       ..paymentMethod = PaymentMethod.values.byName(paymentMethod)
       ..installmentCount = installmentCount
       ..installmentRate = installmentRate
+      ..isCashWithdrawal = isCashWithdrawal
       ..createdAt = createdAt.toLocal()
       ..updatedAt = updatedAt.toLocal()
       ..isDeleted = isDeleted

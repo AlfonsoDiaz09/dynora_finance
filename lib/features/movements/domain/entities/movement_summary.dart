@@ -15,7 +15,7 @@ class MovementSummary {
     final byCategory = <String, double>{};
 
     for (final movement in movements) {
-      if (movement.type == MovementType.income) {
+      if (movement.isCashWithdrawal || movement.type == MovementType.income) {
         income += movement.amount;
       } else {
         expense += movement.amount;

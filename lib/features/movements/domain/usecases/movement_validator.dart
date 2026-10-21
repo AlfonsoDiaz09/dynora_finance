@@ -13,6 +13,7 @@ class MovementValidator {
     String? cardId,
     int? installmentCount,
     double? installmentRate,
+    bool isCashWithdrawal = false,
   }) {
     if (title.trim().isEmpty) {
       return const ValidationFailure('El título es obligatorio');
@@ -20,8 +21,17 @@ class MovementValidator {
     if (amount <= 0 || amount.isNaN || amount.isInfinite) {
       return const ValidationFailure('El monto debe ser mayor a 0');
     }
+    if (isCashWithdrawal && cardId == null) {
+      return const ValidationFailure(
+        'Elige la tarjeta de crédito de la disposición',
+      );
+    }
     if (categoryId.isEmpty) {
       return const ValidationFailure('La categoría es obligatoria');
+    }
+    final rate = installmentRate ?? 0;
+    if (rate > 0 && cardId == null) {
+      return const ValidationFailure('El interés solo aplica con tarjeta');
     }
     if (installmentCount != null && installmentCount > 1) {
       if (cardId == null) {
@@ -34,10 +44,9 @@ class MovementValidator {
           'El máximo es de $maxInstallments meses',
         );
       }
-      final rate = installmentRate ?? 0;
-      if (rate < 0 || rate > 100 || rate.isNaN) {
-        return const ValidationFailure('La tasa debe estar entre 0 y 100%');
-      }
+    }
+    if (rate < 0 || rate > 100 || rate.isNaN) {
+      return const ValidationFailure('La tasa debe estar entre 0 y 100%');
     }
     return null;
   }

@@ -28,6 +28,7 @@ abstract interface class MovementRepository {
     PaymentMethod paymentMethod = PaymentMethod.cash,
     int? installmentCount,
     double? installmentRate,
+    bool isCashWithdrawal = false,
   });
 
   Future<Either<Failure, MovementEntity>> updateMovement(

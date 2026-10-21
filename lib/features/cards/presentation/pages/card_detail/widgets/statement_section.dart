@@ -7,6 +7,7 @@ import 'package:dynora_finance/features/debts/presentation/widgets/debtor_avatar
 import 'package:dynora_finance/features/debts/presentation/widgets/debtors_sheet.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_item.dart';
+import 'package:dynora_finance/features/movements/presentation/utils/movement_labels.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/shared/utils/group_by_day.dart';
 import 'package:dynora_finance/shared/widgets/day_header.dart';
@@ -146,7 +147,7 @@ class StatementSection extends StatelessWidget {
   String _subtitle(StatementCharge charge) {
     final movement = charge.movement;
     return [
-      categories[movement.categoryId]?.name ?? 'Sin categoría',
+      movement.categoryName(categories),
       if (charge.isInstallment)
         '${charge.installmentNumber}/${movement.installmentCount}',
     ].join(' · ');

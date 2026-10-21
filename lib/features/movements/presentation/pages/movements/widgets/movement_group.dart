@@ -46,7 +46,7 @@ class MovementGroup extends StatelessWidget {
             title: movement.title,
             category: _subtitle(movement),
             amount: movement.amount,
-            isExpense: movement.isExpense,
+            isExpense: movement.showsAsExpense,
             onTap: () => onMovementTap(movement),
           ),
         ],
@@ -58,7 +58,7 @@ class MovementGroup extends StatelessWidget {
   String _subtitle(MovementEntity movement) {
     final card = cards[movement.cardId];
     return [
-      categories[movement.categoryId]?.name ?? 'Sin categoría',
+      movement.categoryName(categories),
       card?.shortLabel ?? movement.paymentMethod.label,
       ?movement.installmentTag,
       ?debtTag(debts[movement.id]),

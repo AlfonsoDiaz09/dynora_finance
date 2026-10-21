@@ -15,6 +15,7 @@ class MovementEntity extends Equatable {
     PaymentMethod? paymentMethod,
     this.installmentCount,
     this.installmentRate,
+    this.isCashWithdrawal = false,
     required this.createdAt,
     required this.updatedAt,
   }) : paymentMethod = cardId != null
@@ -42,9 +43,17 @@ class MovementEntity extends Equatable {
   /// Monthly installments of a card purchase; `null` for a single charge.
   final int? installmentCount;
 
-  /// Fixed interest (percentage of [amount]) of an installment purchase;
-  /// `null` or 0 for interest-free installments.
+  /// Fixed interest or commission (percentage of [amount]) charged by the
+  /// card; `null` or 0 for interest-free charges.
   final double? installmentRate;
+
+  /// Cash withdrawn from a credit card: the card is charged [amount] plus
+  /// interest, and [amount] (without interest) counts as income, not as an
+  /// expense.
+  final bool isCashWithdrawal;
+
+  /// Category id used by cash withdrawals (they have no real category).
+  static const String cashWithdrawalCategoryId = 'cash_withdrawal';
 
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -53,7 +62,7 @@ class MovementEntity extends Equatable {
 
   bool get hasInstallments => (installmentCount ?? 1) > 1;
 
-  bool get hasInterest => hasInstallments && (installmentRate ?? 0) > 0;
+  bool get hasInterest => (installmentRate ?? 0) > 0;
 
   /// What will be charged in total, interest included.
   double get totalWithInterest =>
@@ -63,7 +72,7 @@ class MovementEntity extends Equatable {
   /// installments; the last installment absorbs rounding cents so they add
   /// up exactly to [totalWithInterest].
   List<double> get installmentAmounts {
-    if (!hasInstallments) return [amount];
+    if (!hasInstallments) return [totalWithInterest];
     final count = installmentCount!;
     final total = totalWithInterest;
     final regular = _cents(total / count);
@@ -95,6 +104,7 @@ class MovementEntity extends Equatable {
       paymentMethod: paymentMethod,
       installmentCount: installmentCount,
       installmentRate: installmentRate,
+      isCashWithdrawal: isCashWithdrawal,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -113,6 +123,7 @@ class MovementEntity extends Equatable {
     paymentMethod,
     installmentCount,
     installmentRate,
+    isCashWithdrawal,
     createdAt,
     updatedAt,
   ];

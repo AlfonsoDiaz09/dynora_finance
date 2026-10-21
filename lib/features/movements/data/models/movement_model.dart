@@ -41,6 +41,7 @@ class MovementModel {
 
   int? installmentCount;
   double? installmentRate;
+  bool isCashWithdrawal = false;
   late DateTime createdAt;
   late DateTime updatedAt;
 
@@ -67,6 +68,7 @@ class MovementModel {
       paymentMethod: paymentMethod,
       installmentCount: installmentCount,
       installmentRate: installmentRate,
+      isCashWithdrawal: isCashWithdrawal,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -84,5 +86,6 @@ class MovementModel {
     paymentMethod = entity.paymentMethod;
     installmentCount = entity.installmentCount;
     installmentRate = entity.installmentRate;
+    isCashWithdrawal = entity.isCashWithdrawal;
   }
 }

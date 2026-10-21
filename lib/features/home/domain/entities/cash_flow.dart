@@ -38,6 +38,12 @@ class CashFlow {
     var expense = 0.0;
     for (final movement in movements) {
       if (!inRange(movement.date)) continue;
+      // Cash withdrawn from a card: the money comes in now; the card
+      // charges (with interest) leave when the card is paid.
+      if (movement.isCashWithdrawal) {
+        income += movement.amount;
+        continue;
+      }
       if (creditCardIds.contains(movement.cardId)) continue;
       if (movement.type == MovementType.income) {
         income += movement.amount;

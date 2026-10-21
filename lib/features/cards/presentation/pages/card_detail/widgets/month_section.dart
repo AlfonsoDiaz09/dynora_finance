@@ -6,6 +6,7 @@ import 'package:dynora_finance/features/debts/presentation/widgets/debtor_avatar
 import 'package:dynora_finance/features/debts/presentation/widgets/debtors_sheet.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_item.dart';
+import 'package:dynora_finance/features/movements/presentation/utils/movement_labels.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/shared/utils/group_by_day.dart';
 import 'package:dynora_finance/shared/widgets/day_header.dart';
@@ -65,8 +66,7 @@ class MonthSection extends StatelessWidget {
             SizedBox(height: 10.h),
             MovementItem(
               title: movement.title,
-              category:
-                  categories[movement.categoryId]?.name ?? 'Sin categoría',
+              category: movement.categoryName(categories),
               amount: movement.amount,
               isExpense: movement.isExpense,
               onTap: () => onMovementTap(movement),

@@ -40,39 +40,44 @@ const MovementModelSchema = CollectionSchema(
       name: r'installmentRate',
       type: IsarType.double,
     ),
-    r'isDeleted': PropertySchema(
+    r'isCashWithdrawal': PropertySchema(
       id: 7,
+      name: r'isCashWithdrawal',
+      type: IsarType.bool,
+    ),
+    r'isDeleted': PropertySchema(
+      id: 8,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'lastSyncedAt': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'lastSyncedAt',
       type: IsarType.dateTime,
     ),
-    r'note': PropertySchema(id: 9, name: r'note', type: IsarType.string),
+    r'note': PropertySchema(id: 10, name: r'note', type: IsarType.string),
     r'paymentMethod': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'paymentMethod',
       type: IsarType.string,
       enumMap: _MovementModelpaymentMethodEnumValueMap,
     ),
     r'syncStatus': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _MovementModelsyncStatusEnumValueMap,
     ),
-    r'title': PropertySchema(id: 12, name: r'title', type: IsarType.string),
+    r'title': PropertySchema(id: 13, name: r'title', type: IsarType.string),
     r'type': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'type',
       type: IsarType.string,
       enumMap: _MovementModeltypeEnumValueMap,
     ),
-    r'uid': PropertySchema(id: 14, name: r'uid', type: IsarType.string),
+    r'uid': PropertySchema(id: 15, name: r'uid', type: IsarType.string),
     r'updatedAt': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -212,15 +217,16 @@ void _movementModelSerialize(
   writer.writeDateTime(offsets[4], object.date);
   writer.writeLong(offsets[5], object.installmentCount);
   writer.writeDouble(offsets[6], object.installmentRate);
-  writer.writeBool(offsets[7], object.isDeleted);
-  writer.writeDateTime(offsets[8], object.lastSyncedAt);
-  writer.writeString(offsets[9], object.note);
-  writer.writeString(offsets[10], object.paymentMethod.name);
-  writer.writeString(offsets[11], object.syncStatus.name);
-  writer.writeString(offsets[12], object.title);
-  writer.writeString(offsets[13], object.type.name);
-  writer.writeString(offsets[14], object.uid);
-  writer.writeDateTime(offsets[15], object.updatedAt);
+  writer.writeBool(offsets[7], object.isCashWithdrawal);
+  writer.writeBool(offsets[8], object.isDeleted);
+  writer.writeDateTime(offsets[9], object.lastSyncedAt);
+  writer.writeString(offsets[10], object.note);
+  writer.writeString(offsets[11], object.paymentMethod.name);
+  writer.writeString(offsets[12], object.syncStatus.name);
+  writer.writeString(offsets[13], object.title);
+  writer.writeString(offsets[14], object.type.name);
+  writer.writeString(offsets[15], object.uid);
+  writer.writeDateTime(offsets[16], object.updatedAt);
 }
 
 MovementModel _movementModelDeserialize(
@@ -237,26 +243,27 @@ MovementModel _movementModelDeserialize(
   object.date = reader.readDateTime(offsets[4]);
   object.installmentCount = reader.readLongOrNull(offsets[5]);
   object.installmentRate = reader.readDoubleOrNull(offsets[6]);
-  object.isDeleted = reader.readBool(offsets[7]);
+  object.isCashWithdrawal = reader.readBool(offsets[7]);
+  object.isDeleted = reader.readBool(offsets[8]);
   object.isarId = id;
-  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[8]);
-  object.note = reader.readStringOrNull(offsets[9]);
+  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[9]);
+  object.note = reader.readStringOrNull(offsets[10]);
   object.paymentMethod =
       _MovementModelpaymentMethodValueEnumMap[reader.readStringOrNull(
-        offsets[10],
+        offsets[11],
       )] ??
       PaymentMethod.cash;
   object.syncStatus =
       _MovementModelsyncStatusValueEnumMap[reader.readStringOrNull(
-        offsets[11],
+        offsets[12],
       )] ??
       SyncStatus.synced;
-  object.title = reader.readString(offsets[12]);
+  object.title = reader.readString(offsets[13]);
   object.type =
-      _MovementModeltypeValueEnumMap[reader.readStringOrNull(offsets[13])] ??
+      _MovementModeltypeValueEnumMap[reader.readStringOrNull(offsets[14])] ??
       MovementType.income;
-  object.uid = reader.readString(offsets[14]);
-  object.updatedAt = reader.readDateTime(offsets[15]);
+  object.uid = reader.readString(offsets[15]);
+  object.updatedAt = reader.readDateTime(offsets[16]);
   return object;
 }
 
@@ -284,30 +291,32 @@ P _movementModelDeserializeProp<P>(
     case 7:
       return (reader.readBool(offset)) as P;
     case 8:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 9:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
       return (_MovementModelpaymentMethodValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               PaymentMethod.cash)
           as P;
-    case 11:
+    case 12:
       return (_MovementModelsyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.synced)
           as P;
-    case 12:
-      return (reader.readString(offset)) as P;
     case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
       return (_MovementModeltypeValueEnumMap[reader.readStringOrNull(offset)] ??
               MovementType.income)
           as P;
-    case 14:
-      return (reader.readString(offset)) as P;
     case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1561,6 +1570,15 @@ extension MovementModelQueryFilter
   }
 
   QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  isCashWithdrawalEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isCashWithdrawal', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
   isDeletedEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2727,6 +2745,20 @@ extension MovementModelQuerySortBy
     });
   }
 
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  sortByIsCashWithdrawal() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCashWithdrawal', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  sortByIsCashWithdrawalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCashWithdrawal', Sort.desc);
+    });
+  }
+
   QueryBuilder<MovementModel, MovementModel, QAfterSortBy> sortByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -2935,6 +2967,20 @@ extension MovementModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  thenByIsCashWithdrawal() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCashWithdrawal', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  thenByIsCashWithdrawalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCashWithdrawal', Sort.desc);
+    });
+  }
+
   QueryBuilder<MovementModel, MovementModel, QAfterSortBy> thenByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -3113,6 +3159,13 @@ extension MovementModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<MovementModel, MovementModel, QDistinct>
+  distinctByIsCashWithdrawal() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isCashWithdrawal');
+    });
+  }
+
   QueryBuilder<MovementModel, MovementModel, QDistinct> distinctByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isDeleted');
@@ -3232,6 +3285,13 @@ extension MovementModelQueryProperty
   installmentRateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'installmentRate');
+    });
+  }
+
+  QueryBuilder<MovementModel, bool, QQueryOperations>
+  isCashWithdrawalProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isCashWithdrawal');
     });
   }
 

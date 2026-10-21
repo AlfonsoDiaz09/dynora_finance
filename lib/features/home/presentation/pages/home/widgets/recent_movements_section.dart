@@ -1,4 +1,5 @@
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
+import 'package:dynora_finance/features/movements/presentation/utils/movement_labels.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,7 @@ class RecentMovementsSection extends StatelessWidget {
               title: movement.title,
               date: Formatters.relativeDay(movement.date),
               amount: movement.amount,
-              type: movement.type,
+              type: movement.displayType,
               onTap: () => onMovementTap(movement),
             ),
           ],

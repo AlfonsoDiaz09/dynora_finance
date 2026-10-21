@@ -68,6 +68,7 @@ class MovementRepositoryImpl implements MovementRepository {
     PaymentMethod paymentMethod = PaymentMethod.cash,
     int? installmentCount,
     double? installmentRate,
+    bool isCashWithdrawal = false,
   }) {
     return guard(() async {
       final now = DateTime.now();
@@ -83,6 +84,7 @@ class MovementRepositoryImpl implements MovementRepository {
         ..paymentMethod = cardId != null ? PaymentMethod.card : paymentMethod
         ..installmentCount = installmentCount
         ..installmentRate = installmentRate
+        ..isCashWithdrawal = isCashWithdrawal
         ..createdAt = now
         ..updatedAt = now
         ..syncStatus = SyncStatus.pendingCreate;

@@ -21,6 +21,7 @@ class AddMovement implements UseCase<MovementEntity, AddMovementParams> {
       cardId: params.cardId,
       installmentCount: params.installmentCount,
       installmentRate: params.installmentRate,
+      isCashWithdrawal: params.isCashWithdrawal,
     );
     if (failure != null) return left(failure);
     final installments = (params.installmentCount ?? 1) > 1;
@@ -29,15 +30,18 @@ class AddMovement implements UseCase<MovementEntity, AddMovementParams> {
       title: params.title.trim(),
       amount: params.amount,
       type: params.type,
-      categoryId: params.categoryId,
+      categoryId: params.isCashWithdrawal
+          ? MovementEntity.cashWithdrawalCategoryId
+          : params.categoryId,
       date: params.date,
       note: params.note?.trim(),
       cardId: params.cardId,
       paymentMethod: params.paymentMethod,
       installmentCount: installments ? params.installmentCount : null,
-      installmentRate: installments && (params.installmentRate ?? 0) > 0
+      installmentRate: (params.installmentRate ?? 0) > 0
           ? params.installmentRate
           : null,
+      isCashWithdrawal: params.isCashWithdrawal,
     );
   }
 }
@@ -54,6 +58,7 @@ class AddMovementParams {
     this.paymentMethod = PaymentMethod.cash,
     this.installmentCount,
     this.installmentRate,
+    this.isCashWithdrawal = false,
   });
 
   final String title;
@@ -68,4 +73,5 @@ class AddMovementParams {
   final PaymentMethod paymentMethod;
   final int? installmentCount;
   final double? installmentRate;
+  final bool isCashWithdrawal;
 }
