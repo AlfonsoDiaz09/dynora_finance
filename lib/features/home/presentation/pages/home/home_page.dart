@@ -1,6 +1,6 @@
 import 'package:dynora_finance/app/bloc/navigation_cubit/navigation_cubit.dart';
 import 'package:dynora_finance/core/enums/movement_type.dart';
-import 'package:dynora_finance/features/cards/presentation/widgets/card_form_sheet.dart';
+import 'package:dynora_finance/app/router/router.dart';
 import 'package:dynora_finance/features/home/presentation/cubit/home_cubit.dart';
 import 'package:dynora_finance/features/movements/presentation/widgets/movement_form_sheet.dart';
 import 'package:dynora_finance/init_dependencies.dart';
@@ -57,8 +57,9 @@ class HomePage extends StatelessWidget {
                 SizedBox(height: 28.h),
                 UpcomingPaymentsSection(
                   payments: state.upcomingPayments,
-                  onAddCard: () => CardFormSheet.show(context),
-                  onCardTap: (card) => CardFormSheet.show(context, card: card),
+                  onSeeCards: () => context.push(AppRoutes.cards),
+                  onCardTap: (card) =>
+                      context.push(AppRoutes.cardDetailPath(card.id)),
                 ),
                 SizedBox(height: 28.h),
                 RecentMovementsSection(
@@ -73,7 +74,7 @@ class HomePage extends StatelessWidget {
                     context,
                     initialType: MovementType.income,
                   ),
-                  onCards: () => CardFormSheet.show(context),
+                  onCards: () => context.push(AppRoutes.cards),
                   onStats: () => _openStats(context),
                 ),
                 SizedBox(height: 50.h),

@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/utils/month_range.dart';
+import 'package:dynora_finance/core/usecase/usecase.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
@@ -31,6 +34,7 @@ class MovementsState extends Equatable {
     this.summary = MovementSummary.empty,
     this.groups = const [],
     this.categories = const {},
+    this.cards = const {},
     this.error,
   });
 
@@ -39,6 +43,7 @@ class MovementsState extends Equatable {
   final MovementSummary summary;
   final List<MovementDayGroup> groups;
   final Map<String, CategoryEntity> categories;
+  final Map<String, CardEntity> cards;
   final String? error;
 
   @override
@@ -49,6 +54,7 @@ class MovementsState extends Equatable {
     summary.expense,
     groups,
     categories,
+    cards,
     error,
   ];
 }
@@ -57,12 +63,15 @@ class MovementsCubit extends Cubit<MovementsState> {
   MovementsCubit({
     required WatchMovements watchMovements,
     required WatchCategories watchCategories,
+    required WatchCards watchCards,
   }) : _watchMovements = watchMovements,
        _watchCategories = watchCategories,
+       _watchCards = watchCards,
        super(MovementsState(month: MonthRange(DateTime.now())));
 
   final WatchMovements _watchMovements;
   final WatchCategories _watchCategories;
+  final WatchCards _watchCards;
   late final BehaviorSubject<MonthRange> _month = BehaviorSubject.seeded(
     state.month,
   );
@@ -71,11 +80,12 @@ class MovementsCubit extends Cubit<MovementsState> {
   void start() {
     _subscription = _month
         .switchMap(
-          (month) => Rx.combineLatest2(
+          (month) => Rx.combineLatest3(
             _watchMovements(MovementFilter(from: month.start, to: month.end)),
             _watchCategories(null),
-            (movements, categories) =>
-                _buildState(month, movements, categories),
+            _watchCards(const NoParams()),
+            (movements, categories, cards) =>
+                _buildState(month, movements, categories, cards),
           ),
         )
         .listen(emit);
@@ -86,7 +96,13 @@ class MovementsCubit extends Cubit<MovementsState> {
   void nextMonth() => _changeMonth(state.month.next);
 
   void _changeMonth(MonthRange month) {
-    emit(MovementsState(month: month, categories: state.categories));
+    emit(
+      MovementsState(
+        month: month,
+        categories: state.categories,
+        cards: state.cards,
+      ),
+    );
     _month.add(month);
   }
 
@@ -94,9 +110,10 @@ class MovementsCubit extends Cubit<MovementsState> {
     MonthRange month,
     Either<Failure, List<MovementEntity>> movements,
     Either<Failure, List<CategoryEntity>> categories,
+    Either<Failure, List<CardEntity>> cards,
   ) {
     return movements
-        .flatMap((m) => categories.map((c) => (m, c)))
+        .flatMap((m) => categories.flatMap((c) => cards.map((k) => (m, c, k))))
         .match(
           (failure) => MovementsState(
             month: month,
@@ -109,6 +126,7 @@ class MovementsCubit extends Cubit<MovementsState> {
             summary: MovementSummary.of(data.$1),
             groups: _groupByDay(data.$1),
             categories: {for (final c in data.$2) c.id: c},
+            cards: {for (final k in data.$3) k.id: k},
           ),
         );
   }

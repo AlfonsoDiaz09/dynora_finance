@@ -78,7 +78,8 @@ class _MovementsList extends StatelessWidget {
               alignment: Alignment.topCenter,
               child: EmptyState(
                 icon: Icons.receipt_long_rounded,
-                message: 'Sin movimientos este mes.\n'
+                message:
+                    'Sin movimientos este mes.\n'
                     'Mantén presionado el botón de inicio para agregar uno.',
               ),
             ),
@@ -94,6 +95,7 @@ class _MovementsList extends StatelessWidget {
               date: Formatters.relativeDay(group.day),
               movements: group.movements,
               categories: state.categories,
+              cards: state.cards,
               onMovementTap: (movement) =>
                   MovementFormSheet.show(context, movement: movement),
             );

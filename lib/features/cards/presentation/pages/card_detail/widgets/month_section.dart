@@ -1,0 +1,59 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
+import 'package:dynora_finance/features/cards/presentation/cubit/card_detail_cubit.dart';
+import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
+import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
+import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_item.dart';
+import 'package:dynora_finance/shared/utils/formatters.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+/// Movements of a debit card in one calendar month.
+class MonthSection extends StatelessWidget {
+  const MonthSection({
+    super.key,
+    required this.month,
+    required this.categories,
+    required this.onMovementTap,
+  });
+
+  final MonthMovements month;
+  final Map<String, CategoryEntity> categories;
+  final ValueChanged<MovementEntity> onMovementTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final summary = month.summary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          Formatters.monthYear(month.month.start),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          'Gastos ${Formatters.currency(summary.expense)} · '
+          'Ingresos ${Formatters.currency(summary.income)}',
+          style: TextStyle(color: AppColors.textPrimary70, fontSize: 12.sp),
+        ),
+        for (final movement in month.movements) ...[
+          SizedBox(height: 12.h),
+          MovementItem(
+            title: movement.title,
+            category:
+                '${categories[movement.categoryId]?.name ?? 'Sin categoría'} · '
+                '${Formatters.relativeDay(movement.date)}',
+            amount: movement.amount,
+            isExpense: movement.isExpense,
+            onTap: () => onMovementTap(movement),
+          ),
+        ],
+      ],
+    );
+  }
+}

@@ -3,6 +3,8 @@ import 'package:dynora_finance/features/about/presentation/pages/about/about_pag
 import 'package:dynora_finance/features/auth/presentation/pages/login/login_page.dart';
 import 'package:dynora_finance/features/auth/presentation/pages/register/register_page.dart';
 import 'package:dynora_finance/features/budget/presentation/pages/budget/budget_page.dart';
+import 'package:dynora_finance/features/cards/presentation/pages/card_detail/card_detail_page.dart';
+import 'package:dynora_finance/features/cards/presentation/pages/cards/cards_page.dart';
 import 'package:dynora_finance/features/home/presentation/pages/home/home_page.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/movements_page.dart';
 import 'package:dynora_finance/features/profile/presentation/pages/profile/profile_page.dart';
@@ -23,6 +25,10 @@ abstract class AppRoutes {
   static const stats = '/stats';
   static const budget = '/budget';
   static const profile = '/profile';
+  static const cards = '/cards';
+  static const cardDetail = '/cards/:id';
+
+  static String cardDetailPath(String id) => '/cards/$id';
 }
 
 abstract class LoaderIds {
@@ -53,6 +59,17 @@ GoRouter createRouter() {
         path: AppRoutes.about,
         name: AppRoutes.about,
         builder: (_, __) => AboutPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.cards,
+        name: AppRoutes.cards,
+        builder: (_, __) => CardsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.cardDetail,
+        name: AppRoutes.cardDetail,
+        builder: (_, state) =>
+            CardDetailPage(cardId: state.pathParameters['id']!),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

@@ -1,4 +1,5 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
+import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -8,12 +9,16 @@ class UpcomingPaymentItem extends StatelessWidget {
     required this.cardName,
     required this.dueDate,
     required this.daysLeft,
+    required this.amount,
     this.onTap,
   });
 
   final String cardName;
   final String dueDate;
   final int daysLeft;
+
+  /// Statement total to pay on [dueDate].
+  final double amount;
   final VoidCallback? onTap;
 
   String get daysLeftLabel => switch (daysLeft) {
@@ -58,7 +63,7 @@ class UpcomingPaymentItem extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    "Vence: $dueDate",
+                    "Vence: $dueDate · ${Formatters.currency(amount)}",
                     style: TextStyle(
                       color: AppColors.textPrimary70,
                       fontSize: 12.sp,

@@ -1,5 +1,6 @@
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/add_card.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/delete_card.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/update_card.dart';
@@ -10,21 +11,25 @@ import 'package:fpdart/fpdart.dart';
 
 class CardFormState extends Equatable {
   const CardFormState({
+    required this.type,
     required this.colorValue,
     this.status = FormStatus.idle,
     this.error,
   });
 
+  final CardType type;
   final int colorValue;
   final FormStatus status;
   final String? error;
 
   CardFormState copyWith({
+    CardType? type,
     int? colorValue,
     FormStatus? status,
     String? Function()? error,
   }) {
     return CardFormState(
+      type: type ?? this.type,
       colorValue: colorValue ?? this.colorValue,
       status: status ?? this.status,
       error: error != null ? error() : this.error,
@@ -32,7 +37,7 @@ class CardFormState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [colorValue, status, error];
+  List<Object?> get props => [type, colorValue, status, error];
 }
 
 class CardFormCubit extends Cubit<CardFormState> {
@@ -46,7 +51,10 @@ class CardFormCubit extends Cubit<CardFormState> {
        _updateCard = updateCard,
        _deleteCard = deleteCard,
        super(
-         CardFormState(colorValue: editing?.colorValue ?? defaultColorValue),
+         CardFormState(
+           type: editing?.type ?? CardType.credit,
+           colorValue: editing?.colorValue ?? defaultColorValue,
+         ),
        );
 
   final AddCard _addCard;
@@ -56,29 +64,38 @@ class CardFormCubit extends Cubit<CardFormState> {
   /// Card being edited, `null` when creating a new one.
   final CardEntity? editing;
 
+  void selectType(CardType type) =>
+      emit(state.copyWith(type: type, error: () => null));
+
   void selectColor(int colorValue) =>
       emit(state.copyWith(colorValue: colorValue));
 
-  Future<void> submit({required String name, required int? dueDay}) async {
-    if (dueDay == null) {
-      emit(state.copyWith(error: () => 'Ingresa el día de pago'));
-      return;
-    }
-
+  Future<void> submit({
+    required String name,
+    required String lastFourDigits,
+    required int? cutoffDay,
+    required int? paymentDueDay,
+  }) async {
     emit(state.copyWith(status: FormStatus.submitting, error: () => null));
     final current = editing;
     final result = current == null
         ? await _addCard(
             AddCardParams(
               name: name,
-              paymentDueDay: dueDay,
+              type: state.type,
+              lastFourDigits: lastFourDigits,
+              cutoffDay: cutoffDay,
+              paymentDueDay: paymentDueDay,
               colorValue: state.colorValue,
             ),
           )
         : await _updateCard(
             current.copyWith(
               name: name,
-              paymentDueDay: dueDay,
+              type: state.type,
+              lastFourDigits: lastFourDigits,
+              cutoffDay: () => cutoffDay,
+              paymentDueDay: () => paymentDueDay,
               colorValue: state.colorValue,
             ),
           );

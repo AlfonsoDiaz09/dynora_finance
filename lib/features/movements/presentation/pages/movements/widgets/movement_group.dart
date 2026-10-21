@@ -1,4 +1,6 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/presentation/utils/card_labels.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +11,7 @@ class MovementGroup extends StatelessWidget {
   final String date;
   final List<MovementEntity> movements;
   final Map<String, CategoryEntity> categories;
+  final Map<String, CardEntity> cards;
   final ValueChanged<MovementEntity> onMovementTap;
 
   const MovementGroup({
@@ -16,6 +19,7 @@ class MovementGroup extends StatelessWidget {
     required this.date,
     required this.movements,
     required this.categories,
+    required this.cards,
     required this.onMovementTap,
   });
 
@@ -26,13 +30,16 @@ class MovementGroup extends StatelessWidget {
       children: [
         Text(
           date,
-          style: TextStyle(color: AppColors.textPrimary70, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: AppColors.textPrimary70,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         for (final movement in movements) ...[
           SizedBox(height: 12.h),
           MovementItem(
             title: movement.title,
-            category: categories[movement.categoryId]?.name ?? 'Sin categoría',
+            category: _subtitle(movement),
             amount: movement.amount,
             isExpense: movement.isExpense,
             onTap: () => onMovementTap(movement),
@@ -40,5 +47,12 @@ class MovementGroup extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  /// `Comida · Nu •• 1234`, or just the category for cash movements.
+  String _subtitle(MovementEntity movement) {
+    final category = categories[movement.categoryId]?.name ?? 'Sin categoría';
+    final card = cards[movement.cardId];
+    return card == null ? category : '$category · ${card.shortLabel}';
   }
 }

@@ -1,10 +1,15 @@
+import 'package:dynora_finance/features/cards/domain/entities/billing_period.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
 import 'package:equatable/equatable.dart';
 
 class CardEntity extends Equatable {
   const CardEntity({
     required this.id,
     required this.name,
-    required this.paymentDueDay,
+    required this.type,
+    required this.lastFourDigits,
+    this.cutoffDay,
+    this.paymentDueDay,
     required this.colorValue,
     required this.createdAt,
     required this.updatedAt,
@@ -12,42 +17,79 @@ class CardEntity extends Equatable {
 
   final String id;
   final String name;
+  final CardType type;
+  final String lastFourDigits;
 
-  /// Day of the month (1-31) the card payment is due.
-  final int paymentDueDay;
+  /// Day of the month (1-31) the statement closes. `null` for debit cards.
+  final int? cutoffDay;
+
+  /// Day of the month (1-31) the statement must be paid. `null` for debit.
+  final int? paymentDueDay;
 
   /// ARGB value of the card color.
   final int colorValue;
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  /// Next due date on or after [from]. Days past the end of a month are
-  /// clamped to its last day (e.g. day 31 in February).
-  DateTime nextPaymentDate(DateTime from) {
-    final today = DateTime(from.year, from.month, from.day);
-    final thisMonth = _dueDateIn(today.year, today.month);
-    if (!thisMonth.isBefore(today)) return thisMonth;
-    return _dueDateIn(today.year, today.month + 1);
+  bool get hasBillingCycle =>
+      type.hasBillingCycle && cutoffDay != null && paymentDueDay != null;
+
+  /// Period that contains [date]. Only valid when [hasBillingCycle].
+  ///
+  /// Cutoff and payment days past the end of a month are clamped to its last
+  /// day (e.g. day 31 in February). The cutoff day belongs to the period it
+  /// closes, and the payment is the first payment day after the cutoff.
+  BillingPeriod billingPeriodFor(DateTime date) {
+    assert(hasBillingCycle, 'Card $id has no billing cycle');
+    final day = DateTime(date.year, date.month, date.day);
+    var end = _dayIn(day.year, day.month, cutoffDay!);
+    if (day.isAfter(end)) end = _dayIn(day.year, day.month + 1, cutoffDay!);
+
+    final previousEnd = _dayIn(end.year, end.month - 1, cutoffDay!);
+    var payment = _dayIn(end.year, end.month, paymentDueDay!);
+    if (!payment.isAfter(end)) {
+      payment = _dayIn(end.year, end.month + 1, paymentDueDay!);
+    }
+
+    return BillingPeriod(
+      start: DateTime(previousEnd.year, previousEnd.month, previousEnd.day + 1),
+      end: end,
+      paymentDate: payment,
+    );
   }
 
-  /// Whole days from [from] until [nextPaymentDate].
-  int daysUntilPayment(DateTime from) {
-    final today = DateTime.utc(from.year, from.month, from.day);
-    final due = nextPaymentDate(from);
-    return DateTime.utc(due.year, due.month, due.day).difference(today).inDays;
+  /// Next payment on or after [now]: the closed period still waiting to be
+  /// paid or, when there is none, the open period.
+  BillingPeriod upcomingPeriod(DateTime now) {
+    final open = billingPeriodFor(now);
+    final previous = billingPeriodFor(
+      DateTime(open.start.year, open.start.month, open.start.day - 1),
+    );
+    return previous.daysUntilPayment(now) >= 0 ? previous : open;
   }
 
-  DateTime _dueDateIn(int year, int month) {
+  static DateTime _dayIn(int year, int month, int day) {
     final lastDay = DateTime(year, month + 1, 0).day;
-    final day = paymentDueDay > lastDay ? lastDay : paymentDueDay;
-    return DateTime(year, month, day);
+    return DateTime(year, month, day > lastDay ? lastDay : day);
   }
 
-  CardEntity copyWith({String? name, int? paymentDueDay, int? colorValue}) {
+  CardEntity copyWith({
+    String? name,
+    CardType? type,
+    String? lastFourDigits,
+    int? Function()? cutoffDay,
+    int? Function()? paymentDueDay,
+    int? colorValue,
+  }) {
     return CardEntity(
       id: id,
       name: name ?? this.name,
-      paymentDueDay: paymentDueDay ?? this.paymentDueDay,
+      type: type ?? this.type,
+      lastFourDigits: lastFourDigits ?? this.lastFourDigits,
+      cutoffDay: cutoffDay != null ? cutoffDay() : this.cutoffDay,
+      paymentDueDay: paymentDueDay != null
+          ? paymentDueDay()
+          : this.paymentDueDay,
       colorValue: colorValue ?? this.colorValue,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -58,6 +100,9 @@ class CardEntity extends Equatable {
   List<Object?> get props => [
     id,
     name,
+    type,
+    lastFourDigits,
+    cutoffDay,
     paymentDueDay,
     colorValue,
     createdAt,

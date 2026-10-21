@@ -1,5 +1,6 @@
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
 import 'package:fpdart/fpdart.dart';
 
 abstract interface class CardRepository {
@@ -8,7 +9,10 @@ abstract interface class CardRepository {
 
   Future<Either<Failure, CardEntity>> createCard({
     required String name,
-    required int paymentDueDay,
+    required CardType type,
+    required String lastFourDigits,
+    required int? cutoffDay,
+    required int? paymentDueDay,
     required int colorValue,
   });
 

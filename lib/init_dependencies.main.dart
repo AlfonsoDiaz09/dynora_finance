@@ -129,12 +129,19 @@ void _initScreens() {
       () => MovementsCubit(
         watchMovements: serviceLocator(),
         watchCategories: serviceLocator(),
+        watchCards: serviceLocator(),
       ),
     )
     ..registerFactory(
       () => StatsCubit(
         watchMovements: serviceLocator(),
         watchCategories: serviceLocator(),
+      ),
+    )
+    ..registerFactory(
+      () => CardsCubit(
+        watchCards: serviceLocator(),
+        watchMovements: serviceLocator(),
       ),
     )
     ..registerFactory(

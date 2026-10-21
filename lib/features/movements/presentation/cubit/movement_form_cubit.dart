@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:dynora_finance/core/enums/movement_type.dart';
 import 'package:dynora_finance/core/error/failures.dart';
+import 'package:dynora_finance/core/usecase/usecase.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
@@ -12,6 +15,7 @@ import 'package:dynora_finance/shared/bloc/form_status.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:rxdart/rxdart.dart';
 
 class MovementFormState extends Equatable {
   const MovementFormState({
@@ -19,6 +23,8 @@ class MovementFormState extends Equatable {
     required this.date,
     this.categories = const [],
     this.categoryId,
+    this.cards = const [],
+    this.cardId,
     this.status = FormStatus.idle,
     this.error,
   });
@@ -27,17 +33,26 @@ class MovementFormState extends Equatable {
   final DateTime date;
   final List<CategoryEntity> categories;
   final String? categoryId;
+  final List<CardEntity> cards;
+
+  /// Card used to pay, `null` for cash or transfers.
+  final String? cardId;
   final FormStatus status;
   final String? error;
 
   List<CategoryEntity> get categoriesOfType =>
       categories.where((c) => c.type == type).toList();
 
+  CardEntity? get selectedCard =>
+      cards.where((c) => c.id == cardId).firstOrNull;
+
   MovementFormState copyWith({
     MovementType? type,
     DateTime? date,
     List<CategoryEntity>? categories,
     String? Function()? categoryId,
+    List<CardEntity>? cards,
+    String? Function()? cardId,
     FormStatus? status,
     String? Function()? error,
   }) {
@@ -46,6 +61,8 @@ class MovementFormState extends Equatable {
       date: date ?? this.date,
       categories: categories ?? this.categories,
       categoryId: categoryId != null ? categoryId() : this.categoryId,
+      cards: cards ?? this.cards,
+      cardId: cardId != null ? cardId() : this.cardId,
       status: status ?? this.status,
       error: error != null ? error() : this.error,
     );
@@ -57,6 +74,8 @@ class MovementFormState extends Equatable {
     date,
     categories,
     categoryId,
+    cards,
+    cardId,
     status,
     error,
   ];
@@ -65,12 +84,15 @@ class MovementFormState extends Equatable {
 class MovementFormCubit extends Cubit<MovementFormState> {
   MovementFormCubit({
     required WatchCategories watchCategories,
+    required WatchCards watchCards,
     required AddMovement addMovement,
     required UpdateMovement updateMovement,
     required DeleteMovement deleteMovement,
     MovementType initialType = MovementType.expense,
+    String? initialCardId,
     this.editing,
   }) : _watchCategories = watchCategories,
+       _watchCards = watchCards,
        _addMovement = addMovement,
        _updateMovement = updateMovement,
        _deleteMovement = deleteMovement,
@@ -79,10 +101,12 @@ class MovementFormCubit extends Cubit<MovementFormState> {
            type: editing?.type ?? initialType,
            date: editing?.date ?? DateTime.now(),
            categoryId: editing?.categoryId,
+           cardId: editing != null ? editing.cardId : initialCardId,
          ),
        );
 
   final WatchCategories _watchCategories;
+  final WatchCards _watchCards;
   final AddMovement _addMovement;
   final UpdateMovement _updateMovement;
   final DeleteMovement _deleteMovement;
@@ -90,20 +114,35 @@ class MovementFormCubit extends Cubit<MovementFormState> {
   /// Movement being edited, `null` when creating a new one.
   final MovementEntity? editing;
 
-  StreamSubscription<Either<Failure, List<CategoryEntity>>>? _subscription;
+  StreamSubscription<void>? _subscription;
 
   void start() {
-    _subscription = _watchCategories(null).listen(
-      (result) => result.match(
-        (failure) => emit(
-          state.copyWith(
-            status: FormStatus.failure,
-            error: () => failure.message,
+    _subscription =
+        Rx.combineLatest2(
+          _watchCategories(null),
+          _watchCards(const NoParams()),
+          (categories, cards) =>
+              categories.flatMap((c) => cards.map((k) => (c, k))),
+        ).listen(
+          (result) => result.match(
+            (failure) => emit(
+              state.copyWith(
+                status: FormStatus.failure,
+                error: () => failure.message,
+              ),
+            ),
+            (data) {
+              final cardStillExists = data.$2.any((c) => c.id == state.cardId);
+              emit(
+                state.copyWith(
+                  categories: data.$1,
+                  cards: data.$2,
+                  cardId: cardStillExists ? null : () => null,
+                ),
+              );
+            },
           ),
-        ),
-        (categories) => emit(state.copyWith(categories: categories)),
-      ),
-    );
+        );
   }
 
   void changeType(MovementType type) {
@@ -113,6 +152,10 @@ class MovementFormCubit extends Cubit<MovementFormState> {
 
   void selectCategory(String id) =>
       emit(state.copyWith(categoryId: () => id, error: () => null));
+
+  /// Pass `null` for cash or transfers.
+  void selectCard(String? id) =>
+      emit(state.copyWith(cardId: () => id, error: () => null));
 
   void changeDate(DateTime date) => emit(state.copyWith(date: date));
 
@@ -143,6 +186,7 @@ class MovementFormCubit extends Cubit<MovementFormState> {
               categoryId: state.categoryId!,
               date: state.date,
               note: cleanNote,
+              cardId: state.cardId,
             ),
           )
         : await _updateMovement(
@@ -154,6 +198,7 @@ class MovementFormCubit extends Cubit<MovementFormState> {
               categoryId: state.categoryId!,
               date: state.date,
               note: cleanNote,
+              cardId: state.cardId,
               createdAt: current.createdAt,
               updatedAt: current.updatedAt,
             ),

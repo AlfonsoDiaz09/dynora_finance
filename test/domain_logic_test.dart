@@ -1,19 +1,44 @@
 import 'package:dynora_finance/core/enums/movement_type.dart';
 import 'package:dynora_finance/core/utils/month_range.dart';
+import 'package:dynora_finance/core/error/failures.dart';
+import 'package:dynora_finance/features/cards/domain/entities/billing_period.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
+import 'package:dynora_finance/features/cards/domain/usecases/card_validator.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_summary.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-CardEntity card(int dueDay) => CardEntity(
+CardEntity card({
+  int? cutoff = 25,
+  int? payment = 5,
+  CardType type = CardType.credit,
+}) => CardEntity(
   id: 'c',
   name: 'Nu',
-  paymentDueDay: dueDay,
+  type: type,
+  lastFourDigits: '1234',
+  cutoffDay: cutoff,
+  paymentDueDay: payment,
   colorValue: 0,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );
+
+MovementEntity cardMovement(DateTime date, double amount, {String? cardId}) =>
+    MovementEntity(
+      id: '$date$amount',
+      title: 't',
+      amount: amount,
+      type: MovementType.expense,
+      categoryId: 'food',
+      date: date,
+      cardId: cardId ?? 'c',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
 
 MovementEntity movement(double amount, MovementType type, String category) =>
     MovementEntity(
@@ -28,38 +53,151 @@ MovementEntity movement(double amount, MovementType type, String category) =>
     );
 
 void main() {
-  group('CardEntity payment dates', () {
-    test('due later this month', () {
-      final now = DateTime(2026, 10, 20, 15, 30);
-      expect(card(25).nextPaymentDate(now), DateTime(2026, 10, 25));
-      expect(card(25).daysUntilPayment(now), 5);
+  group('Billing periods (cutoff 25, payment 5)', () {
+    final nu = card();
+
+    test('purchase between Aug 26 and Sep 25 is paid Oct 5', () {
+      final expected = BillingPeriod(
+        start: DateTime(2026, 8, 26),
+        end: DateTime(2026, 9, 25),
+        paymentDate: DateTime(2026, 10, 5),
+      );
+      expect(nu.billingPeriodFor(DateTime(2026, 8, 26)), expected);
+      expect(nu.billingPeriodFor(DateTime(2026, 9, 10, 18)), expected);
+      expect(nu.billingPeriodFor(DateTime(2026, 9, 25, 23, 59)), expected);
     });
 
-    test('due today counts as 0 days', () {
-      expect(card(20).daysUntilPayment(DateTime(2026, 10, 20, 23)), 0);
+    test('the day after the cutoff starts the next period', () {
+      final period = nu.billingPeriodFor(DateTime(2026, 9, 26));
+      expect(period.start, DateTime(2026, 9, 26));
+      expect(period.end, DateTime(2026, 10, 25));
+      expect(period.paymentDate, DateTime(2026, 11, 5));
     });
 
-    test('already passed rolls to next month', () {
-      final now = DateTime(2026, 10, 20);
-      expect(card(5).nextPaymentDate(now), DateTime(2026, 11, 5));
-      expect(card(5).daysUntilPayment(now), 16);
+    test('funded with the salary of the payment month', () {
+      final period = nu.billingPeriodFor(DateTime(2026, 9, 10));
+      expect(period.fundingMonth(), MonthRange(DateTime(2026, 10)));
     });
 
-    test('day 31 clamps to end of short months', () {
+    test('upcoming payment switches after the payment date', () {
       expect(
-        card(31).nextPaymentDate(DateTime(2026, 2, 10)),
-        DateTime(2026, 2, 28),
+        nu.upcomingPeriod(DateTime(2026, 10, 1)).paymentDate,
+        DateTime(2026, 10, 5),
       );
       expect(
-        card(31).nextPaymentDate(DateTime(2028, 2, 10)),
-        DateTime(2028, 2, 29),
+        nu.upcomingPeriod(DateTime(2026, 10, 5)).paymentDate,
+        DateTime(2026, 10, 5),
+      );
+      expect(
+        nu.upcomingPeriod(DateTime(2026, 10, 6)).paymentDate,
+        DateTime(2026, 11, 5),
+      );
+    });
+
+    test('statement total and grouping by period', () {
+      final movements = [
+        cardMovement(DateTime(2026, 9, 1), 100),
+        cardMovement(DateTime(2026, 9, 25), 50),
+        cardMovement(DateTime(2026, 9, 26), 30),
+        cardMovement(DateTime(2026, 9, 2), 999, cardId: 'other'),
+      ];
+      final statements = CardStatement.build(
+        nu,
+        movements,
+        DateTime(2026, 10, 1),
+      );
+      expect(statements.map((s) => s.period.end), [
+        DateTime(2026, 10, 25),
+        DateTime(2026, 9, 25),
+      ]);
+      expect(statements.map((s) => s.total), [30, 150]);
+
+      final october = CardStatement.fundedIn(
+        nu,
+        movements,
+        MonthRange(DateTime(2026, 10)),
+      );
+      expect(october.single.period.paymentDate, DateTime(2026, 10, 5));
+      expect(october.single.total, 150);
+    });
+  });
+
+  group('Billing period edge cases', () {
+    test('cutoff before payment pays in the same month', () {
+      final period = card(
+        cutoff: 5,
+        payment: 25,
+      ).billingPeriodFor(DateTime(2026, 9, 3));
+      expect(period.start, DateTime(2026, 8, 6));
+      expect(period.end, DateTime(2026, 9, 5));
+      expect(period.paymentDate, DateTime(2026, 9, 25));
+    });
+
+    test('day 31 clamps to short months without gaps', () {
+      final c = card(cutoff: 31, payment: 10);
+      final feb = c.billingPeriodFor(DateTime(2026, 2, 15));
+      expect(feb.start, DateTime(2026, 2, 1));
+      expect(feb.end, DateTime(2026, 2, 28));
+      expect(
+        c.billingPeriodFor(DateTime(2026, 3, 1)).start,
+        DateTime(2026, 3, 1),
       );
     });
 
     test('rolls over the year', () {
+      final period = card().billingPeriodFor(DateTime(2026, 12, 28));
+      expect(period.end, DateTime(2027, 1, 25));
+      expect(period.paymentDate, DateTime(2027, 2, 5));
+    });
+
+    test('payment due before salary is funded by the previous month', () {
+      final c = card(cutoff: 20, payment: 3);
+      final period = c.billingPeriodFor(DateTime(2026, 10, 10));
+      expect(period.paymentDate, DateTime(2026, 11, 3));
+      expect(period.fundingMonth(), MonthRange(DateTime(2026, 10)));
       expect(
-        card(3).nextPaymentDate(DateTime(2026, 12, 15)),
-        DateTime(2027, 1, 3),
+        CardStatement.fundedIn(
+          c,
+          const [],
+          MonthRange(DateTime(2026, 10)),
+        ).single.period,
+        period,
+      );
+    });
+
+    test('debit cards have no billing cycle', () {
+      expect(card(type: CardType.debit).hasBillingCycle, isFalse);
+      expect(card(cutoff: null).hasBillingCycle, isFalse);
+    });
+  });
+
+  group('Card validation', () {
+    ValidationFailure? validate({
+      String digits = '1234',
+      CardType type = CardType.credit,
+      int? cutoff = 25,
+      int? payment = 5,
+    }) => CardValidator.validate(
+      name: 'Nu',
+      type: type,
+      lastFourDigits: digits,
+      cutoffDay: cutoff,
+      paymentDueDay: payment,
+    );
+
+    test('requires exactly four digits', () {
+      expect(validate(digits: '123'), isNotNull);
+      expect(validate(digits: '12a4'), isNotNull);
+      expect(validate(), isNull);
+    });
+
+    test('credit needs cutoff and payment days, debit does not', () {
+      expect(validate(cutoff: null), isNotNull);
+      expect(validate(payment: 32), isNotNull);
+      expect(validate(cutoff: 5, payment: 5), isNotNull);
+      expect(
+        validate(type: CardType.debit, cutoff: null, payment: null),
+        isNull,
       );
     });
   });

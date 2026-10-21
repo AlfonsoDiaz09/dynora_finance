@@ -14,10 +14,20 @@ class UpdateCard implements UseCase<CardEntity, CardEntity> {
   Future<Either<Failure, CardEntity>> call(CardEntity card) async {
     final failure = CardValidator.validate(
       name: card.name,
+      type: card.type,
+      lastFourDigits: card.lastFourDigits,
+      cutoffDay: card.cutoffDay,
       paymentDueDay: card.paymentDueDay,
     );
     if (failure != null) return left(failure);
 
-    return _repository.updateCard(card.copyWith(name: card.name.trim()));
+    final billed = card.type.hasBillingCycle;
+    return _repository.updateCard(
+      card.copyWith(
+        name: card.name.trim(),
+        cutoffDay: () => billed ? card.cutoffDay : null,
+        paymentDueDay: () => billed ? card.paymentDueDay : null,
+      ),
+    );
   }
 }

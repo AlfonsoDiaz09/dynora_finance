@@ -27,31 +27,47 @@ const CardModelSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'isDeleted': PropertySchema(
+    r'cutoffDay': PropertySchema(
       id: 2,
+      name: r'cutoffDay',
+      type: IsarType.long,
+    ),
+    r'isDeleted': PropertySchema(
+      id: 3,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
+    r'lastFourDigits': PropertySchema(
+      id: 4,
+      name: r'lastFourDigits',
+      type: IsarType.string,
+    ),
     r'lastSyncedAt': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'lastSyncedAt',
       type: IsarType.dateTime,
     ),
-    r'name': PropertySchema(id: 4, name: r'name', type: IsarType.string),
+    r'name': PropertySchema(id: 6, name: r'name', type: IsarType.string),
     r'paymentDueDay': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'paymentDueDay',
       type: IsarType.long,
     ),
     r'syncStatus': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _CardModelsyncStatusEnumValueMap,
     ),
-    r'uid': PropertySchema(id: 7, name: r'uid', type: IsarType.string),
+    r'type': PropertySchema(
+      id: 9,
+      name: r'type',
+      type: IsarType.string,
+      enumMap: _CardModeltypeEnumValueMap,
+    ),
+    r'uid': PropertySchema(id: 10, name: r'uid', type: IsarType.string),
     r'updatedAt': PropertySchema(
-      id: 8,
+      id: 11,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -118,8 +134,10 @@ int _cardModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.lastFourDigits.length * 3;
   bytesCount += 3 + object.name.length * 3;
   bytesCount += 3 + object.syncStatus.name.length * 3;
+  bytesCount += 3 + object.type.name.length * 3;
   bytesCount += 3 + object.uid.length * 3;
   return bytesCount;
 }
@@ -132,13 +150,16 @@ void _cardModelSerialize(
 ) {
   writer.writeLong(offsets[0], object.colorValue);
   writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeBool(offsets[2], object.isDeleted);
-  writer.writeDateTime(offsets[3], object.lastSyncedAt);
-  writer.writeString(offsets[4], object.name);
-  writer.writeLong(offsets[5], object.paymentDueDay);
-  writer.writeString(offsets[6], object.syncStatus.name);
-  writer.writeString(offsets[7], object.uid);
-  writer.writeDateTime(offsets[8], object.updatedAt);
+  writer.writeLong(offsets[2], object.cutoffDay);
+  writer.writeBool(offsets[3], object.isDeleted);
+  writer.writeString(offsets[4], object.lastFourDigits);
+  writer.writeDateTime(offsets[5], object.lastSyncedAt);
+  writer.writeString(offsets[6], object.name);
+  writer.writeLong(offsets[7], object.paymentDueDay);
+  writer.writeString(offsets[8], object.syncStatus.name);
+  writer.writeString(offsets[9], object.type.name);
+  writer.writeString(offsets[10], object.uid);
+  writer.writeDateTime(offsets[11], object.updatedAt);
 }
 
 CardModel _cardModelDeserialize(
@@ -150,16 +171,21 @@ CardModel _cardModelDeserialize(
   final object = CardModel();
   object.colorValue = reader.readLong(offsets[0]);
   object.createdAt = reader.readDateTime(offsets[1]);
-  object.isDeleted = reader.readBool(offsets[2]);
+  object.cutoffDay = reader.readLongOrNull(offsets[2]);
+  object.isDeleted = reader.readBool(offsets[3]);
   object.isarId = id;
-  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[3]);
-  object.name = reader.readString(offsets[4]);
-  object.paymentDueDay = reader.readLong(offsets[5]);
+  object.lastFourDigits = reader.readString(offsets[4]);
+  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[5]);
+  object.name = reader.readString(offsets[6]);
+  object.paymentDueDay = reader.readLongOrNull(offsets[7]);
   object.syncStatus =
-      _CardModelsyncStatusValueEnumMap[reader.readStringOrNull(offsets[6])] ??
+      _CardModelsyncStatusValueEnumMap[reader.readStringOrNull(offsets[8])] ??
       SyncStatus.synced;
-  object.uid = reader.readString(offsets[7]);
-  object.updatedAt = reader.readDateTime(offsets[8]);
+  object.type =
+      _CardModeltypeValueEnumMap[reader.readStringOrNull(offsets[9])] ??
+      CardType.credit;
+  object.uid = reader.readString(offsets[10]);
+  object.updatedAt = reader.readDateTime(offsets[11]);
   return object;
 }
 
@@ -175,22 +201,30 @@ P _cardModelDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readLongOrNull(offset)) as P;
+    case 8:
       return (_CardModelsyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.synced)
           as P;
-    case 7:
+    case 9:
+      return (_CardModeltypeValueEnumMap[reader.readStringOrNull(offset)] ??
+              CardType.credit)
+          as P;
+    case 10:
       return (reader.readString(offset)) as P;
-    case 8:
+    case 11:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -208,6 +242,16 @@ const _CardModelsyncStatusValueEnumMap = {
   r'pendingCreate': SyncStatus.pendingCreate,
   r'pendingUpdate': SyncStatus.pendingUpdate,
   r'pendingDelete': SyncStatus.pendingDelete,
+};
+const _CardModeltypeEnumValueMap = {
+  r'credit': r'credit',
+  r'debit': r'debit',
+  r'departmental': r'departmental',
+};
+const _CardModeltypeValueEnumMap = {
+  r'credit': CardType.credit,
+  r'debit': CardType.debit,
+  r'departmental': CardType.departmental,
 };
 
 Id _cardModelGetId(CardModel object) {
@@ -646,6 +690,80 @@ extension CardModelQueryFilter
     });
   }
 
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> cutoffDayIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'cutoffDay'),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  cutoffDayIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'cutoffDay'),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> cutoffDayEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'cutoffDay', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  cutoffDayGreaterThan(int? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'cutoffDay',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> cutoffDayLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'cutoffDay',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> cutoffDayBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'cutoffDay',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<CardModel, CardModel, QAfterFilterCondition> isDeletedEqualTo(
     bool value,
   ) {
@@ -711,6 +829,147 @@ extension CardModelQueryFilter
           upper: upper,
           includeUpper: includeUpper,
         ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'lastFourDigits',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'lastFourDigits',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'lastFourDigits',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'lastFourDigits',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'lastFourDigits',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'lastFourDigits',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'lastFourDigits',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'lastFourDigits',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'lastFourDigits', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  lastFourDigitsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'lastFourDigits', value: ''),
       );
     });
   }
@@ -935,7 +1194,25 @@ extension CardModelQueryFilter
   }
 
   QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
-  paymentDueDayEqualTo(int value) {
+  paymentDueDayIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'paymentDueDay'),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  paymentDueDayIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'paymentDueDay'),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  paymentDueDayEqualTo(int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'paymentDueDay', value: value),
@@ -944,7 +1221,7 @@ extension CardModelQueryFilter
   }
 
   QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
-  paymentDueDayGreaterThan(int value, {bool include = false}) {
+  paymentDueDayGreaterThan(int? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
@@ -957,7 +1234,7 @@ extension CardModelQueryFilter
   }
 
   QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
-  paymentDueDayLessThan(int value, {bool include = false}) {
+  paymentDueDayLessThan(int? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.lessThan(
@@ -971,8 +1248,8 @@ extension CardModelQueryFilter
 
   QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
   paymentDueDayBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1132,6 +1409,152 @@ extension CardModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'syncStatus', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeEqualTo(
+    CardType value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'type',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeGreaterThan(
+    CardType value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'type',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeLessThan(
+    CardType value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'type',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeBetween(
+    CardType lower,
+    CardType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'type',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'type',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'type',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'type',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'type',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'type', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> typeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'type', value: ''),
       );
     });
   }
@@ -1371,6 +1794,18 @@ extension CardModelQuerySortBy on QueryBuilder<CardModel, CardModel, QSortBy> {
     });
   }
 
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByCutoffDay() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cutoffDay', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByCutoffDayDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cutoffDay', Sort.desc);
+    });
+  }
+
   QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -1380,6 +1815,18 @@ extension CardModelQuerySortBy on QueryBuilder<CardModel, CardModel, QSortBy> {
   QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByIsDeletedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByLastFourDigits() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastFourDigits', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByLastFourDigitsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastFourDigits', Sort.desc);
     });
   }
 
@@ -1428,6 +1875,18 @@ extension CardModelQuerySortBy on QueryBuilder<CardModel, CardModel, QSortBy> {
   QueryBuilder<CardModel, CardModel, QAfterSortBy> sortBySyncStatusDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'syncStatus', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 
@@ -1482,6 +1941,18 @@ extension CardModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByCutoffDay() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cutoffDay', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByCutoffDayDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cutoffDay', Sort.desc);
+    });
+  }
+
   QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -1503,6 +1974,18 @@ extension CardModelQuerySortThenBy
   QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByIsarIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByLastFourDigits() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastFourDigits', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByLastFourDigitsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastFourDigits', Sort.desc);
     });
   }
 
@@ -1554,6 +2037,18 @@ extension CardModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
+    });
+  }
+
   QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByUid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.asc);
@@ -1593,9 +2088,26 @@ extension CardModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<CardModel, CardModel, QDistinct> distinctByCutoffDay() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'cutoffDay');
+    });
+  }
+
   QueryBuilder<CardModel, CardModel, QDistinct> distinctByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isDeleted');
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QDistinct> distinctByLastFourDigits({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'lastFourDigits',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
@@ -1624,6 +2136,14 @@ extension CardModelQueryWhereDistinct
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'syncStatus', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QDistinct> distinctByType({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'type', caseSensitive: caseSensitive);
     });
   }
 
@@ -1662,9 +2182,21 @@ extension CardModelQueryProperty
     });
   }
 
+  QueryBuilder<CardModel, int?, QQueryOperations> cutoffDayProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'cutoffDay');
+    });
+  }
+
   QueryBuilder<CardModel, bool, QQueryOperations> isDeletedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isDeleted');
+    });
+  }
+
+  QueryBuilder<CardModel, String, QQueryOperations> lastFourDigitsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastFourDigits');
     });
   }
 
@@ -1680,7 +2212,7 @@ extension CardModelQueryProperty
     });
   }
 
-  QueryBuilder<CardModel, int, QQueryOperations> paymentDueDayProperty() {
+  QueryBuilder<CardModel, int?, QQueryOperations> paymentDueDayProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'paymentDueDay');
     });
@@ -1689,6 +2221,12 @@ extension CardModelQueryProperty
   QueryBuilder<CardModel, SyncStatus, QQueryOperations> syncStatusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'syncStatus');
+    });
+  }
+
+  QueryBuilder<CardModel, CardType, QQueryOperations> typeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'type');
     });
   }
 

@@ -1,5 +1,7 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/core/enums/movement_type.dart';
+import 'package:dynora_finance/features/cards/domain/entities/billing_period.dart';
+import 'package:dynora_finance/features/cards/presentation/utils/card_labels.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/presentation/cubit/movement_form_cubit.dart';
 import 'package:dynora_finance/init_dependencies.dart';
@@ -8,6 +10,7 @@ import 'package:dynora_finance/shared/utils/category_icons.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/shared/widgets/form/app_text_field.dart';
 import 'package:dynora_finance/shared/widgets/form/form_sheet.dart';
+import 'package:dynora_finance/shared/widgets/form/segment_option.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,6 +25,7 @@ class MovementFormSheet extends StatefulWidget {
     BuildContext context, {
     MovementType initialType = MovementType.expense,
     MovementEntity? movement,
+    String? initialCardId,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -30,10 +34,12 @@ class MovementFormSheet extends StatefulWidget {
       builder: (_) => BlocProvider(
         create: (_) => MovementFormCubit(
           watchCategories: serviceLocator(),
+          watchCards: serviceLocator(),
           addMovement: serviceLocator(),
           updateMovement: serviceLocator(),
           deleteMovement: serviceLocator(),
           initialType: initialType,
+          initialCardId: initialCardId,
           editing: movement,
         )..start(),
         child: MovementFormSheet(movement: movement),
@@ -96,7 +102,7 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
             Row(
               children: [
                 Expanded(
-                  child: _TypeOption(
+                  child: SegmentOption(
                     label: 'Gasto',
                     color: AppColors.error,
                     selected: state.type == MovementType.expense,
@@ -105,7 +111,7 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
-                  child: _TypeOption(
+                  child: SegmentOption(
                     label: 'Ingreso',
                     color: AppColors.success,
                     selected: state.type == MovementType.income,
@@ -180,6 +186,39 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
                 ),
               ),
             ),
+            SizedBox(height: 16.h),
+            const FormLabel('Pagado con'),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: [
+                _PaymentChip(
+                  label: 'Efectivo / transferencia',
+                  icon: Icons.payments_rounded,
+                  selected: state.cardId == null,
+                  onSelected: () => cubit.selectCard(null),
+                ),
+                for (final card in state.cards)
+                  _PaymentChip(
+                    label: card.shortLabel,
+                    icon: Icons.credit_card_rounded,
+                    iconColor: Color(card.colorValue),
+                    selected: state.cardId == card.id,
+                    onSelected: () => cubit.selectCard(card.id),
+                  ),
+              ],
+            ),
+            if (state.selectedCard case final card? when card.hasBillingCycle)
+              Padding(
+                padding: EdgeInsets.only(top: 8.h),
+                child: Text(
+                  _periodHint(card.billingPeriodFor(state.date)),
+                  style: TextStyle(
+                    color: AppColors.textPrimary70,
+                    fontSize: 12.sp,
+                  ),
+                ),
+              ),
             SizedBox(height: 12.h),
             AppTextField(
               controller: _note,
@@ -209,43 +248,37 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
   }
 }
 
-class _TypeOption extends StatelessWidget {
-  const _TypeOption({
+String _periodHint(BillingPeriod period) =>
+    'Entra al corte del ${Formatters.shortDate(period.end)} · '
+    'se paga el ${Formatters.shortDate(period.paymentDate)}';
+
+class _PaymentChip extends StatelessWidget {
+  const _PaymentChip({
     required this.label,
-    required this.color,
+    required this.icon,
     required this.selected,
-    required this.onTap,
+    required this.onSelected,
+    this.iconColor,
   });
 
   final String label;
-  final Color color;
+  final IconData icon;
+  final Color? iconColor;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback onSelected;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14.r),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          color: selected
-              ? color.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: selected ? color : Colors.transparent),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? color : AppColors.textPrimary70,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+    return ChoiceChip(
+      avatar: Icon(icon, size: 18.sp, color: iconColor ?? Colors.white),
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onSelected(),
+      showCheckmark: false,
+      labelStyle: const TextStyle(color: Colors.white),
+      backgroundColor: Colors.white.withValues(alpha: 0.05),
+      selectedColor: AppColors.primary40,
+      side: BorderSide.none,
     );
   }
 }

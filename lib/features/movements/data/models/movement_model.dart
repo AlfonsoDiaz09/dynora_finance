@@ -29,6 +29,10 @@ class MovementModel {
   late DateTime date;
 
   String? note;
+
+  /// Card used to pay, `null` for cash or transfers.
+  @Index()
+  String? cardId;
   late DateTime createdAt;
   late DateTime updatedAt;
 
@@ -51,6 +55,7 @@ class MovementModel {
       categoryId: categoryId,
       date: date,
       note: note,
+      cardId: cardId,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -64,5 +69,6 @@ class MovementModel {
     categoryId = entity.categoryId;
     date = entity.date;
     note = entity.note;
+    cardId = entity.cardId;
   }
 }

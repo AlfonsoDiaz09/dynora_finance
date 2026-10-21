@@ -63,6 +63,7 @@ class MovementRepositoryImpl implements MovementRepository {
     required String categoryId,
     required DateTime date,
     String? note,
+    String? cardId,
   }) {
     return guard(() async {
       final now = DateTime.now();
@@ -74,6 +75,7 @@ class MovementRepositoryImpl implements MovementRepository {
         ..categoryId = categoryId
         ..date = date
         ..note = note
+        ..cardId = cardId
         ..createdAt = now
         ..updatedAt = now
         ..syncStatus = SyncStatus.pendingCreate;

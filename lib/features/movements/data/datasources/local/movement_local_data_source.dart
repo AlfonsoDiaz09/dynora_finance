@@ -96,6 +96,10 @@ class MovementLocalDataSourceImpl implements MovementLocalDataSource {
           (q) => q.and().categoryIdEqualTo(filter.categoryId!),
         )
         .optional(
+          filter.cardId != null,
+          (q) => q.and().cardIdEqualTo(filter.cardId),
+        )
+        .optional(
           filter.from != null,
           (q) => q.and().dateGreaterThan(filter.from!, include: true),
         )

@@ -4,6 +4,7 @@ import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/usecase/usecase.dart';
 import 'package:dynora_finance/core/utils/month_range.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
@@ -16,21 +17,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:rxdart/rxdart.dart';
-
-class UpcomingPayment extends Equatable {
-  const UpcomingPayment({
-    required this.card,
-    required this.dueDate,
-    required this.daysLeft,
-  });
-
-  final CardEntity card;
-  final DateTime dueDate;
-  final int daysLeft;
-
-  @override
-  List<Object?> get props => [card, dueDate, daysLeft];
-}
 
 class HomeState extends Equatable {
   const HomeState({
@@ -52,7 +38,7 @@ class HomeState extends Equatable {
   final MovementSummary monthSummary;
   final List<MovementEntity> recentMovements;
   final Map<String, CategoryEntity> categories;
-  final List<UpcomingPayment> upcomingPayments;
+  final List<UpcomingCardPayment> upcomingPayments;
   final String? error;
 
   @override
@@ -117,22 +103,14 @@ class HomeCubit extends Cubit<HomeState> {
               ),
               recentMovements: data.$1.take(recentLimit).toList(),
               categories: {for (final c in data.$2) c.id: c},
-              upcomingPayments: _upcoming(data.$3, now),
+              upcomingPayments: UpcomingCardPayment.forCards(
+                data.$3,
+                data.$1,
+                now,
+              ).take(upcomingLimit).toList(),
             );
           },
         );
-  }
-
-  List<UpcomingPayment> _upcoming(List<CardEntity> cards, DateTime now) {
-    final payments = [
-      for (final card in cards)
-        UpcomingPayment(
-          card: card,
-          dueDate: card.nextPaymentDate(now),
-          daysLeft: card.daysUntilPayment(now),
-        ),
-    ]..sort((a, b) => a.daysLeft.compareTo(b.daysLeft));
-    return payments.take(upcomingLimit).toList();
   }
 
   @override

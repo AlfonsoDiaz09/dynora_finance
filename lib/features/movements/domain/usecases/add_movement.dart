@@ -27,6 +27,7 @@ class AddMovement implements UseCase<MovementEntity, AddMovementParams> {
       categoryId: params.categoryId,
       date: params.date,
       note: params.note?.trim(),
+      cardId: params.cardId,
     );
   }
 }
@@ -39,6 +40,7 @@ class AddMovementParams {
     required this.categoryId,
     required this.date,
     this.note,
+    this.cardId,
   });
 
   final String title;
@@ -47,4 +49,5 @@ class AddMovementParams {
   final String categoryId;
   final DateTime date;
   final String? note;
+  final String? cardId;
 }

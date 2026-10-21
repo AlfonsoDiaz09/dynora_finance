@@ -23,6 +23,7 @@ abstract interface class MovementRepository {
     required String categoryId,
     required DateTime date,
     String? note,
+    String? cardId,
   });
 
   Future<Either<Failure, MovementEntity>> updateMovement(

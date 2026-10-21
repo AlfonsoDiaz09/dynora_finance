@@ -18,44 +18,45 @@ const MovementModelSchema = CollectionSchema(
   id: 894501527956409042,
   properties: {
     r'amount': PropertySchema(id: 0, name: r'amount', type: IsarType.double),
+    r'cardId': PropertySchema(id: 1, name: r'cardId', type: IsarType.string),
     r'categoryId': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'categoryId',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'date': PropertySchema(id: 3, name: r'date', type: IsarType.dateTime),
+    r'date': PropertySchema(id: 4, name: r'date', type: IsarType.dateTime),
     r'isDeleted': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'lastSyncedAt': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'lastSyncedAt',
       type: IsarType.dateTime,
     ),
-    r'note': PropertySchema(id: 6, name: r'note', type: IsarType.string),
+    r'note': PropertySchema(id: 7, name: r'note', type: IsarType.string),
     r'syncStatus': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _MovementModelsyncStatusEnumValueMap,
     ),
-    r'title': PropertySchema(id: 8, name: r'title', type: IsarType.string),
+    r'title': PropertySchema(id: 9, name: r'title', type: IsarType.string),
     r'type': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'type',
       type: IsarType.string,
       enumMap: _MovementModeltypeEnumValueMap,
     ),
-    r'uid': PropertySchema(id: 10, name: r'uid', type: IsarType.string),
+    r'uid': PropertySchema(id: 11, name: r'uid', type: IsarType.string),
     r'updatedAt': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -106,6 +107,19 @@ const MovementModelSchema = CollectionSchema(
         ),
       ],
     ),
+    r'cardId': IndexSchema(
+      id: -8501089313549364976,
+      name: r'cardId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'cardId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+      ],
+    ),
     r'syncStatus': IndexSchema(
       id: 8239539375045684509,
       name: r'syncStatus',
@@ -148,6 +162,12 @@ int _movementModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.cardId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.categoryId.length * 3;
   {
     final value = object.note;
@@ -169,17 +189,18 @@ void _movementModelSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDouble(offsets[0], object.amount);
-  writer.writeString(offsets[1], object.categoryId);
-  writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeDateTime(offsets[3], object.date);
-  writer.writeBool(offsets[4], object.isDeleted);
-  writer.writeDateTime(offsets[5], object.lastSyncedAt);
-  writer.writeString(offsets[6], object.note);
-  writer.writeString(offsets[7], object.syncStatus.name);
-  writer.writeString(offsets[8], object.title);
-  writer.writeString(offsets[9], object.type.name);
-  writer.writeString(offsets[10], object.uid);
-  writer.writeDateTime(offsets[11], object.updatedAt);
+  writer.writeString(offsets[1], object.cardId);
+  writer.writeString(offsets[2], object.categoryId);
+  writer.writeDateTime(offsets[3], object.createdAt);
+  writer.writeDateTime(offsets[4], object.date);
+  writer.writeBool(offsets[5], object.isDeleted);
+  writer.writeDateTime(offsets[6], object.lastSyncedAt);
+  writer.writeString(offsets[7], object.note);
+  writer.writeString(offsets[8], object.syncStatus.name);
+  writer.writeString(offsets[9], object.title);
+  writer.writeString(offsets[10], object.type.name);
+  writer.writeString(offsets[11], object.uid);
+  writer.writeDateTime(offsets[12], object.updatedAt);
 }
 
 MovementModel _movementModelDeserialize(
@@ -190,24 +211,25 @@ MovementModel _movementModelDeserialize(
 ) {
   final object = MovementModel();
   object.amount = reader.readDouble(offsets[0]);
-  object.categoryId = reader.readString(offsets[1]);
-  object.createdAt = reader.readDateTime(offsets[2]);
-  object.date = reader.readDateTime(offsets[3]);
-  object.isDeleted = reader.readBool(offsets[4]);
+  object.cardId = reader.readStringOrNull(offsets[1]);
+  object.categoryId = reader.readString(offsets[2]);
+  object.createdAt = reader.readDateTime(offsets[3]);
+  object.date = reader.readDateTime(offsets[4]);
+  object.isDeleted = reader.readBool(offsets[5]);
   object.isarId = id;
-  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[5]);
-  object.note = reader.readStringOrNull(offsets[6]);
+  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[6]);
+  object.note = reader.readStringOrNull(offsets[7]);
   object.syncStatus =
       _MovementModelsyncStatusValueEnumMap[reader.readStringOrNull(
-        offsets[7],
+        offsets[8],
       )] ??
       SyncStatus.synced;
-  object.title = reader.readString(offsets[8]);
+  object.title = reader.readString(offsets[9]);
   object.type =
-      _MovementModeltypeValueEnumMap[reader.readStringOrNull(offsets[9])] ??
+      _MovementModeltypeValueEnumMap[reader.readStringOrNull(offsets[10])] ??
       MovementType.income;
-  object.uid = reader.readString(offsets[10]);
-  object.updatedAt = reader.readDateTime(offsets[11]);
+  object.uid = reader.readString(offsets[11]);
+  object.updatedAt = reader.readDateTime(offsets[12]);
   return object;
 }
 
@@ -221,32 +243,34 @@ P _movementModelDeserializeProp<P>(
     case 0:
       return (reader.readDouble(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
       return (reader.readDateTime(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 5:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
       return (_MovementModelsyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.synced)
           as P;
-    case 8:
-      return (reader.readString(offset)) as P;
     case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
       return (_MovementModeltypeValueEnumMap[reader.readStringOrNull(offset)] ??
               MovementType.income)
           as P;
-    case 10:
-      return (reader.readString(offset)) as P;
     case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -656,6 +680,81 @@ extension MovementModelQueryWhere
     });
   }
 
+  QueryBuilder<MovementModel, MovementModel, QAfterWhereClause> cardIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'cardId', value: [null]),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterWhereClause>
+  cardIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'cardId',
+          lower: [null],
+          includeLower: false,
+          upper: [],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterWhereClause> cardIdEqualTo(
+    String? cardId,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'cardId', value: [cardId]),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterWhereClause>
+  cardIdNotEqualTo(String? cardId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'cardId',
+                lower: [],
+                upper: [cardId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'cardId',
+                lower: [cardId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'cardId',
+                lower: [cardId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'cardId',
+                lower: [],
+                upper: [cardId],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+
   QueryBuilder<MovementModel, MovementModel, QAfterWhereClause>
   syncStatusEqualTo(SyncStatus syncStatus) {
     return QueryBuilder.apply(this, (query) {
@@ -834,6 +933,165 @@ extension MovementModelQueryFilter
 
           epsilon: epsilon,
         ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'cardId'),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'cardId'),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'cardId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'cardId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'cardId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'cardId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'cardId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'cardId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'cardId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'cardId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'cardId', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  cardIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'cardId', value: ''),
       );
     });
   }
@@ -2037,6 +2295,18 @@ extension MovementModelQuerySortBy
     });
   }
 
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy> sortByCardId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cardId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy> sortByCardIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cardId', Sort.desc);
+    });
+  }
+
   QueryBuilder<MovementModel, MovementModel, QAfterSortBy> sortByCategoryId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'categoryId', Sort.asc);
@@ -2188,6 +2458,18 @@ extension MovementModelQuerySortThenBy
   QueryBuilder<MovementModel, MovementModel, QAfterSortBy> thenByAmountDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy> thenByCardId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cardId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy> thenByCardIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cardId', Sort.desc);
     });
   }
 
@@ -2351,6 +2633,14 @@ extension MovementModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<MovementModel, MovementModel, QDistinct> distinctByCardId({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'cardId', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<MovementModel, MovementModel, QDistinct> distinctByCategoryId({
     bool caseSensitive = true,
   }) {
@@ -2442,6 +2732,12 @@ extension MovementModelQueryProperty
   QueryBuilder<MovementModel, double, QQueryOperations> amountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'amount');
+    });
+  }
+
+  QueryBuilder<MovementModel, String?, QQueryOperations> cardIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'cardId');
     });
   }
 

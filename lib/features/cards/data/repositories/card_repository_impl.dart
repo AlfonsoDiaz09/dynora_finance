@@ -8,6 +8,7 @@ import 'package:dynora_finance/core/sync/sync_status.dart';
 import 'package:dynora_finance/features/cards/data/datasources/local/card_local_data_source.dart';
 import 'package:dynora_finance/features/cards/data/models/card_model.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
 import 'package:dynora_finance/features/cards/domain/repositories/card_repository.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:uuid/uuid.dart';
@@ -39,7 +40,10 @@ class CardRepositoryImpl implements CardRepository {
   @override
   Future<Either<Failure, CardEntity>> createCard({
     required String name,
-    required int paymentDueDay,
+    required CardType type,
+    required String lastFourDigits,
+    required int? cutoffDay,
+    required int? paymentDueDay,
     required int colorValue,
   }) {
     return guard(() async {
@@ -47,6 +51,9 @@ class CardRepositoryImpl implements CardRepository {
       final model = CardModel()
         ..uid = _uuid.v4()
         ..name = name
+        ..type = type
+        ..lastFourDigits = lastFourDigits
+        ..cutoffDay = cutoffDay
         ..paymentDueDay = paymentDueDay
         ..colorValue = colorValue
         ..createdAt = now

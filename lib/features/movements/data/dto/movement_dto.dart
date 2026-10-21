@@ -15,6 +15,7 @@ class MovementDto {
     required this.categoryId,
     required this.date,
     this.note,
+    this.cardId,
     required this.createdAt,
     required this.updatedAt,
     required this.isDeleted,
@@ -27,6 +28,7 @@ class MovementDto {
   final String categoryId;
   final DateTime date;
   final String? note;
+  final String? cardId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -40,6 +42,7 @@ class MovementDto {
       categoryId: json['category_id'] as String,
       date: DateTime.parse(json['date'] as String),
       note: json['note'] as String?,
+      cardId: json['card_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       isDeleted: json['is_deleted'] as bool? ?? false,
@@ -55,6 +58,7 @@ class MovementDto {
       'category_id': categoryId,
       'date': date.toUtc().toIso8601String(),
       'note': note,
+      'card_id': cardId,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
       'is_deleted': isDeleted,
@@ -70,6 +74,7 @@ class MovementDto {
       categoryId: model.categoryId,
       date: model.date,
       note: model.note,
+      cardId: model.cardId,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
       isDeleted: model.isDeleted,
@@ -86,6 +91,7 @@ class MovementDto {
       ..categoryId = categoryId
       ..date = date.toLocal()
       ..note = note
+      ..cardId = cardId
       ..createdAt = createdAt.toLocal()
       ..updatedAt = updatedAt.toLocal()
       ..isDeleted = isDeleted

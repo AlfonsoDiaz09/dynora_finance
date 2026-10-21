@@ -1,9 +1,13 @@
+import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
 import 'package:dynora_finance/features/cards/presentation/cubit/card_form_cubit.dart';
+import 'package:dynora_finance/features/cards/presentation/utils/card_labels.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/shared/bloc/form_status.dart';
 import 'package:dynora_finance/shared/widgets/form/app_text_field.dart';
 import 'package:dynora_finance/shared/widgets/form/form_sheet.dart';
+import 'package:dynora_finance/shared/widgets/form/segment_option.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,13 +54,26 @@ class _CardFormSheetState extends State<CardFormSheet> {
   late final TextEditingController _name = TextEditingController(
     text: widget.card?.name,
   );
-  late final TextEditingController _dueDay = TextEditingController(
-    text: widget.card?.paymentDueDay.toString(),
+  late final TextEditingController _digits = TextEditingController(
+    text: widget.card?.lastFourDigits,
   );
+  late final TextEditingController _cutoffDay = TextEditingController(
+    text: widget.card?.cutoffDay?.toString(),
+  );
+  late final TextEditingController _dueDay = TextEditingController(
+    text: widget.card?.paymentDueDay?.toString(),
+  );
+
+  static final _dayFormatters = [
+    FilteringTextInputFormatter.digitsOnly,
+    LengthLimitingTextInputFormatter(2),
+  ];
 
   @override
   void dispose() {
     _name.dispose();
+    _digits.dispose();
+    _cutoffDay.dispose();
     _dueDay.dispose();
     super.dispose();
   }
@@ -73,10 +90,27 @@ class _CardFormSheetState extends State<CardFormSheet> {
       },
       builder: (context, state) {
         final submitting = state.status == FormStatus.submitting;
+        final billed = state.type.hasBillingCycle;
 
         return FormSheet(
           title: isEditing ? 'Editar tarjeta' : 'Nueva tarjeta',
           children: [
+            Row(
+              children: [
+                for (final (index, type) in CardType.values.indexed) ...[
+                  if (index > 0) SizedBox(width: 8.w),
+                  Expanded(
+                    child: SegmentOption(
+                      label: type.label,
+                      color: AppColors.secondary,
+                      selected: state.type == type,
+                      onTap: () => cubit.selectType(type),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            SizedBox(height: 16.h),
             AppTextField(
               controller: _name,
               hint: 'Nombre (ej. BBVA Azul)',
@@ -84,16 +118,42 @@ class _CardFormSheetState extends State<CardFormSheet> {
             ),
             SizedBox(height: 12.h),
             AppTextField(
-              controller: _dueDay,
-              hint: 'Día de pago (1-31)',
-              icon: Icons.event_rounded,
+              controller: _digits,
+              hint: 'Últimos 4 dígitos',
+              icon: Icons.pin_rounded,
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(2),
+                LengthLimitingTextInputFormatter(4),
               ],
-              textInputAction: TextInputAction.done,
             ),
+            if (billed) ...[
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppTextField(
+                      controller: _cutoffDay,
+                      hint: 'Día de corte',
+                      icon: Icons.content_cut_rounded,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: _dayFormatters,
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: AppTextField(
+                      controller: _dueDay,
+                      hint: 'Día de pago',
+                      icon: Icons.event_rounded,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: _dayFormatters,
+                      textInputAction: TextInputAction.done,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             SizedBox(height: 16.h),
             const FormLabel('Color'),
             Wrap(
@@ -126,7 +186,9 @@ class _CardFormSheetState extends State<CardFormSheet> {
               loading: submitting,
               onPressed: () => cubit.submit(
                 name: _name.text,
-                dueDay: int.tryParse(_dueDay.text),
+                lastFourDigits: _digits.text,
+                cutoffDay: billed ? int.tryParse(_cutoffDay.text) : null,
+                paymentDueDay: billed ? int.tryParse(_dueDay.text) : null,
               ),
             ),
             if (isEditing) ...[

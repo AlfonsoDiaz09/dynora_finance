@@ -10,6 +10,7 @@ class MovementEntity extends Equatable {
     required this.categoryId,
     required this.date,
     this.note,
+    this.cardId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -21,6 +22,9 @@ class MovementEntity extends Equatable {
   final String categoryId;
   final DateTime date;
   final String? note;
+
+  /// Card used to pay, `null` for cash or transfers.
+  final String? cardId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -42,6 +46,7 @@ class MovementEntity extends Equatable {
       categoryId: categoryId ?? this.categoryId,
       date: date ?? this.date,
       note: note ?? this.note,
+      cardId: cardId,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -56,6 +61,7 @@ class MovementEntity extends Equatable {
     categoryId,
     date,
     note,
+    cardId,
     createdAt,
     updatedAt,
   ];

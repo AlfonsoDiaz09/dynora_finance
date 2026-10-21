@@ -1,5 +1,6 @@
 import 'package:dynora_finance/core/sync/sync_status.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
 import 'package:isar_community/isar.dart';
 
 part 'card_model.g.dart';
@@ -16,7 +17,13 @@ class CardModel {
   late String uid;
 
   late String name;
-  late int paymentDueDay;
+
+  @Enumerated(EnumType.name)
+  CardType type = CardType.credit;
+
+  String lastFourDigits = '';
+  int? cutoffDay;
+  int? paymentDueDay;
   late int colorValue;
   late DateTime createdAt;
   late DateTime updatedAt;
@@ -35,6 +42,9 @@ class CardModel {
     return CardEntity(
       id: uid,
       name: name,
+      type: type,
+      lastFourDigits: lastFourDigits,
+      cutoffDay: cutoffDay,
       paymentDueDay: paymentDueDay,
       colorValue: colorValue,
       createdAt: createdAt,
@@ -45,6 +55,9 @@ class CardModel {
   /// Copies the editable fields of [entity] into this model.
   void applyEntity(CardEntity entity) {
     name = entity.name;
+    type = entity.type;
+    lastFourDigits = entity.lastFourDigits;
+    cutoffDay = entity.cutoffDay;
     paymentDueDay = entity.paymentDueDay;
     colorValue = entity.colorValue;
   }

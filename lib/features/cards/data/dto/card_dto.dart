@@ -1,12 +1,16 @@
 import 'package:dynora_finance/core/sync/sync_status.dart';
 import 'package:dynora_finance/features/cards/data/models/card_model.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
 
 /// Provider-agnostic shape of a card exchanged with a remote backend.
 class CardDto {
   const CardDto({
     required this.id,
     required this.name,
-    required this.paymentDueDay,
+    required this.type,
+    required this.lastFourDigits,
+    this.cutoffDay,
+    this.paymentDueDay,
     required this.colorValue,
     required this.createdAt,
     required this.updatedAt,
@@ -15,7 +19,10 @@ class CardDto {
 
   final String id;
   final String name;
-  final int paymentDueDay;
+  final String type;
+  final String lastFourDigits;
+  final int? cutoffDay;
+  final int? paymentDueDay;
   final int colorValue;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -25,7 +32,10 @@ class CardDto {
     return CardDto(
       id: json['id'] as String,
       name: json['name'] as String,
-      paymentDueDay: json['payment_due_day'] as int,
+      type: json['type'] as String,
+      lastFourDigits: json['last_four_digits'] as String,
+      cutoffDay: json['cutoff_day'] as int?,
+      paymentDueDay: json['payment_due_day'] as int?,
       colorValue: json['color_value'] as int,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -37,6 +47,9 @@ class CardDto {
     return {
       'id': id,
       'name': name,
+      'type': type,
+      'last_four_digits': lastFourDigits,
+      'cutoff_day': cutoffDay,
       'payment_due_day': paymentDueDay,
       'color_value': colorValue,
       'created_at': createdAt.toUtc().toIso8601String(),
@@ -49,6 +62,9 @@ class CardDto {
     return CardDto(
       id: model.uid,
       name: model.name,
+      type: model.type.name,
+      lastFourDigits: model.lastFourDigits,
+      cutoffDay: model.cutoffDay,
       paymentDueDay: model.paymentDueDay,
       colorValue: model.colorValue,
       createdAt: model.createdAt,
@@ -62,6 +78,9 @@ class CardDto {
     return CardModel()
       ..uid = id
       ..name = name
+      ..type = CardType.values.byName(type)
+      ..lastFourDigits = lastFourDigits
+      ..cutoffDay = cutoffDay
       ..paymentDueDay = paymentDueDay
       ..colorValue = colorValue
       ..createdAt = createdAt.toLocal()
