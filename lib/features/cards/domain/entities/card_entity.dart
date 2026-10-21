@@ -10,6 +10,7 @@ class CardEntity extends Equatable {
     required this.lastFourDigits,
     this.cutoffDay,
     this.paymentDueDay,
+    this.creditLimit,
     required this.colorValue,
     required this.createdAt,
     required this.updatedAt,
@@ -25,6 +26,9 @@ class CardEntity extends Equatable {
 
   /// Day of the month (1-31) the statement must be paid. `null` for debit.
   final int? paymentDueDay;
+
+  /// Credit limit. `null` for debit cards or when not registered.
+  final double? creditLimit;
 
   /// ARGB value of the card color.
   final int colorValue;
@@ -92,6 +96,7 @@ class CardEntity extends Equatable {
     String? lastFourDigits,
     int? Function()? cutoffDay,
     int? Function()? paymentDueDay,
+    double? Function()? creditLimit,
     int? colorValue,
   }) {
     return CardEntity(
@@ -103,6 +108,7 @@ class CardEntity extends Equatable {
       paymentDueDay: paymentDueDay != null
           ? paymentDueDay()
           : this.paymentDueDay,
+      creditLimit: creditLimit != null ? creditLimit() : this.creditLimit,
       colorValue: colorValue ?? this.colorValue,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -117,6 +123,7 @@ class CardEntity extends Equatable {
     lastFourDigits,
     cutoffDay,
     paymentDueDay,
+    creditLimit,
     colorValue,
     createdAt,
     updatedAt,

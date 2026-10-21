@@ -27,47 +27,52 @@ const CardModelSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'cutoffDay': PropertySchema(
+    r'creditLimit': PropertySchema(
       id: 2,
+      name: r'creditLimit',
+      type: IsarType.double,
+    ),
+    r'cutoffDay': PropertySchema(
+      id: 3,
       name: r'cutoffDay',
       type: IsarType.long,
     ),
     r'isDeleted': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'lastFourDigits': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'lastFourDigits',
       type: IsarType.string,
     ),
     r'lastSyncedAt': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'lastSyncedAt',
       type: IsarType.dateTime,
     ),
-    r'name': PropertySchema(id: 6, name: r'name', type: IsarType.string),
+    r'name': PropertySchema(id: 7, name: r'name', type: IsarType.string),
     r'paymentDueDay': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'paymentDueDay',
       type: IsarType.long,
     ),
     r'syncStatus': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _CardModelsyncStatusEnumValueMap,
     ),
     r'type': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'type',
       type: IsarType.string,
       enumMap: _CardModeltypeEnumValueMap,
     ),
-    r'uid': PropertySchema(id: 10, name: r'uid', type: IsarType.string),
+    r'uid': PropertySchema(id: 11, name: r'uid', type: IsarType.string),
     r'updatedAt': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -150,16 +155,17 @@ void _cardModelSerialize(
 ) {
   writer.writeLong(offsets[0], object.colorValue);
   writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeLong(offsets[2], object.cutoffDay);
-  writer.writeBool(offsets[3], object.isDeleted);
-  writer.writeString(offsets[4], object.lastFourDigits);
-  writer.writeDateTime(offsets[5], object.lastSyncedAt);
-  writer.writeString(offsets[6], object.name);
-  writer.writeLong(offsets[7], object.paymentDueDay);
-  writer.writeString(offsets[8], object.syncStatus.name);
-  writer.writeString(offsets[9], object.type.name);
-  writer.writeString(offsets[10], object.uid);
-  writer.writeDateTime(offsets[11], object.updatedAt);
+  writer.writeDouble(offsets[2], object.creditLimit);
+  writer.writeLong(offsets[3], object.cutoffDay);
+  writer.writeBool(offsets[4], object.isDeleted);
+  writer.writeString(offsets[5], object.lastFourDigits);
+  writer.writeDateTime(offsets[6], object.lastSyncedAt);
+  writer.writeString(offsets[7], object.name);
+  writer.writeLong(offsets[8], object.paymentDueDay);
+  writer.writeString(offsets[9], object.syncStatus.name);
+  writer.writeString(offsets[10], object.type.name);
+  writer.writeString(offsets[11], object.uid);
+  writer.writeDateTime(offsets[12], object.updatedAt);
 }
 
 CardModel _cardModelDeserialize(
@@ -171,21 +177,22 @@ CardModel _cardModelDeserialize(
   final object = CardModel();
   object.colorValue = reader.readLong(offsets[0]);
   object.createdAt = reader.readDateTime(offsets[1]);
-  object.cutoffDay = reader.readLongOrNull(offsets[2]);
-  object.isDeleted = reader.readBool(offsets[3]);
+  object.creditLimit = reader.readDoubleOrNull(offsets[2]);
+  object.cutoffDay = reader.readLongOrNull(offsets[3]);
+  object.isDeleted = reader.readBool(offsets[4]);
   object.isarId = id;
-  object.lastFourDigits = reader.readString(offsets[4]);
-  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[5]);
-  object.name = reader.readString(offsets[6]);
-  object.paymentDueDay = reader.readLongOrNull(offsets[7]);
+  object.lastFourDigits = reader.readString(offsets[5]);
+  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[6]);
+  object.name = reader.readString(offsets[7]);
+  object.paymentDueDay = reader.readLongOrNull(offsets[8]);
   object.syncStatus =
-      _CardModelsyncStatusValueEnumMap[reader.readStringOrNull(offsets[8])] ??
+      _CardModelsyncStatusValueEnumMap[reader.readStringOrNull(offsets[9])] ??
       SyncStatus.synced;
   object.type =
-      _CardModeltypeValueEnumMap[reader.readStringOrNull(offsets[9])] ??
+      _CardModeltypeValueEnumMap[reader.readStringOrNull(offsets[10])] ??
       CardType.credit;
-  object.uid = reader.readString(offsets[10]);
-  object.updatedAt = reader.readDateTime(offsets[11]);
+  object.uid = reader.readString(offsets[11]);
+  object.updatedAt = reader.readDateTime(offsets[12]);
   return object;
 }
 
@@ -201,30 +208,32 @@ P _cardModelDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
-    case 4:
-      return (reader.readString(offset)) as P;
-    case 5:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 6:
-      return (reader.readString(offset)) as P;
-    case 7:
       return (reader.readLongOrNull(offset)) as P;
+    case 4:
+      return (reader.readBool(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readLongOrNull(offset)) as P;
+    case 9:
       return (_CardModelsyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.synced)
           as P;
-    case 9:
+    case 10:
       return (_CardModeltypeValueEnumMap[reader.readStringOrNull(offset)] ??
               CardType.credit)
           as P;
-    case 10:
-      return (reader.readString(offset)) as P;
     case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -685,6 +694,99 @@ extension CardModelQueryFilter
           includeLower: includeLower,
           upper: upper,
           includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  creditLimitIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'creditLimit'),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  creditLimitIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'creditLimit'),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> creditLimitEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'creditLimit',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition>
+  creditLimitGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'creditLimit',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> creditLimitLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'creditLimit',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterFilterCondition> creditLimitBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'creditLimit',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
         ),
       );
     });
@@ -1794,6 +1896,18 @@ extension CardModelQuerySortBy on QueryBuilder<CardModel, CardModel, QSortBy> {
     });
   }
 
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByCreditLimit() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditLimit', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByCreditLimitDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditLimit', Sort.desc);
+    });
+  }
+
   QueryBuilder<CardModel, CardModel, QAfterSortBy> sortByCutoffDay() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cutoffDay', Sort.asc);
@@ -1938,6 +2052,18 @@ extension CardModelQuerySortThenBy
   QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByCreditLimit() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditLimit', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CardModel, CardModel, QAfterSortBy> thenByCreditLimitDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'creditLimit', Sort.desc);
     });
   }
 
@@ -2088,6 +2214,12 @@ extension CardModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<CardModel, CardModel, QDistinct> distinctByCreditLimit() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'creditLimit');
+    });
+  }
+
   QueryBuilder<CardModel, CardModel, QDistinct> distinctByCutoffDay() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'cutoffDay');
@@ -2179,6 +2311,12 @@ extension CardModelQueryProperty
   QueryBuilder<CardModel, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<CardModel, double?, QQueryOperations> creditLimitProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'creditLimit');
     });
   }
 

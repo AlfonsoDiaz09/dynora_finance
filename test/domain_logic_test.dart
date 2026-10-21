@@ -356,6 +356,20 @@ void main() {
       paymentDueDay: payment,
     );
 
+    test('credit limit is optional but must be positive', () {
+      ValidationFailure? withLimit(double? limit) => CardValidator.validate(
+        name: 'Nu',
+        type: CardType.credit,
+        lastFourDigits: '1234',
+        cutoffDay: 25,
+        paymentDueDay: 5,
+        creditLimit: limit,
+      );
+      expect(withLimit(null), isNull);
+      expect(withLimit(30000), isNull);
+      expect(withLimit(0), isNotNull);
+    });
+
     test('requires exactly four digits', () {
       expect(validate(digits: '123'), isNotNull);
       expect(validate(digits: '12a4'), isNotNull);

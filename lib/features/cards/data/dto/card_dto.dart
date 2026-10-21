@@ -11,6 +11,7 @@ class CardDto {
     required this.lastFourDigits,
     this.cutoffDay,
     this.paymentDueDay,
+    this.creditLimit,
     required this.colorValue,
     required this.createdAt,
     required this.updatedAt,
@@ -23,6 +24,7 @@ class CardDto {
   final String lastFourDigits;
   final int? cutoffDay;
   final int? paymentDueDay;
+  final double? creditLimit;
   final int colorValue;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -36,6 +38,7 @@ class CardDto {
       lastFourDigits: json['last_four_digits'] as String,
       cutoffDay: json['cutoff_day'] as int?,
       paymentDueDay: json['payment_due_day'] as int?,
+      creditLimit: (json['credit_limit'] as num?)?.toDouble(),
       colorValue: json['color_value'] as int,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -51,6 +54,7 @@ class CardDto {
       'last_four_digits': lastFourDigits,
       'cutoff_day': cutoffDay,
       'payment_due_day': paymentDueDay,
+      'credit_limit': creditLimit,
       'color_value': colorValue,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
@@ -66,6 +70,7 @@ class CardDto {
       lastFourDigits: model.lastFourDigits,
       cutoffDay: model.cutoffDay,
       paymentDueDay: model.paymentDueDay,
+      creditLimit: model.creditLimit,
       colorValue: model.colorValue,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
@@ -82,6 +87,7 @@ class CardDto {
       ..lastFourDigits = lastFourDigits
       ..cutoffDay = cutoffDay
       ..paymentDueDay = paymentDueDay
+      ..creditLimit = creditLimit
       ..colorValue = colorValue
       ..createdAt = createdAt.toLocal()
       ..updatedAt = updatedAt.toLocal()

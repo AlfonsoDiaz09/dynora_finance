@@ -75,6 +75,7 @@ class CardFormCubit extends Cubit<CardFormState> {
     required String lastFourDigits,
     required int? cutoffDay,
     required int? paymentDueDay,
+    required double? creditLimit,
   }) async {
     emit(state.copyWith(status: FormStatus.submitting, error: () => null));
     final current = editing;
@@ -86,6 +87,7 @@ class CardFormCubit extends Cubit<CardFormState> {
               lastFourDigits: lastFourDigits,
               cutoffDay: cutoffDay,
               paymentDueDay: paymentDueDay,
+              creditLimit: creditLimit,
               colorValue: state.colorValue,
             ),
           )
@@ -96,6 +98,7 @@ class CardFormCubit extends Cubit<CardFormState> {
               lastFourDigits: lastFourDigits,
               cutoffDay: () => cutoffDay,
               paymentDueDay: () => paymentDueDay,
+              creditLimit: () => creditLimit,
               colorValue: state.colorValue,
             ),
           );

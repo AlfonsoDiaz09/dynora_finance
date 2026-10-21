@@ -27,62 +27,21 @@ class StatementSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final period = statement.period;
     final now = DateTime.now();
-    final (statusLabel, statusColor) = statementStatusStyle(statement, now);
+    final (_, statusColor) = statementStatusStyle(statement, now);
     final payment = statement.payment;
     final canPay = payment != null || statement.total > 0;
-    final fundingMonth = Formatters.monthYear(period.fundingMonth().start);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${Formatters.shortDate(period.start)} – ${Formatters.shortDate(period.end)}',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20.r),
-              ),
-              child: Text(
-                statusLabel,
-                style: TextStyle(color: statusColor, fontSize: 12.sp),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 4.h),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Pago el ${Formatters.shortDate(period.paymentDate)} · '
-                'con tu ingreso de $fundingMonth',
-                style: TextStyle(
-                  color: AppColors.textPrimary70,
-                  fontSize: 12.sp,
-                ),
-              ),
-            ),
-            Text(
-              Formatters.currency(statement.total),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+        Text(
+          'Movimientos del periodo (${statement.movements.length})',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         if (payment != null) ...[
           SizedBox(height: 12.h),

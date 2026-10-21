@@ -13,6 +13,7 @@ abstract interface class CardRepository {
     required String lastFourDigits,
     required int? cutoffDay,
     required int? paymentDueDay,
+    required double? creditLimit,
     required int colorValue,
   });
 

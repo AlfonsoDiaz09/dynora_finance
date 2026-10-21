@@ -63,6 +63,9 @@ class _CardFormSheetState extends State<CardFormSheet> {
   late final TextEditingController _dueDay = TextEditingController(
     text: widget.card?.paymentDueDay?.toString(),
   );
+  late final TextEditingController _creditLimit = TextEditingController(
+    text: widget.card?.creditLimit?.toStringAsFixed(2),
+  );
 
   static final _dayFormatters = [
     FilteringTextInputFormatter.digitsOnly,
@@ -75,6 +78,7 @@ class _CardFormSheetState extends State<CardFormSheet> {
     _digits.dispose();
     _cutoffDay.dispose();
     _dueDay.dispose();
+    _creditLimit.dispose();
     super.dispose();
   }
 
@@ -148,10 +152,20 @@ class _CardFormSheetState extends State<CardFormSheet> {
                       icon: Icons.event_rounded,
                       keyboardType: TextInputType.number,
                       inputFormatters: _dayFormatters,
-                      textInputAction: TextInputAction.done,
                     ),
                   ),
                 ],
+              ),
+              SizedBox(height: 12.h),
+              AppTextField(
+                controller: _creditLimit,
+                hint: 'Límite de crédito',
+                icon: Icons.account_balance_wallet_rounded,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: amountInputFormatters,
+                textInputAction: TextInputAction.done,
               ),
             ],
             SizedBox(height: 16.h),
@@ -189,6 +203,9 @@ class _CardFormSheetState extends State<CardFormSheet> {
                 lastFourDigits: _digits.text,
                 cutoffDay: billed ? int.tryParse(_cutoffDay.text) : null,
                 paymentDueDay: billed ? int.tryParse(_dueDay.text) : null,
+                creditLimit: billed && _creditLimit.text.trim().isNotEmpty
+                    ? parseAmount(_creditLimit.text)
+                    : null,
               ),
             ),
             if (isEditing) ...[

@@ -18,6 +18,7 @@ class UpdateCard implements UseCase<CardEntity, CardEntity> {
       lastFourDigits: card.lastFourDigits,
       cutoffDay: card.cutoffDay,
       paymentDueDay: card.paymentDueDay,
+      creditLimit: card.creditLimit,
     );
     if (failure != null) return left(failure);
 
@@ -27,6 +28,7 @@ class UpdateCard implements UseCase<CardEntity, CardEntity> {
         name: card.name.trim(),
         cutoffDay: () => billed ? card.cutoffDay : null,
         paymentDueDay: () => billed ? card.paymentDueDay : null,
+        creditLimit: () => billed ? card.creditLimit : null,
       ),
     );
   }

@@ -19,6 +19,7 @@ class AddCard implements UseCase<CardEntity, AddCardParams> {
       lastFourDigits: params.lastFourDigits,
       cutoffDay: params.cutoffDay,
       paymentDueDay: params.paymentDueDay,
+      creditLimit: params.creditLimit,
     );
     if (failure != null) return left(failure);
 
@@ -29,6 +30,7 @@ class AddCard implements UseCase<CardEntity, AddCardParams> {
       lastFourDigits: params.lastFourDigits,
       cutoffDay: billed ? params.cutoffDay : null,
       paymentDueDay: billed ? params.paymentDueDay : null,
+      creditLimit: billed ? params.creditLimit : null,
       colorValue: params.colorValue,
     );
   }
@@ -41,6 +43,7 @@ class AddCardParams {
     required this.lastFourDigits,
     this.cutoffDay,
     this.paymentDueDay,
+    this.creditLimit,
     required this.colorValue,
   });
 
@@ -49,5 +52,6 @@ class AddCardParams {
   final String lastFourDigits;
   final int? cutoffDay;
   final int? paymentDueDay;
+  final double? creditLimit;
   final int colorValue;
 }

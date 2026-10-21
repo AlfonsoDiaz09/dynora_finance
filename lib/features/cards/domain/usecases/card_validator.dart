@@ -13,6 +13,7 @@ class CardValidator {
     required String lastFourDigits,
     required int? cutoffDay,
     required int? paymentDueDay,
+    double? creditLimit,
   }) {
     if (name.trim().isEmpty) {
       return const ValidationFailure('El nombre es obligatorio');
@@ -29,6 +30,10 @@ class CardValidator {
     }
     if (!_isDay(paymentDueDay)) {
       return const ValidationFailure('El día de pago debe estar entre 1 y 31');
+    }
+    if (creditLimit != null &&
+        (creditLimit <= 0 || creditLimit.isNaN || creditLimit.isInfinite)) {
+      return const ValidationFailure('El límite de crédito debe ser mayor a 0');
     }
     return null;
   }

@@ -44,6 +44,7 @@ class CardRepositoryImpl implements CardRepository {
     required String lastFourDigits,
     required int? cutoffDay,
     required int? paymentDueDay,
+    required double? creditLimit,
     required int colorValue,
   }) {
     return guard(() async {
@@ -55,6 +56,7 @@ class CardRepositoryImpl implements CardRepository {
         ..lastFourDigits = lastFourDigits
         ..cutoffDay = cutoffDay
         ..paymentDueDay = paymentDueDay
+        ..creditLimit = creditLimit
         ..colorValue = colorValue
         ..createdAt = now
         ..updatedAt = now

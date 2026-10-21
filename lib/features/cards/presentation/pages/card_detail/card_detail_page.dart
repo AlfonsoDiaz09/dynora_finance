@@ -77,6 +77,9 @@ class CardDetailPage extends StatelessWidget {
                 children: [
                   CardHeader(
                     card: card!,
+                    statement: card.hasBillingCycle
+                        ? state.selectedStatement
+                        : null,
                     onEdit: () => CardFormSheet.show(context, card: card),
                   ),
                   SizedBox(height: 24.h),

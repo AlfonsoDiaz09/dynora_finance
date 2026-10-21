@@ -24,6 +24,7 @@ class CardModel {
   String lastFourDigits = '';
   int? cutoffDay;
   int? paymentDueDay;
+  double? creditLimit;
   late int colorValue;
   late DateTime createdAt;
   late DateTime updatedAt;
@@ -46,6 +47,7 @@ class CardModel {
       lastFourDigits: lastFourDigits,
       cutoffDay: cutoffDay,
       paymentDueDay: paymentDueDay,
+      creditLimit: creditLimit,
       colorValue: colorValue,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -59,6 +61,7 @@ class CardModel {
     lastFourDigits = entity.lastFourDigits;
     cutoffDay = entity.cutoffDay;
     paymentDueDay = entity.paymentDueDay;
+    creditLimit = entity.creditLimit;
     colorValue = entity.colorValue;
   }
 }
