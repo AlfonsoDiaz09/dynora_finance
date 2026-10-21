@@ -24,7 +24,7 @@ class SegmentOption extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: 12.h),
+        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
         decoration: BoxDecoration(
           color: selected
               ? color.withValues(alpha: 0.2)

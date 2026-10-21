@@ -1,4 +1,5 @@
 import 'package:dynora_finance/core/enums/movement_type.dart';
+import 'package:dynora_finance/core/enums/payment_method.dart';
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/usecase/usecase.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
@@ -17,8 +18,12 @@ class AddMovement implements UseCase<MovementEntity, AddMovementParams> {
       title: params.title,
       amount: params.amount,
       categoryId: params.categoryId,
+      cardId: params.cardId,
+      installmentCount: params.installmentCount,
+      installmentRate: params.installmentRate,
     );
     if (failure != null) return left(failure);
+    final installments = (params.installmentCount ?? 1) > 1;
 
     return _repository.createMovement(
       title: params.title.trim(),
@@ -28,6 +33,11 @@ class AddMovement implements UseCase<MovementEntity, AddMovementParams> {
       date: params.date,
       note: params.note?.trim(),
       cardId: params.cardId,
+      paymentMethod: params.paymentMethod,
+      installmentCount: installments ? params.installmentCount : null,
+      installmentRate: installments && (params.installmentRate ?? 0) > 0
+          ? params.installmentRate
+          : null,
     );
   }
 }
@@ -41,6 +51,9 @@ class AddMovementParams {
     required this.date,
     this.note,
     this.cardId,
+    this.paymentMethod = PaymentMethod.cash,
+    this.installmentCount,
+    this.installmentRate,
   });
 
   final String title;
@@ -50,4 +63,9 @@ class AddMovementParams {
   final DateTime date;
   final String? note;
   final String? cardId;
+
+  /// Ignored when [cardId] is set (the method is then the card).
+  final PaymentMethod paymentMethod;
+  final int? installmentCount;
+  final double? installmentRate;
 }

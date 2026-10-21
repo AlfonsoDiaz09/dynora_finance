@@ -16,6 +16,9 @@ class UpdateMovement implements UseCase<MovementEntity, MovementEntity> {
       title: movement.title,
       amount: movement.amount,
       categoryId: movement.categoryId,
+      cardId: movement.cardId,
+      installmentCount: movement.installmentCount,
+      installmentRate: movement.installmentRate,
     );
     if (failure != null) return left(failure);
 

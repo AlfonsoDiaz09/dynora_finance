@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dynora_finance/core/enums/movement_type.dart';
+import 'package:dynora_finance/core/enums/payment_method.dart';
 import 'package:dynora_finance/core/error/exceptions.dart';
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/error/guard.dart';
@@ -64,6 +65,9 @@ class MovementRepositoryImpl implements MovementRepository {
     required DateTime date,
     String? note,
     String? cardId,
+    PaymentMethod paymentMethod = PaymentMethod.cash,
+    int? installmentCount,
+    double? installmentRate,
   }) {
     return guard(() async {
       final now = DateTime.now();
@@ -76,6 +80,9 @@ class MovementRepositoryImpl implements MovementRepository {
         ..date = date
         ..note = note
         ..cardId = cardId
+        ..paymentMethod = cardId != null ? PaymentMethod.card : paymentMethod
+        ..installmentCount = installmentCount
+        ..installmentRate = installmentRate
         ..createdAt = now
         ..updatedAt = now
         ..syncStatus = SyncStatus.pendingCreate;

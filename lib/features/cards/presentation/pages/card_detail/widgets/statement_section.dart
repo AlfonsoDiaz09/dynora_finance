@@ -30,13 +30,16 @@ class StatementSection extends StatelessWidget {
     final now = DateTime.now();
     final (_, statusColor) = statementStatusStyle(statement, now);
     final payment = statement.payment;
-    final canPay = payment != null || statement.total > 0;
+    final canPay =
+        payment != null ||
+        (statement.total > 0 &&
+            statement.status(now) != StatementStatus.future);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Movimientos del periodo (${statement.movements.length})',
+          'Movimientos del periodo (${statement.charges.length})',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16.sp,
@@ -71,7 +74,7 @@ class StatementSection extends StatelessWidget {
             onTap: onPaymentTap,
           ),
         ],
-        if (statement.movements.isEmpty)
+        if (statement.charges.isEmpty)
           Padding(
             padding: EdgeInsets.only(top: 12.h),
             child: Text(
@@ -80,21 +83,35 @@ class StatementSection extends StatelessWidget {
             ),
           )
         else
-          for (final movement in statement.movements) ...[
+          for (final charge in statement.charges) ...[
             SizedBox(height: 12.h),
             MovementItem(
-              title: movement.title,
-              category:
-                  '${categories[movement.categoryId]?.name ?? 'Sin categoría'} · '
-                  '${Formatters.shortDate(movement.date)}',
-              amount: movement.amount,
-              isExpense: movement.isExpense,
-              onTap: () => onMovementTap(movement),
+              title: charge.movement.title,
+              category: _subtitle(charge),
+              amount: charge.amount,
+              isExpense: charge.movement.isExpense,
+              onTap: () => onMovementTap(charge.movement),
             ),
           ],
       ],
     );
   }
+
+  String _subtitle(StatementCharge charge) {
+    final movement = charge.movement;
+    return [
+      categories[movement.categoryId]?.name ?? 'Sin categoría',
+      if (charge.isInstallment) _installmentLabel(charge),
+      Formatters.shortDate(movement.date),
+    ].join(' · ');
+  }
+}
+
+/// `Electrónica · 3/12 MSI · 5 Oct`
+String _installmentLabel(StatementCharge charge) {
+  final movement = charge.movement;
+  final kind = movement.hasInterest ? 'con intereses' : 'MSI';
+  return '${charge.installmentNumber}/${movement.installmentCount} $kind';
 }
 
 class _PaymentBanner extends StatelessWidget {

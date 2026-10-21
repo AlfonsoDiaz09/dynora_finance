@@ -3,11 +3,16 @@ import 'package:dynora_finance/core/error/failures.dart';
 class MovementValidator {
   const MovementValidator._();
 
+  static const int maxInstallments = 48;
+
   /// Returns a [ValidationFailure] when the data is invalid, `null` otherwise.
   static ValidationFailure? validate({
     required String title,
     required double amount,
     required String categoryId,
+    String? cardId,
+    int? installmentCount,
+    double? installmentRate,
   }) {
     if (title.trim().isEmpty) {
       return const ValidationFailure('El título es obligatorio');
@@ -17,6 +22,22 @@ class MovementValidator {
     }
     if (categoryId.isEmpty) {
       return const ValidationFailure('La categoría es obligatoria');
+    }
+    if (installmentCount != null && installmentCount > 1) {
+      if (cardId == null) {
+        return const ValidationFailure(
+          'Las compras a meses requieren una tarjeta de crédito',
+        );
+      }
+      if (installmentCount > maxInstallments) {
+        return const ValidationFailure(
+          'El máximo es de $maxInstallments meses',
+        );
+      }
+      final rate = installmentRate ?? 0;
+      if (rate < 0 || rate > 100 || rate.isNaN) {
+        return const ValidationFailure('La tasa debe estar entre 0 y 100%');
+      }
     }
     return null;
   }

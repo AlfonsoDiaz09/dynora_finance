@@ -1,5 +1,7 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/core/enums/movement_type.dart';
+import 'package:dynora_finance/core/enums/payment_method.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
 import 'package:dynora_finance/features/cards/domain/entities/billing_period.dart';
 import 'package:dynora_finance/features/cards/presentation/utils/card_labels.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
@@ -55,6 +57,7 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
   late final TextEditingController _title;
   late final TextEditingController _amount;
   late final TextEditingController _note;
+  late final TextEditingController _rate;
 
   @override
   void initState() {
@@ -63,6 +66,9 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
     _title = TextEditingController(text: movement?.title);
     _amount = TextEditingController(text: movement?.amount.toStringAsFixed(2));
     _note = TextEditingController(text: movement?.note);
+    _rate = TextEditingController(
+      text: movement?.installmentRate?.toStringAsFixed(2),
+    );
   }
 
   @override
@@ -70,6 +76,7 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
     _title.dispose();
     _amount.dispose();
     _note.dispose();
+    _rate.dispose();
     super.dispose();
   }
 
@@ -193,10 +200,16 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
               runSpacing: 8.h,
               children: [
                 _PaymentChip(
-                  label: 'Efectivo / transferencia',
+                  label: 'Efectivo',
                   icon: Icons.payments_rounded,
-                  selected: state.cardId == null,
-                  onSelected: () => cubit.selectCard(null),
+                  selected: state.paymentMethod == PaymentMethod.cash,
+                  onSelected: () => cubit.selectMethod(PaymentMethod.cash),
+                ),
+                _PaymentChip(
+                  label: 'Transferencia',
+                  icon: Icons.swap_horiz_rounded,
+                  selected: state.paymentMethod == PaymentMethod.transfer,
+                  onSelected: () => cubit.selectMethod(PaymentMethod.transfer),
                 ),
                 for (final card in state.cards)
                   _PaymentChip(
@@ -208,7 +221,16 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
                   ),
               ],
             ),
-            if (state.selectedCard case final card? when card.hasBillingCycle)
+            if (state.canUseInstallments)
+              _InstallmentSection(
+                state: state,
+                amount: _amount,
+                rate: _rate,
+                onModeChanged: cubit.selectInstallmentMode,
+                onCountChanged: cubit.selectInstallmentCount,
+              )
+            else if (state.selectedCard case final card?
+                when card.hasBillingCycle)
               Padding(
                 padding: EdgeInsets.only(top: 8.h),
                 child: Text(
@@ -235,6 +257,7 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
                 title: _title.text,
                 amount: parseAmount(_amount.text),
                 note: _note.text,
+                interestRate: parseAmount(_rate.text),
               ),
             ),
             if (isEditing) ...[
@@ -281,5 +304,153 @@ class _PaymentChip extends StatelessWidget {
       selectedColor: AppColors.primary40,
       side: BorderSide.none,
     );
+  }
+}
+
+/// Single charge, interest-free installments or installments with a fixed
+/// rate, with a live summary of the resulting charges.
+class _InstallmentSection extends StatelessWidget {
+  const _InstallmentSection({
+    required this.state,
+    required this.amount,
+    required this.rate,
+    required this.onModeChanged,
+    required this.onCountChanged,
+  });
+
+  static const List<int> _counts = [3, 6, 9, 12, 18, 24];
+
+  final MovementFormState state;
+  final TextEditingController amount;
+  final TextEditingController rate;
+  final ValueChanged<InstallmentMode> onModeChanged;
+  final ValueChanged<int> onCountChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = state.installmentMode;
+    final counts = {..._counts, state.installmentCount}.toList()..sort();
+
+    return Padding(
+      padding: EdgeInsets.only(top: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const FormLabel('Forma de pago'),
+          Row(
+            children: [
+              for (final (index, option) in const [
+                (InstallmentMode.single, 'Una exhibición'),
+                (InstallmentMode.interestFree, 'MSI'),
+                (InstallmentMode.withInterest, 'Con intereses'),
+              ].indexed) ...[
+                if (index > 0) SizedBox(width: 8.w),
+                Expanded(
+                  child: SegmentOption(
+                    label: option.$2,
+                    color: AppColors.secondary,
+                    selected: mode == option.$1,
+                    onTap: () => onModeChanged(option.$1),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          if (mode != InstallmentMode.single) ...[
+            SizedBox(height: 12.h),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: [
+                for (final count in counts)
+                  ChoiceChip(
+                    label: Text('$count meses'),
+                    selected: state.installmentCount == count,
+                    onSelected: (_) => onCountChanged(count),
+                    showCheckmark: false,
+                    labelStyle: const TextStyle(color: Colors.white),
+                    backgroundColor: Colors.white.withValues(alpha: 0.05),
+                    selectedColor: AppColors.primary40,
+                    side: BorderSide.none,
+                  ),
+              ],
+            ),
+            if (mode == InstallmentMode.withInterest) ...[
+              SizedBox(height: 12.h),
+              AppTextField(
+                controller: rate,
+                hint: 'Tasa de interés fija (%)',
+                icon: Icons.percent_rounded,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: amountInputFormatters,
+              ),
+            ],
+            SizedBox(height: 10.h),
+            ListenableBuilder(
+              listenable: Listenable.merge([amount, rate]),
+              builder: (context, _) => Text(
+                _summary(),
+                style: TextStyle(
+                  color: AppColors.textPrimary70,
+                  fontSize: 12.sp,
+                ),
+              ),
+            ),
+          ] else if (state.selectedCard case final card?)
+            Padding(
+              padding: EdgeInsets.only(top: 8.h),
+              child: Text(
+                _periodHint(card.billingPeriodFor(state.date)),
+                style: TextStyle(
+                  color: AppColors.textPrimary70,
+                  fontSize: 12.sp,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// `12 pagos de $1,083.33 · Total $13,000.00` plus first and last payment.
+  String _summary() {
+    final price = parseAmount(amount.text);
+    final card = state.selectedCard!;
+    final count = state.installmentCount;
+    final schedule = _scheduleHint(card, count);
+    if (price == null || price <= 0) return schedule;
+
+    final preview = MovementEntity(
+      id: '',
+      title: '',
+      amount: price,
+      type: MovementType.expense,
+      categoryId: '',
+      date: state.date,
+      cardId: card.id,
+      installmentCount: count,
+      installmentRate: state.installmentMode == InstallmentMode.withInterest
+          ? parseAmount(rate.text)
+          : null,
+      createdAt: state.date,
+      updatedAt: state.date,
+    );
+    final amounts = preview.installmentAmounts;
+    return '$count pagos de ${Formatters.currency(amounts.first)} · '
+        'Total ${Formatters.currency(preview.totalWithInterest)}\n$schedule';
+  }
+
+  String _scheduleHint(CardEntity card, int count) {
+    final first = card.billingPeriodFor(state.date);
+    var last = first;
+    for (var i = 1; i < count; i++) {
+      last = card.billingPeriodFor(
+        DateTime(last.end.year, last.end.month, last.end.day + 1),
+      );
+    }
+    return 'Primer pago el ${Formatters.shortDate(first.paymentDate)} · '
+        'último el ${Formatters.shortDate(last.paymentDate)}';
   }
 }

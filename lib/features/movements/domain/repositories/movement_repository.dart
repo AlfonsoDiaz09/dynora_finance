@@ -1,4 +1,5 @@
 import 'package:dynora_finance/core/enums/movement_type.dart';
+import 'package:dynora_finance/core/enums/payment_method.dart';
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_filter.dart';
@@ -24,6 +25,9 @@ abstract interface class MovementRepository {
     required DateTime date,
     String? note,
     String? cardId,
+    PaymentMethod paymentMethod = PaymentMethod.cash,
+    int? installmentCount,
+    double? installmentRate,
   });
 
   Future<Either<Failure, MovementEntity>> updateMovement(

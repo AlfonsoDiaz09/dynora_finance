@@ -3,6 +3,7 @@ import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
 import 'package:dynora_finance/features/cards/presentation/utils/card_labels.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
+import 'package:dynora_finance/features/movements/presentation/utils/movement_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'movement_item.dart';
@@ -49,10 +50,13 @@ class MovementGroup extends StatelessWidget {
     );
   }
 
-  /// `Comida · Nu •• 1234`, or just the category for cash movements.
+  /// `Comida · Nu •• 1234 · 12 MSI`, `Comida · Transferencia`, ...
   String _subtitle(MovementEntity movement) {
-    final category = categories[movement.categoryId]?.name ?? 'Sin categoría';
     final card = cards[movement.cardId];
-    return card == null ? category : '$category · ${card.shortLabel}';
+    return [
+      categories[movement.categoryId]?.name ?? 'Sin categoría',
+      card?.shortLabel ?? movement.paymentMethod.label,
+      ?movement.installmentTag,
+    ].join(' · ');
   }
 }

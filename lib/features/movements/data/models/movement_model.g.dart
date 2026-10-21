@@ -30,33 +30,49 @@ const MovementModelSchema = CollectionSchema(
       type: IsarType.dateTime,
     ),
     r'date': PropertySchema(id: 4, name: r'date', type: IsarType.dateTime),
-    r'isDeleted': PropertySchema(
+    r'installmentCount': PropertySchema(
       id: 5,
+      name: r'installmentCount',
+      type: IsarType.long,
+    ),
+    r'installmentRate': PropertySchema(
+      id: 6,
+      name: r'installmentRate',
+      type: IsarType.double,
+    ),
+    r'isDeleted': PropertySchema(
+      id: 7,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'lastSyncedAt': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'lastSyncedAt',
       type: IsarType.dateTime,
     ),
-    r'note': PropertySchema(id: 7, name: r'note', type: IsarType.string),
+    r'note': PropertySchema(id: 9, name: r'note', type: IsarType.string),
+    r'paymentMethod': PropertySchema(
+      id: 10,
+      name: r'paymentMethod',
+      type: IsarType.string,
+      enumMap: _MovementModelpaymentMethodEnumValueMap,
+    ),
     r'syncStatus': PropertySchema(
-      id: 8,
+      id: 11,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _MovementModelsyncStatusEnumValueMap,
     ),
-    r'title': PropertySchema(id: 9, name: r'title', type: IsarType.string),
+    r'title': PropertySchema(id: 12, name: r'title', type: IsarType.string),
     r'type': PropertySchema(
-      id: 10,
+      id: 13,
       name: r'type',
       type: IsarType.string,
       enumMap: _MovementModeltypeEnumValueMap,
     ),
-    r'uid': PropertySchema(id: 11, name: r'uid', type: IsarType.string),
+    r'uid': PropertySchema(id: 14, name: r'uid', type: IsarType.string),
     r'updatedAt': PropertySchema(
-      id: 12,
+      id: 15,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -175,6 +191,7 @@ int _movementModelEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.paymentMethod.name.length * 3;
   bytesCount += 3 + object.syncStatus.name.length * 3;
   bytesCount += 3 + object.title.length * 3;
   bytesCount += 3 + object.type.name.length * 3;
@@ -193,14 +210,17 @@ void _movementModelSerialize(
   writer.writeString(offsets[2], object.categoryId);
   writer.writeDateTime(offsets[3], object.createdAt);
   writer.writeDateTime(offsets[4], object.date);
-  writer.writeBool(offsets[5], object.isDeleted);
-  writer.writeDateTime(offsets[6], object.lastSyncedAt);
-  writer.writeString(offsets[7], object.note);
-  writer.writeString(offsets[8], object.syncStatus.name);
-  writer.writeString(offsets[9], object.title);
-  writer.writeString(offsets[10], object.type.name);
-  writer.writeString(offsets[11], object.uid);
-  writer.writeDateTime(offsets[12], object.updatedAt);
+  writer.writeLong(offsets[5], object.installmentCount);
+  writer.writeDouble(offsets[6], object.installmentRate);
+  writer.writeBool(offsets[7], object.isDeleted);
+  writer.writeDateTime(offsets[8], object.lastSyncedAt);
+  writer.writeString(offsets[9], object.note);
+  writer.writeString(offsets[10], object.paymentMethod.name);
+  writer.writeString(offsets[11], object.syncStatus.name);
+  writer.writeString(offsets[12], object.title);
+  writer.writeString(offsets[13], object.type.name);
+  writer.writeString(offsets[14], object.uid);
+  writer.writeDateTime(offsets[15], object.updatedAt);
 }
 
 MovementModel _movementModelDeserialize(
@@ -215,21 +235,28 @@ MovementModel _movementModelDeserialize(
   object.categoryId = reader.readString(offsets[2]);
   object.createdAt = reader.readDateTime(offsets[3]);
   object.date = reader.readDateTime(offsets[4]);
-  object.isDeleted = reader.readBool(offsets[5]);
+  object.installmentCount = reader.readLongOrNull(offsets[5]);
+  object.installmentRate = reader.readDoubleOrNull(offsets[6]);
+  object.isDeleted = reader.readBool(offsets[7]);
   object.isarId = id;
-  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[6]);
-  object.note = reader.readStringOrNull(offsets[7]);
+  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[8]);
+  object.note = reader.readStringOrNull(offsets[9]);
+  object.paymentMethod =
+      _MovementModelpaymentMethodValueEnumMap[reader.readStringOrNull(
+        offsets[10],
+      )] ??
+      PaymentMethod.cash;
   object.syncStatus =
       _MovementModelsyncStatusValueEnumMap[reader.readStringOrNull(
-        offsets[8],
+        offsets[11],
       )] ??
       SyncStatus.synced;
-  object.title = reader.readString(offsets[9]);
+  object.title = reader.readString(offsets[12]);
   object.type =
-      _MovementModeltypeValueEnumMap[reader.readStringOrNull(offsets[10])] ??
+      _MovementModeltypeValueEnumMap[reader.readStringOrNull(offsets[13])] ??
       MovementType.income;
-  object.uid = reader.readString(offsets[11]);
-  object.updatedAt = reader.readDateTime(offsets[12]);
+  object.uid = reader.readString(offsets[14]);
+  object.updatedAt = reader.readDateTime(offsets[15]);
   return object;
 }
 
@@ -251,32 +278,52 @@ P _movementModelDeserializeProp<P>(
     case 4:
       return (reader.readDateTime(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 6:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 8:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (_MovementModelpaymentMethodValueEnumMap[reader.readStringOrNull(
+                offset,
+              )] ??
+              PaymentMethod.cash)
+          as P;
+    case 11:
       return (_MovementModelsyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.synced)
           as P;
-    case 9:
+    case 12:
       return (reader.readString(offset)) as P;
-    case 10:
+    case 13:
       return (_MovementModeltypeValueEnumMap[reader.readStringOrNull(offset)] ??
               MovementType.income)
           as P;
-    case 11:
+    case 14:
       return (reader.readString(offset)) as P;
-    case 12:
+    case 15:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
+const _MovementModelpaymentMethodEnumValueMap = {
+  r'cash': r'cash',
+  r'transfer': r'transfer',
+  r'card': r'card',
+};
+const _MovementModelpaymentMethodValueEnumMap = {
+  r'cash': PaymentMethod.cash,
+  r'transfer': PaymentMethod.transfer,
+  r'card': PaymentMethod.card,
+};
 const _MovementModelsyncStatusEnumValueMap = {
   r'synced': r'synced',
   r'pendingCreate': r'pendingCreate',
@@ -1348,6 +1395,172 @@ extension MovementModelQueryFilter
   }
 
   QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentCountIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'installmentCount'),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentCountIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'installmentCount'),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentCountEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'installmentCount', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentCountGreaterThan(int? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'installmentCount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentCountLessThan(int? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'installmentCount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentCountBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'installmentCount',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentRateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'installmentRate'),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentRateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'installmentRate'),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentRateEqualTo(double? value, {double epsilon = Query.epsilon}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'installmentRate',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentRateGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'installmentRate',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentRateLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'installmentRate',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  installmentRateBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'installmentRate',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
   isDeletedEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1642,6 +1855,147 @@ extension MovementModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'note', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodEqualTo(PaymentMethod value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'paymentMethod',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodGreaterThan(
+    PaymentMethod value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'paymentMethod',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodLessThan(
+    PaymentMethod value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'paymentMethod',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodBetween(
+    PaymentMethod lower,
+    PaymentMethod upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'paymentMethod',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'paymentMethod',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'paymentMethod',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'paymentMethod',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'paymentMethod',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'paymentMethod', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterFilterCondition>
+  paymentMethodIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'paymentMethod', value: ''),
       );
     });
   }
@@ -2345,6 +2699,34 @@ extension MovementModelQuerySortBy
     });
   }
 
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  sortByInstallmentCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'installmentCount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  sortByInstallmentCountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'installmentCount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  sortByInstallmentRate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'installmentRate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  sortByInstallmentRateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'installmentRate', Sort.desc);
+    });
+  }
+
   QueryBuilder<MovementModel, MovementModel, QAfterSortBy> sortByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -2381,6 +2763,20 @@ extension MovementModelQuerySortBy
   QueryBuilder<MovementModel, MovementModel, QAfterSortBy> sortByNoteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  sortByPaymentMethod() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'paymentMethod', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  sortByPaymentMethodDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'paymentMethod', Sort.desc);
     });
   }
 
@@ -2511,6 +2907,34 @@ extension MovementModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  thenByInstallmentCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'installmentCount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  thenByInstallmentCountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'installmentCount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  thenByInstallmentRate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'installmentRate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  thenByInstallmentRateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'installmentRate', Sort.desc);
+    });
+  }
+
   QueryBuilder<MovementModel, MovementModel, QAfterSortBy> thenByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -2559,6 +2983,20 @@ extension MovementModelQuerySortThenBy
   QueryBuilder<MovementModel, MovementModel, QAfterSortBy> thenByNoteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  thenByPaymentMethod() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'paymentMethod', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QAfterSortBy>
+  thenByPaymentMethodDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'paymentMethod', Sort.desc);
     });
   }
 
@@ -2661,6 +3099,20 @@ extension MovementModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<MovementModel, MovementModel, QDistinct>
+  distinctByInstallmentCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'installmentCount');
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QDistinct>
+  distinctByInstallmentRate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'installmentRate');
+    });
+  }
+
   QueryBuilder<MovementModel, MovementModel, QDistinct> distinctByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isDeleted');
@@ -2679,6 +3131,16 @@ extension MovementModelQueryWhereDistinct
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'note', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<MovementModel, MovementModel, QDistinct>
+  distinctByPaymentMethod({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'paymentMethod',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
@@ -2759,6 +3221,20 @@ extension MovementModelQueryProperty
     });
   }
 
+  QueryBuilder<MovementModel, int?, QQueryOperations>
+  installmentCountProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'installmentCount');
+    });
+  }
+
+  QueryBuilder<MovementModel, double?, QQueryOperations>
+  installmentRateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'installmentRate');
+    });
+  }
+
   QueryBuilder<MovementModel, bool, QQueryOperations> isDeletedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isDeleted');
@@ -2775,6 +3251,13 @@ extension MovementModelQueryProperty
   QueryBuilder<MovementModel, String?, QQueryOperations> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'note');
+    });
+  }
+
+  QueryBuilder<MovementModel, PaymentMethod, QQueryOperations>
+  paymentMethodProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'paymentMethod');
     });
   }
 

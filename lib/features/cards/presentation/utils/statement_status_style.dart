@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 (String, Color) statementStatusStyle(CardStatement statement, DateTime now) {
   final days = statement.period.daysUntilPayment(now);
   return switch (statement.status(now)) {
+    StatementStatus.future => ('Próximo', AppColors.textPrimary70),
     StatementStatus.open => ('Periodo actual', AppColors.info),
     StatementStatus.pending => (
       switch (days) {

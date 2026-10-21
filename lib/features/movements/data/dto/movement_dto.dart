@@ -1,4 +1,5 @@
 import 'package:dynora_finance/core/enums/movement_type.dart';
+import 'package:dynora_finance/core/enums/payment_method.dart';
 import 'package:dynora_finance/core/sync/sync_status.dart';
 import 'package:dynora_finance/features/movements/data/models/movement_model.dart';
 
@@ -16,6 +17,9 @@ class MovementDto {
     required this.date,
     this.note,
     this.cardId,
+    required this.paymentMethod,
+    this.installmentCount,
+    this.installmentRate,
     required this.createdAt,
     required this.updatedAt,
     required this.isDeleted,
@@ -29,6 +33,9 @@ class MovementDto {
   final DateTime date;
   final String? note;
   final String? cardId;
+  final String paymentMethod;
+  final int? installmentCount;
+  final double? installmentRate;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -43,6 +50,9 @@ class MovementDto {
       date: DateTime.parse(json['date'] as String),
       note: json['note'] as String?,
       cardId: json['card_id'] as String?,
+      paymentMethod: json['payment_method'] as String? ?? 'cash',
+      installmentCount: json['installment_count'] as int?,
+      installmentRate: (json['installment_rate'] as num?)?.toDouble(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       isDeleted: json['is_deleted'] as bool? ?? false,
@@ -59,6 +69,9 @@ class MovementDto {
       'date': date.toUtc().toIso8601String(),
       'note': note,
       'card_id': cardId,
+      'payment_method': paymentMethod,
+      'installment_count': installmentCount,
+      'installment_rate': installmentRate,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
       'is_deleted': isDeleted,
@@ -75,6 +88,9 @@ class MovementDto {
       date: model.date,
       note: model.note,
       cardId: model.cardId,
+      paymentMethod: model.paymentMethod.name,
+      installmentCount: model.installmentCount,
+      installmentRate: model.installmentRate,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
       isDeleted: model.isDeleted,
@@ -92,6 +108,9 @@ class MovementDto {
       ..date = date.toLocal()
       ..note = note
       ..cardId = cardId
+      ..paymentMethod = PaymentMethod.values.byName(paymentMethod)
+      ..installmentCount = installmentCount
+      ..installmentRate = installmentRate
       ..createdAt = createdAt.toLocal()
       ..updatedAt = updatedAt.toLocal()
       ..isDeleted = isDeleted

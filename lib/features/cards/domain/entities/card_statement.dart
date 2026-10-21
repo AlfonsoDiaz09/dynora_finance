@@ -7,6 +7,9 @@ import 'package:dynora_finance/features/movements/domain/entities/movement_entit
 import 'package:equatable/equatable.dart';
 
 enum StatementStatus {
+  /// Starts after today; only holds upcoming installments.
+  future,
+
   /// Still accumulating movements.
   open,
 
@@ -23,11 +26,38 @@ enum StatementStatus {
   nothingToPay,
 }
 
-/// Movements of one billing period, the amount to pay and its payment.
+/// What one movement adds to one statement: the full amount, or one
+/// installment of a purchase in monthly installments.
+class StatementCharge extends Equatable {
+  const StatementCharge({
+    required this.movement,
+    required this.amount,
+    this.installmentNumber = 1,
+  });
+
+  final MovementEntity movement;
+
+  /// Charged amount (positive); refunds and credits subtract from totals.
+  final double amount;
+
+  /// 1-based number of the installment; 1 for single charges.
+  final int installmentNumber;
+
+  bool get isInstallment => movement.hasInstallments;
+
+  /// Signed contribution to the statement total.
+  double get signedAmount =>
+      movement.type == MovementType.expense ? amount : -amount;
+
+  @override
+  List<Object?> get props => [movement, amount, installmentNumber];
+}
+
+/// Charges of one billing period, the amount to pay and its payment.
 class CardStatement extends Equatable {
   const CardStatement({
     required this.period,
-    required this.movements,
+    required this.charges,
     this.payment,
   });
 
@@ -36,18 +66,14 @@ class CardStatement extends Equatable {
 
   final BillingPeriod period;
 
-  /// Sorted by date, newest first.
-  final List<MovementEntity> movements;
+  /// Sorted by purchase date, newest first.
+  final List<StatementCharge> charges;
 
   /// Registered payment of this statement, if any.
   final CardPaymentEntity? payment;
 
-  /// Expenses minus refunds/credits made with the card in the period.
-  double get total => movements.fold(
-    0,
-    (sum, m) =>
-        m.type == MovementType.expense ? sum + m.amount : sum - m.amount,
-  );
+  /// Charges minus refunds/credits made with the card in the period.
+  double get total => charges.fold(0, (sum, c) => sum + c.signedAmount);
 
   double get paidAmount => payment?.amount ?? 0;
 
@@ -58,6 +84,8 @@ class CardStatement extends Equatable {
   }
 
   StatementStatus status(DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+    if (period.start.isAfter(today)) return StatementStatus.future;
     if (payment == null && total <= _epsilon) {
       return period.isOpen(now)
           ? StatementStatus.open
@@ -69,26 +97,20 @@ class CardStatement extends Equatable {
     return StatementStatus.overdue;
   }
 
-  /// Groups [movements] of [card] by billing period, newest period first,
-  /// attaching the matching entry of [payments].
+  /// Statements of [card], newest period first, attaching the matching
+  /// entry of [payments].
   ///
-  /// Covers every period from the oldest movement up to the open period
-  /// (containing [now]) or the newest movement, including periods without
-  /// movements, so they can be browsed as a continuous filter. Requires
-  /// [CardEntity.hasBillingCycle].
+  /// Covers every period from the oldest charge up to the open period
+  /// (containing [now]) or the last pending installment, including periods
+  /// without charges, so they can be browsed as a continuous filter.
+  /// Requires [CardEntity.hasBillingCycle].
   static List<CardStatement> build(
     CardEntity card,
     Iterable<MovementEntity> movements,
     Iterable<CardPaymentEntity> payments,
     DateTime now,
   ) {
-    final byPeriod = <BillingPeriod, List<MovementEntity>>{};
-    for (final movement in movements) {
-      if (movement.cardId != card.id) continue;
-      byPeriod
-          .putIfAbsent(card.billingPeriodFor(movement.date), () => [])
-          .add(movement);
-    }
+    final byPeriod = _chargesByPeriod(card, movements);
 
     final open = card.billingPeriodFor(now);
     var first = open;
@@ -102,15 +124,12 @@ class CardStatement extends Equatable {
     for (
       var period = first;
       !period.start.isAfter(last.start);
-      period = card.billingPeriodFor(
-        DateTime(period.end.year, period.end.month, period.end.day + 1),
-      )
+      period = _next(card, period)
     ) {
       statements.add(
         CardStatement(
           period: period,
-          movements: (byPeriod[period] ?? [])
-            ..sort((a, b) => b.date.compareTo(a.date)),
+          charges: byPeriod[period] ?? const [],
           payment: _paymentFor(card, period, payments),
         ),
       );
@@ -127,10 +146,7 @@ class CardStatement extends Equatable {
   ) {
     return CardStatement(
       period: period,
-      movements: [
-        for (final m in movements)
-          if (m.cardId == card.id && period.contains(m.date)) m,
-      ]..sort((a, b) => b.date.compareTo(a.date)),
+      charges: _chargesByPeriod(card, movements)[period] ?? const [],
       payment: _paymentFor(card, period, payments),
     );
   }
@@ -143,6 +159,7 @@ class CardStatement extends Equatable {
     Iterable<CardPaymentEntity> payments,
     MonthRange month,
   ) {
+    final byPeriod = _chargesByPeriod(card, movements);
     final statements = <CardStatement>[];
     // A payment lands up to ~2 months after its period starts, so walk the
     // periods from two months before [month] until the month after it.
@@ -150,14 +167,54 @@ class CardStatement extends Equatable {
     final last = month.next.end;
     while (!period.start.isAfter(last)) {
       if (period.fundingMonth() == month) {
-        statements.add(of(card, period, movements, payments));
+        statements.add(
+          CardStatement(
+            period: period,
+            charges: byPeriod[period] ?? const [],
+            payment: _paymentFor(card, period, payments),
+          ),
+        );
       }
-      period = card.billingPeriodFor(
-        DateTime(period.end.year, period.end.month, period.end.day + 1),
-      );
+      period = _next(card, period);
     }
     return statements;
   }
+
+  /// Charges of every movement of [card] grouped by the period they land
+  /// in; installments spread over consecutive periods starting with the one
+  /// of the purchase.
+  static Map<BillingPeriod, List<StatementCharge>> _chargesByPeriod(
+    CardEntity card,
+    Iterable<MovementEntity> movements,
+  ) {
+    final byPeriod = <BillingPeriod, List<StatementCharge>>{};
+    for (final movement in movements) {
+      if (movement.cardId != card.id) continue;
+      var period = card.billingPeriodFor(movement.date);
+      final amounts = movement.installmentAmounts;
+      for (var i = 0; i < amounts.length; i++) {
+        byPeriod
+            .putIfAbsent(period, () => [])
+            .add(
+              StatementCharge(
+                movement: movement,
+                amount: amounts[i],
+                installmentNumber: i + 1,
+              ),
+            );
+        period = _next(card, period);
+      }
+    }
+    for (final charges in byPeriod.values) {
+      charges.sort((a, b) => b.movement.date.compareTo(a.movement.date));
+    }
+    return byPeriod;
+  }
+
+  static BillingPeriod _next(CardEntity card, BillingPeriod period) =>
+      card.billingPeriodFor(
+        DateTime(period.end.year, period.end.month, period.end.day + 1),
+      );
 
   static CardPaymentEntity? _paymentFor(
     CardEntity card,
@@ -173,7 +230,7 @@ class CardStatement extends Equatable {
   }
 
   @override
-  List<Object?> get props => [period, movements, payment];
+  List<Object?> get props => [period, charges, payment];
 }
 
 /// A statement of a credit or departmental card that still needs paying.

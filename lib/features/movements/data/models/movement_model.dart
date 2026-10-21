@@ -1,4 +1,5 @@
 import 'package:dynora_finance/core/enums/movement_type.dart';
+import 'package:dynora_finance/core/enums/payment_method.dart';
 import 'package:dynora_finance/core/sync/sync_status.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:isar_community/isar.dart';
@@ -33,6 +34,13 @@ class MovementModel {
   /// Card used to pay, `null` for cash or transfers.
   @Index()
   String? cardId;
+
+  /// Records stored before this field existed read as cash.
+  @Enumerated(EnumType.name)
+  PaymentMethod paymentMethod = PaymentMethod.cash;
+
+  int? installmentCount;
+  double? installmentRate;
   late DateTime createdAt;
   late DateTime updatedAt;
 
@@ -56,6 +64,9 @@ class MovementModel {
       date: date,
       note: note,
       cardId: cardId,
+      paymentMethod: paymentMethod,
+      installmentCount: installmentCount,
+      installmentRate: installmentRate,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -70,5 +81,8 @@ class MovementModel {
     date = entity.date;
     note = entity.note;
     cardId = entity.cardId;
+    paymentMethod = entity.paymentMethod;
+    installmentCount = entity.installmentCount;
+    installmentRate = entity.installmentRate;
   }
 }
