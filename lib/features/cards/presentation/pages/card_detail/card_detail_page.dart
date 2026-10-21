@@ -95,11 +95,12 @@ class CardDetailPage extends StatelessWidget {
                   SizedBox(height: 8.h),
                   if (card.hasBillingCycle) ...[
                     PeriodFilter<BillingPeriod>(
-                      items: [for (final s in state.statements) s.period],
+                      items: [
+                        for (final s in state.statements.reversed) s.period,
+                      ],
                       selected: state.selectedPeriod,
-                      label: (p) =>
-                          '${Formatters.shortDate(p.start)} – '
-                          '${Formatters.shortDate(p.end)}',
+                      label: (p) => Formatters.monthShortYear(p.paymentDate),
+                      tense: (p) => _periodTense(p, DateTime.now()),
                       onSelected: cubit.selectPeriod,
                     ),
                     SizedBox(height: 20.h),
@@ -118,9 +119,10 @@ class CardDetailPage extends StatelessWidget {
                       ),
                   ] else ...[
                     PeriodFilter<MonthRange>(
-                      items: [for (final m in state.months) m.month],
+                      items: [for (final m in state.months.reversed) m.month],
                       selected: state.selectedMonth,
-                      label: (m) => Formatters.shortMonthYear(m.start),
+                      label: (m) => Formatters.monthShortYear(m.start),
+                      tense: (m) => _monthTense(m, DateTime.now()),
                       onSelected: cubit.selectMonth,
                     ),
                     SizedBox(height: 20.h),
@@ -141,4 +143,16 @@ class CardDetailPage extends StatelessWidget {
       ),
     );
   }
+}
+
+PeriodTense _periodTense(BillingPeriod period, DateTime now) {
+  final today = DateTime(now.year, now.month, now.day);
+  if (period.end.isBefore(today)) return PeriodTense.past;
+  if (period.start.isAfter(today)) return PeriodTense.future;
+  return PeriodTense.current;
+}
+
+PeriodTense _monthTense(MonthRange month, DateTime now) {
+  if (month.contains(now)) return PeriodTense.current;
+  return month.end.isBefore(now) ? PeriodTense.past : PeriodTense.future;
 }

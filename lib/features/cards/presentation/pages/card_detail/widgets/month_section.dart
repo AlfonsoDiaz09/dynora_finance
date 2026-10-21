@@ -7,6 +7,8 @@ import 'package:dynora_finance/features/debts/presentation/widgets/debtors_sheet
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_item.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
+import 'package:dynora_finance/shared/utils/group_by_day.dart';
+import 'package:dynora_finance/shared/widgets/day_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -54,29 +56,33 @@ class MonthSection extends StatelessWidget {
               style: TextStyle(color: AppColors.textPrimary38, fontSize: 13.sp),
             ),
           ),
-        for (final movement in month.movements) ...[
-          SizedBox(height: 12.h),
-          MovementItem(
-            title: movement.title,
-            category: [
-              categories[movement.categoryId]?.name ?? 'Sin categoría',
-              Formatters.relativeDay(movement.date),
-            ].join(' · '),
-            amount: movement.amount,
-            isExpense: movement.isExpense,
-            onTap: () => onMovementTap(movement),
-            footer: switch (debtors[movement.id]) {
-              final list? when list.isNotEmpty => DebtorAvatars(
-                debtors: list,
-                onTap: () => DebtorsSheet.show(
-                  context,
-                  title: movement.title,
+        for (final (day, movements) in groupByDay(
+          month.movements,
+          (movement) => movement.date,
+        )) ...[
+          DayHeader(day: day),
+          for (final movement in movements) ...[
+            SizedBox(height: 10.h),
+            MovementItem(
+              title: movement.title,
+              category:
+                  categories[movement.categoryId]?.name ?? 'Sin categoría',
+              amount: movement.amount,
+              isExpense: movement.isExpense,
+              onTap: () => onMovementTap(movement),
+              footer: switch (debtors[movement.id]) {
+                final list? when list.isNotEmpty => DebtorAvatars(
                   debtors: list,
+                  onTap: () => DebtorsSheet.show(
+                    context,
+                    title: movement.title,
+                    debtors: list,
+                  ),
                 ),
-              ),
-              _ => null,
-            },
-          ),
+                _ => null,
+              },
+            ),
+          ],
         ],
       ],
     );

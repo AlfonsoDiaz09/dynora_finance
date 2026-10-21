@@ -8,6 +8,8 @@ import 'package:dynora_finance/features/debts/presentation/widgets/debtors_sheet
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_item.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
+import 'package:dynora_finance/shared/utils/group_by_day.dart';
+import 'package:dynora_finance/shared/widgets/day_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -44,12 +46,19 @@ class StatementSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Movimientos del periodo (${statement.charges.length})',
+          'Movimientos del periodo',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
           ),
+        ),
+        Text(
+          '${Formatters.shortDate(statement.period.start)} – '
+          '${Formatters.shortDate(statement.period.end)} · '
+          '${statement.charges.length} '
+          '${statement.charges.length == 1 ? 'movimiento' : 'movimientos'}',
+          style: TextStyle(color: AppColors.textPrimary70, fontSize: 12.sp),
         ),
         if (_periodDebtors() case final debtors when debtors.isNotEmpty) ...[
           SizedBox(height: 10.h),
@@ -92,16 +101,22 @@ class StatementSection extends StatelessWidget {
             ),
           )
         else
-          for (final charge in statement.charges) ...[
-            SizedBox(height: 12.h),
-            MovementItem(
-              title: charge.movement.title,
-              category: _subtitle(charge),
-              amount: charge.amount,
-              isExpense: charge.movement.isExpense,
-              onTap: () => onMovementTap(charge.movement),
-              footer: _avatarsFor(context, charge.movement),
-            ),
+          for (final (day, charges) in groupByDay(
+            statement.charges,
+            (charge) => charge.movement.date,
+          )) ...[
+            DayHeader(day: day),
+            for (final charge in charges) ...[
+              SizedBox(height: 10.h),
+              MovementItem(
+                title: charge.movement.title,
+                category: _subtitle(charge),
+                amount: charge.amount,
+                isExpense: charge.movement.isExpense,
+                onTap: () => onMovementTap(charge.movement),
+                footer: _avatarsFor(context, charge.movement),
+              ),
+            ],
           ],
       ],
     );
@@ -132,17 +147,10 @@ class StatementSection extends StatelessWidget {
     final movement = charge.movement;
     return [
       categories[movement.categoryId]?.name ?? 'Sin categoría',
-      if (charge.isInstallment) _installmentLabel(charge),
-      Formatters.shortDate(movement.date),
+      if (charge.isInstallment)
+        '${charge.installmentNumber}/${movement.installmentCount}',
     ].join(' · ');
   }
-}
-
-/// `Electrónica · 3/12 MSI · 5 Oct`
-String _installmentLabel(StatementCharge charge) {
-  final movement = charge.movement;
-  final kind = movement.hasInterest ? 'con intereses' : 'MSI';
-  return '${charge.installmentNumber}/${movement.installmentCount} $kind';
 }
 
 class _PaymentBanner extends StatelessWidget {
