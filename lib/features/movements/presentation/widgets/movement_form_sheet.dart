@@ -2,10 +2,12 @@ import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/core/enums/movement_type.dart';
 import 'package:dynora_finance/core/enums/payment_method.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/debts/domain/entities/debt_split.dart';
 import 'package:dynora_finance/features/cards/domain/entities/billing_period.dart';
 import 'package:dynora_finance/features/cards/presentation/utils/card_labels.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/presentation/cubit/movement_form_cubit.dart';
+import 'package:dynora_finance/features/movements/presentation/cubit/share_draft.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/shared/bloc/form_status.dart';
 import 'package:dynora_finance/shared/utils/category_icons.dart';
@@ -40,6 +42,10 @@ class MovementFormSheet extends StatefulWidget {
           addMovement: serviceLocator(),
           updateMovement: serviceLocator(),
           deleteMovement: serviceLocator(),
+          watchPeople: serviceLocator(),
+          addPerson: serviceLocator(),
+          watchDebts: serviceLocator(),
+          setMovementDebts: serviceLocator(),
           initialType: initialType,
           initialCardId: initialCardId,
           editing: movement,
@@ -58,6 +64,17 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
   late final TextEditingController _amount;
   late final TextEditingController _note;
   late final TextEditingController _rate;
+  final TextEditingController _newPerson = TextEditingController();
+  final Map<String, TextEditingController> _shareAmounts = {};
+
+  TextEditingController _shareAmount(String personId, ShareDraft share) {
+    return _shareAmounts.putIfAbsent(
+      personId,
+      () => TextEditingController(
+        text: share.initialAmounts[personId]?.toStringAsFixed(2),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -77,6 +94,10 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
     _amount.dispose();
     _note.dispose();
     _rate.dispose();
+    _newPerson.dispose();
+    for (final controller in _shareAmounts.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -241,6 +262,21 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
                   ),
                 ),
               ),
+            if (state.type == MovementType.expense)
+              _ShareSection(
+                state: state,
+                amount: _amount,
+                newPerson: _newPerson,
+                shareAmount: (id) => _shareAmount(id, state.share),
+                onToggle: cubit.toggleSharing,
+                onTogglePerson: cubit.togglePerson,
+                onAddPerson: () {
+                  cubit.addPerson(_newPerson.text);
+                  _newPerson.clear();
+                },
+                onModeChanged: cubit.selectSplitMode,
+                onIncludeMeChanged: cubit.setIncludeMe,
+              ),
             SizedBox(height: 12.h),
             AppTextField(
               controller: _note,
@@ -258,6 +294,10 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
                 amount: parseAmount(_amount.text),
                 note: _note.text,
                 interestRate: parseAmount(_rate.text),
+                customShares: {
+                  for (final id in state.share.personIds)
+                    id: parseAmount(_shareAmount(id, state.share).text),
+                },
               ),
             ),
             if (isEditing) ...[
@@ -452,5 +492,217 @@ class _InstallmentSection extends StatelessWidget {
     }
     return 'Primer pago el ${Formatters.shortDate(first.paymentDate)} · '
         'último el ${Formatters.shortDate(last.paymentDate)}';
+  }
+}
+
+/// Who owes you part of this expense: people, split mode and summary.
+class _ShareSection extends StatelessWidget {
+  const _ShareSection({
+    required this.state,
+    required this.amount,
+    required this.newPerson,
+    required this.shareAmount,
+    required this.onToggle,
+    required this.onTogglePerson,
+    required this.onAddPerson,
+    required this.onModeChanged,
+    required this.onIncludeMeChanged,
+  });
+
+  final MovementFormState state;
+  final TextEditingController amount;
+  final TextEditingController newPerson;
+  final TextEditingController Function(String personId) shareAmount;
+  final ValueChanged<bool> onToggle;
+  final ValueChanged<String> onTogglePerson;
+  final VoidCallback onAddPerson;
+  final ValueChanged<SplitMode> onModeChanged;
+  final ValueChanged<bool> onIncludeMeChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final share = state.share;
+    final names = {for (final p in state.people) p.id: p.name};
+
+    return Padding(
+      padding: EdgeInsets.only(top: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '¿Te deben de esta compra?',
+                  style: TextStyle(
+                    color: AppColors.textPrimary70,
+                    fontSize: 13.sp,
+                  ),
+                ),
+              ),
+              Switch(
+                value: share.enabled,
+                onChanged: onToggle,
+                activeColor: AppColors.secondary,
+              ),
+            ],
+          ),
+          if (share.enabled) ...[
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: [
+                for (final person in state.people)
+                  FilterChip(
+                    label: Text(person.name),
+                    selected: share.personIds.contains(person.id),
+                    onSelected: (_) => onTogglePerson(person.id),
+                    showCheckmark: false,
+                    avatar: Icon(
+                      share.personIds.contains(person.id)
+                          ? Icons.check_circle_rounded
+                          : Icons.person_rounded,
+                      size: 18.sp,
+                      color: Colors.white,
+                    ),
+                    labelStyle: const TextStyle(color: Colors.white),
+                    backgroundColor: Colors.white.withValues(alpha: 0.05),
+                    selectedColor: AppColors.primary40,
+                    side: BorderSide.none,
+                  ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            Row(
+              children: [
+                Expanded(
+                  child: AppTextField(
+                    controller: newPerson,
+                    hint: 'Agregar persona',
+                    icon: Icons.person_add_alt_1_rounded,
+                    textInputAction: TextInputAction.done,
+                  ),
+                ),
+                IconButton(
+                  onPressed: onAddPerson,
+                  tooltip: 'Agregar',
+                  icon: const Icon(Icons.add_circle_rounded),
+                  color: AppColors.secondary,
+                  iconSize: 32.sp,
+                ),
+              ],
+            ),
+            if (share.personIds.isNotEmpty) ...[
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: SegmentOption(
+                      label: 'Partes iguales',
+                      color: AppColors.secondary,
+                      selected: share.mode == SplitMode.equal,
+                      onTap: () => onModeChanged(SplitMode.equal),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: SegmentOption(
+                      label: 'Montos personalizados',
+                      color: AppColors.secondary,
+                      selected: share.mode == SplitMode.custom,
+                      onTap: () => onModeChanged(SplitMode.custom),
+                    ),
+                  ),
+                ],
+              ),
+              if (share.mode == SplitMode.equal)
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Incluirme en la división',
+                        style: TextStyle(
+                          color: AppColors.textPrimary85,
+                          fontSize: 13.sp,
+                        ),
+                      ),
+                    ),
+                    Switch(
+                      value: share.includeMe,
+                      onChanged: onIncludeMeChanged,
+                      activeColor: AppColors.secondary,
+                    ),
+                  ],
+                )
+              else
+                for (final id in share.personIds)
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.h),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            names[id] ?? 'Persona',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 150.w,
+                          child: AppTextField(
+                            controller: shareAmount(id),
+                            hint: 'Monto',
+                            icon: Icons.attach_money_rounded,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: amountInputFormatters,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              SizedBox(height: 8.h),
+              ListenableBuilder(
+                listenable: Listenable.merge([
+                  amount,
+                  for (final id in share.personIds) shareAmount(id),
+                ]),
+                builder: (context, _) {
+                  final (text, ok) = _summary();
+                  return Text(
+                    text,
+                    style: TextStyle(
+                      color: ok ? AppColors.textPrimary70 : AppColors.warning,
+                      fontSize: 12.sp,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// `Te deben $600.00 · Tu parte $300.00`, or what is missing.
+  (String, bool) _summary() {
+    final total = parseAmount(amount.text);
+    if (total == null || total <= 0) {
+      return ('Ingresa el monto para ver cuánto te deben', false);
+    }
+    final share = state.share;
+    final result = share.shares(total, {
+      for (final id in share.personIds) id: parseAmount(shareAmount(id).text),
+    });
+    return result.match((message) => (message, false), (shares) {
+      final owed = shares.values.fold<double>(0, (sum, a) => sum + a);
+      final mine = DebtSplit.myShare(total, shares.values);
+      return (
+        'Te deben ${Formatters.currency(owed)} · '
+            'Tu parte ${Formatters.currency(mine)}',
+        true,
+      );
+    });
   }
 }

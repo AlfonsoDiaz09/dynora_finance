@@ -12,6 +12,8 @@ import 'package:dynora_finance/features/categories/domain/entities/category_enti
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_filter.dart';
+import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
 import 'package:dynora_finance/features/home/domain/entities/cash_flow.dart';
 import 'package:dynora_finance/features/movements/domain/usecases/watch_movements.dart';
 import 'package:dynora_finance/shared/bloc/view_status.dart';
@@ -28,6 +30,9 @@ class HomeState extends Equatable {
     this.recentMovements = const [],
     this.categories = const {},
     this.upcomingPayments = const [],
+    this.debtsPending = 0,
+    this.debtorsCount = 0,
+    this.hasDebts = false,
     this.error,
   });
 
@@ -43,6 +48,13 @@ class HomeState extends Equatable {
 
   /// Unpaid card statements with something to pay, overdue first.
   final List<UpcomingCardPayment> upcomingPayments;
+
+  /// What people still owe you and how many of them.
+  final double debtsPending;
+  final int debtorsCount;
+
+  /// Any debt was ever registered (pending or paid).
+  final bool hasDebts;
   final String? error;
 
   @override
@@ -54,6 +66,9 @@ class HomeState extends Equatable {
     recentMovements,
     categories,
     upcomingPayments,
+    debtsPending,
+    debtorsCount,
+    hasDebts,
     error,
   ];
 }
@@ -64,10 +79,12 @@ class HomeCubit extends Cubit<HomeState> {
     required WatchCategories watchCategories,
     required WatchCards watchCards,
     required WatchCardPayments watchCardPayments,
+    required WatchDebts watchDebts,
   }) : _watchMovements = watchMovements,
        _watchCategories = watchCategories,
        _watchCards = watchCards,
        _watchCardPayments = watchCardPayments,
+       _watchDebts = watchDebts,
        super(const HomeState());
 
   static const int recentLimit = 5;
@@ -76,14 +93,16 @@ class HomeCubit extends Cubit<HomeState> {
   final WatchCategories _watchCategories;
   final WatchCards _watchCards;
   final WatchCardPayments _watchCardPayments;
+  final WatchDebts _watchDebts;
   StreamSubscription<HomeState>? _subscription;
 
   void start() {
-    _subscription = Rx.combineLatest4(
+    _subscription = Rx.combineLatest5(
       _watchMovements(MovementFilter.all),
       _watchCategories(null),
       _watchCards(const NoParams()),
       _watchCardPayments(const NoParams()),
+      _watchDebts(const NoParams()),
       _buildState,
     ).listen(emit);
   }
@@ -93,11 +112,14 @@ class HomeCubit extends Cubit<HomeState> {
     Either<Failure, List<CategoryEntity>> categories,
     Either<Failure, List<CardEntity>> cards,
     Either<Failure, List<CardPaymentEntity>> payments,
+    Either<Failure, List<DebtEntity>> debts,
   ) {
     return movements
         .flatMap(
           (m) => categories.flatMap(
-            (c) => cards.flatMap((k) => payments.map((p) => (m, c, k, p))),
+            (c) => cards.flatMap(
+              (k) => payments.flatMap((p) => debts.map((d) => (m, c, k, p, d))),
+            ),
           ),
         )
         .match(
@@ -113,15 +135,26 @@ class HomeCubit extends Cubit<HomeState> {
                 movements: data.$1,
                 cards: data.$3,
                 payments: data.$4,
+                debts: data.$5,
               ).balance,
               monthCashFlow: CashFlow.of(
                 movements: data.$1,
                 cards: data.$3,
                 payments: data.$4,
+                debts: data.$5,
                 month: month,
               ),
               recentMovements: data.$1.take(recentLimit).toList(),
               categories: {for (final c in data.$2) c.id: c},
+              debtsPending: [
+                for (final d in data.$5)
+                  if (!d.isPaid) d.amount,
+              ].fold(0, (sum, a) => sum + a),
+              debtorsCount: {
+                for (final d in data.$5)
+                  if (!d.isPaid) d.personId,
+              }.length,
+              hasDebts: data.$5.isNotEmpty,
               upcomingPayments: UpcomingCardPayment.pending(
                 data.$3,
                 data.$1,

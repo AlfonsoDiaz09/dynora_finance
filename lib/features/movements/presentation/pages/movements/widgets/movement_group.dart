@@ -3,7 +3,9 @@ import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
 import 'package:dynora_finance/features/cards/presentation/utils/card_labels.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
+import 'package:dynora_finance/features/movements/presentation/cubit/movements_cubit.dart';
 import 'package:dynora_finance/features/movements/presentation/utils/movement_labels.dart';
+import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'movement_item.dart';
@@ -13,6 +15,7 @@ class MovementGroup extends StatelessWidget {
   final List<MovementEntity> movements;
   final Map<String, CategoryEntity> categories;
   final Map<String, CardEntity> cards;
+  final Map<String, MovementDebts> debts;
   final ValueChanged<MovementEntity> onMovementTap;
 
   const MovementGroup({
@@ -21,6 +24,7 @@ class MovementGroup extends StatelessWidget {
     required this.movements,
     required this.categories,
     required this.cards,
+    this.debts = const {},
     required this.onMovementTap,
   });
 
@@ -57,6 +61,14 @@ class MovementGroup extends StatelessWidget {
       categories[movement.categoryId]?.name ?? 'Sin categoría',
       card?.shortLabel ?? movement.paymentMethod.label,
       ?movement.installmentTag,
+      ?_debtTag(debts[movement.id]),
     ].join(' · ');
+  }
+
+  static String? _debtTag(MovementDebts? debts) {
+    if (debts == null) return null;
+    return debts.pending > 0
+        ? 'Te deben ${Formatters.currency(debts.pending)}'
+        : 'Saldado';
   }
 }

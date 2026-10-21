@@ -6,6 +6,8 @@ import 'package:dynora_finance/core/usecase/usecase.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
+import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_filter.dart';
@@ -27,6 +29,40 @@ class MovementDayGroup extends Equatable {
   List<Object?> get props => [day, movements];
 }
 
+/// What others owe you for one movement.
+class MovementDebts extends Equatable {
+  const MovementDebts({required this.owed, required this.pending});
+
+  final double owed;
+  final double pending;
+
+  static Map<String, MovementDebts> byMovement(List<DebtEntity> debts) {
+    final owed = <String, double>{};
+    final pending = <String, double>{};
+    for (final debt in debts) {
+      owed.update(
+        debt.movementId,
+        (v) => v + debt.amount,
+        ifAbsent: () => debt.amount,
+      );
+      if (!debt.isPaid) {
+        pending.update(
+          debt.movementId,
+          (v) => v + debt.amount,
+          ifAbsent: () => debt.amount,
+        );
+      }
+    }
+    return {
+      for (final id in owed.keys)
+        id: MovementDebts(owed: owed[id]!, pending: pending[id] ?? 0),
+    };
+  }
+
+  @override
+  List<Object?> get props => [owed, pending];
+}
+
 class MovementsState extends Equatable {
   const MovementsState({
     required this.month,
@@ -35,6 +71,7 @@ class MovementsState extends Equatable {
     this.groups = const [],
     this.categories = const {},
     this.cards = const {},
+    this.debts = const {},
     this.error,
   });
 
@@ -44,6 +81,9 @@ class MovementsState extends Equatable {
   final List<MovementDayGroup> groups;
   final Map<String, CategoryEntity> categories;
   final Map<String, CardEntity> cards;
+
+  /// Movement id → what others owe you for it.
+  final Map<String, MovementDebts> debts;
   final String? error;
 
   @override
@@ -55,6 +95,7 @@ class MovementsState extends Equatable {
     groups,
     categories,
     cards,
+    debts,
     error,
   ];
 }
@@ -64,14 +105,17 @@ class MovementsCubit extends Cubit<MovementsState> {
     required WatchMovements watchMovements,
     required WatchCategories watchCategories,
     required WatchCards watchCards,
+    required WatchDebts watchDebts,
   }) : _watchMovements = watchMovements,
        _watchCategories = watchCategories,
        _watchCards = watchCards,
+       _watchDebts = watchDebts,
        super(MovementsState(month: MonthRange(DateTime.now())));
 
   final WatchMovements _watchMovements;
   final WatchCategories _watchCategories;
   final WatchCards _watchCards;
+  final WatchDebts _watchDebts;
   late final BehaviorSubject<MonthRange> _month = BehaviorSubject.seeded(
     state.month,
   );
@@ -80,12 +124,13 @@ class MovementsCubit extends Cubit<MovementsState> {
   void start() {
     _subscription = _month
         .switchMap(
-          (month) => Rx.combineLatest3(
+          (month) => Rx.combineLatest4(
             _watchMovements(MovementFilter(from: month.start, to: month.end)),
             _watchCategories(null),
             _watchCards(const NoParams()),
-            (movements, categories, cards) =>
-                _buildState(month, movements, categories, cards),
+            _watchDebts(const NoParams()),
+            (movements, categories, cards, debts) =>
+                _buildState(month, movements, categories, cards, debts),
           ),
         )
         .listen(emit);
@@ -101,6 +146,7 @@ class MovementsCubit extends Cubit<MovementsState> {
         month: month,
         categories: state.categories,
         cards: state.cards,
+        debts: state.debts,
       ),
     );
     _month.add(month);
@@ -111,9 +157,14 @@ class MovementsCubit extends Cubit<MovementsState> {
     Either<Failure, List<MovementEntity>> movements,
     Either<Failure, List<CategoryEntity>> categories,
     Either<Failure, List<CardEntity>> cards,
+    Either<Failure, List<DebtEntity>> debts,
   ) {
     return movements
-        .flatMap((m) => categories.flatMap((c) => cards.map((k) => (m, c, k))))
+        .flatMap(
+          (m) => categories.flatMap(
+            (c) => cards.flatMap((k) => debts.map((d) => (m, c, k, d))),
+          ),
+        )
         .match(
           (failure) => MovementsState(
             month: month,
@@ -127,6 +178,7 @@ class MovementsCubit extends Cubit<MovementsState> {
             groups: _groupByDay(data.$1),
             categories: {for (final c in data.$2) c.id: c},
             cards: {for (final k in data.$3) k.id: k},
+            debts: MovementDebts.byMovement(data.$4),
           ),
         );
   }

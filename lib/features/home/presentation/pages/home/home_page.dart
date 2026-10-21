@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'widgets/financial_summary_card.dart';
+import 'widgets/debts_summary_card.dart';
 import 'widgets/upcoming_payments_section.dart';
 import 'widgets/recent_movements_section.dart';
 import 'widgets/quick_actions_section.dart';
@@ -61,6 +62,14 @@ class HomePage extends StatelessWidget {
                   onCardTap: (card) =>
                       context.push(AppRoutes.cardDetailPath(card.id)),
                 ),
+                if (state.hasDebts) ...[
+                  SizedBox(height: 20.h),
+                  DebtsSummaryCard(
+                    total: state.debtsPending,
+                    people: state.debtorsCount,
+                    onTap: () => context.push(AppRoutes.debts),
+                  ),
+                ],
                 SizedBox(height: 28.h),
                 RecentMovementsSection(
                   movements: state.recentMovements,

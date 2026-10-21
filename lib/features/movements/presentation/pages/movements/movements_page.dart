@@ -96,6 +96,7 @@ class _MovementsList extends StatelessWidget {
               movements: group.movements,
               categories: state.categories,
               cards: state.cards,
+              debts: state.debts,
               onMovementTap: (movement) =>
                   MovementFormSheet.show(context, movement: movement),
             );

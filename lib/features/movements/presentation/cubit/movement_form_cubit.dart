@@ -8,10 +8,16 @@ import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
+import 'package:dynora_finance/features/debts/domain/entities/person_entity.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/add_person.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/set_movement_debts.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/watch_people.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/usecases/add_movement.dart';
 import 'package:dynora_finance/features/movements/domain/usecases/delete_movement.dart';
 import 'package:dynora_finance/features/movements/domain/usecases/update_movement.dart';
+import 'package:dynora_finance/features/movements/presentation/cubit/share_draft.dart';
 import 'package:dynora_finance/shared/bloc/form_status.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,6 +37,8 @@ class MovementFormState extends Equatable {
     this.paymentMethod = PaymentMethod.cash,
     this.installmentMode = InstallmentMode.single,
     this.installmentCount = 3,
+    this.people = const [],
+    this.share = const ShareDraft(),
     this.status = FormStatus.idle,
     this.error,
   });
@@ -48,6 +56,10 @@ class MovementFormState extends Equatable {
   final PaymentMethod paymentMethod;
   final InstallmentMode installmentMode;
   final int installmentCount;
+  final List<PersonEntity> people;
+
+  /// Who owes you part of this expense.
+  final ShareDraft share;
   final FormStatus status;
   final String? error;
 
@@ -71,6 +83,8 @@ class MovementFormState extends Equatable {
     PaymentMethod? paymentMethod,
     InstallmentMode? installmentMode,
     int? installmentCount,
+    List<PersonEntity>? people,
+    ShareDraft? share,
     FormStatus? status,
     String? Function()? error,
   }) {
@@ -84,6 +98,8 @@ class MovementFormState extends Equatable {
       paymentMethod: paymentMethod ?? this.paymentMethod,
       installmentMode: installmentMode ?? this.installmentMode,
       installmentCount: installmentCount ?? this.installmentCount,
+      people: people ?? this.people,
+      share: share ?? this.share,
       status: status ?? this.status,
       error: error != null ? error() : this.error,
     );
@@ -100,6 +116,8 @@ class MovementFormState extends Equatable {
     paymentMethod,
     installmentMode,
     installmentCount,
+    people,
+    share,
     status,
     error,
   ];
@@ -112,6 +130,10 @@ class MovementFormCubit extends Cubit<MovementFormState> {
     required AddMovement addMovement,
     required UpdateMovement updateMovement,
     required DeleteMovement deleteMovement,
+    required WatchPeople watchPeople,
+    required AddPerson addPerson,
+    required WatchDebts watchDebts,
+    required SetMovementDebts setMovementDebts,
     MovementType initialType = MovementType.expense,
     String? initialCardId,
     this.editing,
@@ -120,6 +142,10 @@ class MovementFormCubit extends Cubit<MovementFormState> {
        _addMovement = addMovement,
        _updateMovement = updateMovement,
        _deleteMovement = deleteMovement,
+       _watchPeople = watchPeople,
+       _addPerson = addPerson,
+       _watchDebts = watchDebts,
+       _setMovementDebts = setMovementDebts,
        super(
          MovementFormState(
            type: editing?.type ?? initialType,
@@ -143,13 +169,27 @@ class MovementFormCubit extends Cubit<MovementFormState> {
   final AddMovement _addMovement;
   final UpdateMovement _updateMovement;
   final DeleteMovement _deleteMovement;
+  final WatchPeople _watchPeople;
+  final AddPerson _addPerson;
+  final WatchDebts _watchDebts;
+  final SetMovementDebts _setMovementDebts;
 
   /// Movement being edited, `null` when creating a new one.
   final MovementEntity? editing;
 
   StreamSubscription<void>? _subscription;
+  StreamSubscription<void>? _peopleSubscription;
 
   void start() {
+    _peopleSubscription = _watchPeople(const NoParams()).listen(
+      (result) => result.match(
+        (_) {},
+        (people) => emit(state.copyWith(people: people)),
+      ),
+    );
+    final current = editing;
+    if (current != null) _loadShare(current);
+
     _subscription =
         Rx.combineLatest2(
           _watchCategories(null),
@@ -243,11 +283,61 @@ class MovementFormCubit extends Cubit<MovementFormState> {
 
   void changeDate(DateTime date) => emit(state.copyWith(date: date));
 
+  void toggleSharing(bool enabled) =>
+      emit(state.copyWith(share: state.share.copyWith(enabled: enabled)));
+
+  void togglePerson(String id) {
+    final ids = [...state.share.personIds];
+    ids.contains(id) ? ids.remove(id) : ids.add(id);
+    emit(state.copyWith(share: state.share.copyWith(personIds: ids)));
+  }
+
+  /// Creates (or reuses) a person by name and adds them to the split.
+  Future<void> addPerson(String name) async {
+    final result = await _addPerson(name);
+    result.match(
+      (failure) => emit(state.copyWith(error: () => failure.message)),
+      (person) {
+        final ids = state.share.personIds;
+        emit(
+          state.copyWith(
+            error: () => null,
+            share: state.share.copyWith(
+              personIds: ids.contains(person.id) ? ids : [...ids, person.id],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void selectSplitMode(SplitMode mode) =>
+      emit(state.copyWith(share: state.share.copyWith(mode: mode)));
+
+  void setIncludeMe(bool value) =>
+      emit(state.copyWith(share: state.share.copyWith(includeMe: value)));
+
+  Future<void> _loadShare(MovementEntity movement) async {
+    final result = await _watchDebts(const NoParams()).first;
+    result.match((_) {}, (debts) {
+      if (isClosed) return;
+      emit(
+        state.copyWith(
+          share: ShareDraft.fromDebts([
+            for (final d in debts)
+              if (d.movementId == movement.id) d,
+          ], movement.amount),
+        ),
+      );
+    });
+  }
+
   Future<void> submit({
     required String title,
     required double? amount,
     required String note,
     double? interestRate,
+    Map<String, double?> customShares = const {},
   }) async {
     if (amount == null) {
       emit(state.copyWith(error: () => 'Ingresa un monto válido'));
@@ -271,6 +361,17 @@ class MovementFormCubit extends Cubit<MovementFormState> {
     final installmentRate = mode == InstallmentMode.withInterest
         ? interestRate
         : null;
+
+    // Validated before saving so an invalid split doesn't leave the
+    // movement half saved. Incomes are never shared.
+    final sharesResult = state.type == MovementType.expense
+        ? state.share.shares(amount, customShares)
+        : right<String, Map<String, double>>(const {});
+    if (sharesResult case Left(value: final message)) {
+      emit(state.copyWith(error: () => message));
+      return;
+    }
+    final shares = sharesResult.getOrElse((_) => const {});
 
     emit(state.copyWith(status: FormStatus.submitting, error: () => null));
     final cleanNote = note.trim().isEmpty ? null : note.trim();
@@ -309,6 +410,20 @@ class MovementFormCubit extends Cubit<MovementFormState> {
             ),
           );
 
+    if (result case Right(
+      value: final movement,
+    ) when shares.isNotEmpty || current != null) {
+      _emitResult(
+        await _setMovementDebts(
+          SetMovementDebtsParams(
+            movementId: movement.id,
+            movementAmount: amount,
+            shares: shares,
+          ),
+        ),
+      );
+      return;
+    }
     _emitResult(result);
   }
 
@@ -316,7 +431,14 @@ class MovementFormCubit extends Cubit<MovementFormState> {
     final current = editing;
     if (current == null) return;
     emit(state.copyWith(status: FormStatus.submitting, error: () => null));
-    _emitResult(await _deleteMovement(current.id));
+    final result = await _deleteMovement(current.id);
+    if (result.isRight()) {
+      _emitResult(
+        await _setMovementDebts(SetMovementDebtsParams.clear(current.id)),
+      );
+      return;
+    }
+    _emitResult(result);
   }
 
   void _emitResult(Either<Failure, Object> result) {
@@ -334,6 +456,7 @@ class MovementFormCubit extends Cubit<MovementFormState> {
   @override
   Future<void> close() async {
     await _subscription?.cancel();
+    await _peopleSubscription?.cancel();
     return super.close();
   }
 }

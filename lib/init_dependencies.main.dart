@@ -10,6 +10,7 @@ Future<void> initDependencies() async {
   _initMovements();
   _initCards();
   _initBudget();
+  _initDebts();
   _initScreens();
 }
 
@@ -21,6 +22,8 @@ Future<void> _initCore() async {
     CardModelSchema,
     CardPaymentModelSchema,
     BudgetModelSchema,
+    PersonModelSchema,
+    DebtModelSchema,
   ]);
 
   serviceLocator
@@ -35,6 +38,8 @@ Future<void> _initCore() async {
     //     CardSyncHandler(...),
     //     CardPaymentSyncHandler(...),
     //     BudgetSyncHandler(...),
+    //     PersonSyncHandler(...),
+    //     DebtSyncHandler(...),
     //   ],
     //   metadata: SyncMetadataLocalDataSourceImpl(serviceLocator()),
     // )
@@ -130,6 +135,34 @@ void _initBudget() {
     ..registerFactory(() => DeleteBudget(serviceLocator()));
 }
 
+void _initDebts() {
+  serviceLocator
+    ..registerLazySingleton<PersonLocalDataSource>(
+      () => PersonLocalDataSourceImpl(serviceLocator()),
+    )
+    ..registerLazySingleton<PersonRepository>(
+      () => PersonRepositoryImpl(
+        local: serviceLocator(),
+        syncEngine: serviceLocator(),
+        uuid: serviceLocator(),
+      ),
+    )
+    ..registerLazySingleton<DebtLocalDataSource>(
+      () => DebtLocalDataSourceImpl(serviceLocator()),
+    )
+    ..registerLazySingleton<DebtRepository>(
+      () => DebtRepositoryImpl(
+        local: serviceLocator(),
+        syncEngine: serviceLocator(),
+      ),
+    )
+    ..registerFactory(() => WatchPeople(serviceLocator()))
+    ..registerFactory(() => AddPerson(serviceLocator()))
+    ..registerFactory(() => WatchDebts(serviceLocator()))
+    ..registerFactory(() => SetMovementDebts(serviceLocator()))
+    ..registerFactory(() => SetDebtsPaid(serviceLocator()));
+}
+
 void _initScreens() {
   serviceLocator
     ..registerFactory(
@@ -138,6 +171,7 @@ void _initScreens() {
         watchCategories: serviceLocator(),
         watchCards: serviceLocator(),
         watchCardPayments: serviceLocator(),
+        watchDebts: serviceLocator(),
       ),
     )
     ..registerFactory(
@@ -145,6 +179,7 @@ void _initScreens() {
         watchMovements: serviceLocator(),
         watchCategories: serviceLocator(),
         watchCards: serviceLocator(),
+        watchDebts: serviceLocator(),
       ),
     )
     ..registerFactory(
@@ -158,6 +193,14 @@ void _initScreens() {
         watchCards: serviceLocator(),
         watchMovements: serviceLocator(),
         watchCardPayments: serviceLocator(),
+      ),
+    )
+    ..registerFactory(
+      () => DebtsCubit(
+        watchDebts: serviceLocator(),
+        watchPeople: serviceLocator(),
+        watchMovements: serviceLocator(),
+        setDebtsPaid: serviceLocator(),
       ),
     )
     ..registerFactory(

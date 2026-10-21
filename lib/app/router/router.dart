@@ -5,6 +5,7 @@ import 'package:dynora_finance/features/auth/presentation/pages/register/registe
 import 'package:dynora_finance/features/budget/presentation/pages/budget/budget_page.dart';
 import 'package:dynora_finance/features/cards/presentation/pages/card_detail/card_detail_page.dart';
 import 'package:dynora_finance/features/cards/presentation/pages/cards/cards_page.dart';
+import 'package:dynora_finance/features/debts/presentation/pages/debts/debts_page.dart';
 import 'package:dynora_finance/features/home/presentation/pages/home/home_page.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/movements_page.dart';
 import 'package:dynora_finance/features/profile/presentation/pages/profile/profile_page.dart';
@@ -26,6 +27,7 @@ abstract class AppRoutes {
   static const budget = '/budget';
   static const profile = '/profile';
   static const cards = '/cards';
+  static const debts = '/debts';
   static const cardDetail = '/cards/:id';
 
   static String cardDetailPath(String id) => '/cards/$id';
@@ -59,6 +61,11 @@ GoRouter createRouter() {
         path: AppRoutes.about,
         name: AppRoutes.about,
         builder: (_, __) => AboutPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.debts,
+        name: AppRoutes.debts,
+        builder: (_, __) => DebtsPage(),
       ),
       GoRoute(
         path: AppRoutes.cards,
