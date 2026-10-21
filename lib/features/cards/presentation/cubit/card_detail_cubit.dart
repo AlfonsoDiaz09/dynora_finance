@@ -5,7 +5,9 @@ import 'package:dynora_finance/core/usecase/usecase.dart';
 import 'package:dynora_finance/core/utils/month_range.dart';
 import 'package:dynora_finance/features/cards/domain/entities/billing_period.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_payment_entity.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
+import 'package:dynora_finance/features/cards/domain/usecases/watch_card_payments.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
@@ -100,22 +102,26 @@ class CardDetailCubit extends Cubit<CardDetailState> {
     required WatchCards watchCards,
     required WatchMovements watchMovements,
     required WatchCategories watchCategories,
+    required WatchCardPayments watchCardPayments,
   }) : _watchCards = watchCards,
        _watchMovements = watchMovements,
        _watchCategories = watchCategories,
+       _watchCardPayments = watchCardPayments,
        super(const CardDetailState());
 
   final String cardId;
   final WatchCards _watchCards;
   final WatchMovements _watchMovements;
   final WatchCategories _watchCategories;
+  final WatchCardPayments _watchCardPayments;
   StreamSubscription<CardDetailState>? _subscription;
 
   void start() {
-    _subscription = Rx.combineLatest3(
+    _subscription = Rx.combineLatest4(
       _watchCards(const NoParams()),
       _watchMovements(MovementFilter(cardId: cardId)),
       _watchCategories(null),
+      _watchCardPayments(const NoParams()),
       _buildState,
     ).listen(emit);
   }
@@ -130,10 +136,13 @@ class CardDetailCubit extends Cubit<CardDetailState> {
     Either<Failure, List<CardEntity>> cards,
     Either<Failure, List<MovementEntity>> movements,
     Either<Failure, List<CategoryEntity>> categories,
+    Either<Failure, List<CardPaymentEntity>> payments,
   ) {
     return cards
         .flatMap(
-          (c) => movements.flatMap((m) => categories.map((k) => (c, m, k))),
+          (c) => movements.flatMap(
+            (m) => categories.flatMap((k) => payments.map((p) => (c, m, k, p))),
+          ),
         )
         .match(
           (failure) => CardDetailState(
@@ -152,7 +161,12 @@ class CardDetailCubit extends Cubit<CardDetailState> {
 
             final now = DateTime.now();
             if (card.hasBillingCycle) {
-              final statements = CardStatement.build(card, data.$2, now);
+              final statements = CardStatement.build(
+                card,
+                data.$2,
+                data.$4,
+                now,
+              );
               // Keep the user's selection while it still exists (it can
               // vanish when the cutoff day changes); otherwise show the next
               // payment.

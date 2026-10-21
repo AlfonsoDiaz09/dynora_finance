@@ -51,8 +51,8 @@ class HomePage extends StatelessWidget {
                 ],
                 FinancialSummaryCard(
                   balance: state.balance,
-                  monthIncome: state.monthSummary.income,
-                  monthExpense: state.monthSummary.expense,
+                  monthIncome: state.monthCashFlow.income,
+                  monthExpense: state.monthCashFlow.expense,
                 ),
                 SizedBox(height: 28.h),
                 UpcomingPaymentsSection(

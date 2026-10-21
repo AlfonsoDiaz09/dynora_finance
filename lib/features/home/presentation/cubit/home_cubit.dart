@@ -4,13 +4,15 @@ import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/usecase/usecase.dart';
 import 'package:dynora_finance/core/utils/month_range.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_payment_entity.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
+import 'package:dynora_finance/features/cards/domain/usecases/watch_card_payments.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_filter.dart';
-import 'package:dynora_finance/features/movements/domain/entities/movement_summary.dart';
+import 'package:dynora_finance/features/home/domain/entities/cash_flow.dart';
 import 'package:dynora_finance/features/movements/domain/usecases/watch_movements.dart';
 import 'package:dynora_finance/shared/bloc/view_status.dart';
 import 'package:equatable/equatable.dart';
@@ -22,7 +24,7 @@ class HomeState extends Equatable {
   const HomeState({
     this.status = ViewStatus.loading,
     this.balance = 0,
-    this.monthSummary = MovementSummary.empty,
+    this.monthCashFlow = CashFlow.empty,
     this.recentMovements = const [],
     this.categories = const {},
     this.upcomingPayments = const [],
@@ -31,13 +33,15 @@ class HomeState extends Equatable {
 
   final ViewStatus status;
 
-  /// All-time income minus expenses.
+  /// All-time cash balance (see [CashFlow]).
   final double balance;
 
-  /// Totals of the current month.
-  final MovementSummary monthSummary;
+  /// Cash in and out during the current month.
+  final CashFlow monthCashFlow;
   final List<MovementEntity> recentMovements;
   final Map<String, CategoryEntity> categories;
+
+  /// Unpaid card statements with something to pay, overdue first.
   final List<UpcomingCardPayment> upcomingPayments;
   final String? error;
 
@@ -45,8 +49,8 @@ class HomeState extends Equatable {
   List<Object?> get props => [
     status,
     balance,
-    monthSummary.income,
-    monthSummary.expense,
+    monthCashFlow.income,
+    monthCashFlow.expense,
     recentMovements,
     categories,
     upcomingPayments,
@@ -59,24 +63,27 @@ class HomeCubit extends Cubit<HomeState> {
     required WatchMovements watchMovements,
     required WatchCategories watchCategories,
     required WatchCards watchCards,
+    required WatchCardPayments watchCardPayments,
   }) : _watchMovements = watchMovements,
        _watchCategories = watchCategories,
        _watchCards = watchCards,
+       _watchCardPayments = watchCardPayments,
        super(const HomeState());
 
   static const int recentLimit = 5;
-  static const int upcomingLimit = 3;
 
   final WatchMovements _watchMovements;
   final WatchCategories _watchCategories;
   final WatchCards _watchCards;
+  final WatchCardPayments _watchCardPayments;
   StreamSubscription<HomeState>? _subscription;
 
   void start() {
-    _subscription = Rx.combineLatest3(
+    _subscription = Rx.combineLatest4(
       _watchMovements(MovementFilter.all),
       _watchCategories(null),
       _watchCards(const NoParams()),
+      _watchCardPayments(const NoParams()),
       _buildState,
     ).listen(emit);
   }
@@ -85,9 +92,14 @@ class HomeCubit extends Cubit<HomeState> {
     Either<Failure, List<MovementEntity>> movements,
     Either<Failure, List<CategoryEntity>> categories,
     Either<Failure, List<CardEntity>> cards,
+    Either<Failure, List<CardPaymentEntity>> payments,
   ) {
     return movements
-        .flatMap((m) => categories.flatMap((c) => cards.map((k) => (m, c, k))))
+        .flatMap(
+          (m) => categories.flatMap(
+            (c) => cards.flatMap((k) => payments.map((p) => (m, c, k, p))),
+          ),
+        )
         .match(
           (failure) =>
               HomeState(status: ViewStatus.failure, error: failure.message),
@@ -97,17 +109,25 @@ class HomeCubit extends Cubit<HomeState> {
 
             return HomeState(
               status: ViewStatus.loaded,
-              balance: MovementSummary.of(data.$1).balance,
-              monthSummary: MovementSummary.of(
-                data.$1.where((m) => month.contains(m.date)),
+              balance: CashFlow.of(
+                movements: data.$1,
+                cards: data.$3,
+                payments: data.$4,
+              ).balance,
+              monthCashFlow: CashFlow.of(
+                movements: data.$1,
+                cards: data.$3,
+                payments: data.$4,
+                month: month,
               ),
               recentMovements: data.$1.take(recentLimit).toList(),
               categories: {for (final c in data.$2) c.id: c},
-              upcomingPayments: UpcomingCardPayment.forCards(
+              upcomingPayments: UpcomingCardPayment.pending(
                 data.$3,
                 data.$1,
+                data.$4,
                 now,
-              ).take(upcomingLimit).toList(),
+              ),
             );
           },
         );

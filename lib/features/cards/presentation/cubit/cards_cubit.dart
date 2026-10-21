@@ -5,7 +5,9 @@ import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/usecase/usecase.dart';
 import 'package:dynora_finance/core/utils/month_range.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_payment_entity.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
+import 'package:dynora_finance/features/cards/domain/usecases/watch_card_payments.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_filter.dart';
@@ -26,7 +28,8 @@ class CardOverview extends Equatable {
 
   final CardEntity card;
 
-  /// Next statement to pay, `null` for cards without billing cycle.
+  /// Most urgent unpaid statement (overdue first) or, when everything is
+  /// paid, the next one. `null` for cards without billing cycle.
   final CardStatement? upcoming;
 
   /// Expenses of the current month (used for debit cards).
@@ -50,7 +53,12 @@ class MonthlyCardPlan extends Equatable {
   final double income;
   final List<UpcomingCardPayment> payments;
 
-  double get totalPayments => payments.fold(0, (sum, p) => sum + p.amount);
+  /// Statement totals, paid or not.
+  double get totalPayments =>
+      payments.fold(0, (sum, p) => sum + p.statement.total);
+
+  /// Part of [totalPayments] not paid yet.
+  double get pendingPayments => payments.fold(0, (sum, p) => sum + p.amount);
 
   double get remaining => income - totalPayments;
 
@@ -79,18 +87,22 @@ class CardsCubit extends Cubit<CardsState> {
   CardsCubit({
     required WatchCards watchCards,
     required WatchMovements watchMovements,
+    required WatchCardPayments watchCardPayments,
   }) : _watchCards = watchCards,
        _watchMovements = watchMovements,
+       _watchCardPayments = watchCardPayments,
        super(const CardsState());
 
   final WatchCards _watchCards;
   final WatchMovements _watchMovements;
+  final WatchCardPayments _watchCardPayments;
   StreamSubscription<CardsState>? _subscription;
 
   void start() {
-    _subscription = Rx.combineLatest2(
+    _subscription = Rx.combineLatest3(
       _watchCards(const NoParams()),
       _watchMovements(MovementFilter.all),
+      _watchCardPayments(const NoParams()),
       _buildState,
     ).listen(emit);
   }
@@ -98,40 +110,46 @@ class CardsCubit extends Cubit<CardsState> {
   CardsState _buildState(
     Either<Failure, List<CardEntity>> cards,
     Either<Failure, List<MovementEntity>> movements,
+    Either<Failure, List<CardPaymentEntity>> payments,
   ) {
-    return cards.flatMap((c) => movements.map((m) => (c, m))).match(
-      (failure) =>
-          CardsState(status: ViewStatus.failure, error: failure.message),
-      (data) {
-        final now = DateTime.now();
-        final month = MonthRange(now);
-        final monthMovements = data.$2.where((m) => month.contains(m.date));
+    return cards
+        .flatMap(
+          (c) => movements.flatMap((m) => payments.map((p) => (c, m, p))),
+        )
+        .match(
+          (failure) =>
+              CardsState(status: ViewStatus.failure, error: failure.message),
+          (data) {
+            final now = DateTime.now();
+            final month = MonthRange(now);
+            final monthMovements = data.$2.where((m) => month.contains(m.date));
 
-        return CardsState(
-          status: ViewStatus.loaded,
-          cards: [
-            for (final card in data.$1)
-              CardOverview(
-                card: card,
-                upcoming: card.hasBillingCycle
-                    ? CardStatement.upcoming(card, data.$2, now)
-                    : null,
-                monthExpense: monthMovements
-                    .where(
-                      (m) =>
-                          m.cardId == card.id && m.type == MovementType.expense,
-                    )
-                    .fold(0, (sum, m) => sum + m.amount),
+            return CardsState(
+              status: ViewStatus.loaded,
+              cards: [
+                for (final card in data.$1)
+                  CardOverview(
+                    card: card,
+                    upcoming: card.hasBillingCycle
+                        ? _mostUrgent(card, data.$2, data.$3, now)
+                        : null,
+                    monthExpense: monthMovements
+                        .where(
+                          (m) =>
+                              m.cardId == card.id &&
+                              m.type == MovementType.expense,
+                        )
+                        .fold(0, (sum, m) => sum + m.amount),
+                  ),
+              ],
+              plan: MonthlyCardPlan(
+                month: month,
+                income: MovementSummary.of(monthMovements).income,
+                payments: _paymentsFundedIn(month, data.$1, data.$2, data.$3),
               ),
-          ],
-          plan: MonthlyCardPlan(
-            month: month,
-            income: MovementSummary.of(monthMovements).income,
-            payments: _paymentsFundedIn(month, data.$1, data.$2),
-          ),
+            );
+          },
         );
-      },
-    );
   }
 
   /// Statements of every card whose payment is funded with [month]'s salary.
@@ -139,6 +157,7 @@ class CardsCubit extends Cubit<CardsState> {
     MonthRange month,
     List<CardEntity> cards,
     List<MovementEntity> movements,
+    List<CardPaymentEntity> payments,
   ) {
     return [
       for (final card in cards)
@@ -146,10 +165,27 @@ class CardsCubit extends Cubit<CardsState> {
           for (final statement in CardStatement.fundedIn(
             card,
             movements,
+            payments,
             month,
           ))
             UpcomingCardPayment(card: card, statement: statement),
     ]..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+  }
+
+  CardStatement _mostUrgent(
+    CardEntity card,
+    List<MovementEntity> movements,
+    List<CardPaymentEntity> payments,
+    DateTime now,
+  ) {
+    final pending = UpcomingCardPayment.pending(
+      [card],
+      movements,
+      payments,
+      now,
+    );
+    return pending.firstOrNull?.statement ??
+        CardStatement.of(card, card.upcomingPeriod(now), movements, payments);
   }
 
   @override

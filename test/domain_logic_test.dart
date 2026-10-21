@@ -3,9 +3,13 @@ import 'package:dynora_finance/core/utils/month_range.dart';
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/features/cards/domain/entities/billing_period.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_payment_entity.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
+import 'package:dynora_finance/features/cards/domain/repositories/card_payment_repository.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/card_validator.dart';
+import 'package:dynora_finance/features/cards/domain/usecases/register_card_payment.dart';
+import 'package:dynora_finance/features/home/domain/entities/cash_flow.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_summary.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
@@ -131,6 +135,7 @@ void main() {
       final statements = CardStatement.build(
         nu,
         movements,
+        const [],
         DateTime(2026, 10, 1),
       );
       expect(statements.map((s) => s.period.end), [
@@ -142,6 +147,7 @@ void main() {
       final october = CardStatement.fundedIn(
         nu,
         movements,
+        const [],
         MonthRange(DateTime(2026, 10)),
       );
       expect(october.single.period.paymentDate, DateTime(2026, 10, 5));
@@ -150,10 +156,15 @@ void main() {
   });
 
   test('statements include empty periods between movements', () {
-    final statements = CardStatement.build(card(), [
-      cardMovement(DateTime(2026, 7, 1), 10),
-      cardMovement(DateTime(2026, 9, 1), 20),
-    ], DateTime(2026, 10, 1));
+    final statements = CardStatement.build(
+      card(),
+      [
+        cardMovement(DateTime(2026, 7, 1), 10),
+        cardMovement(DateTime(2026, 9, 1), 20),
+      ],
+      const [],
+      DateTime(2026, 10, 1),
+    );
     expect(statements.map((s) => s.period.start), [
       DateTime(2026, 9, 25),
       DateTime(2026, 8, 25),
@@ -190,6 +201,7 @@ void main() {
         CardStatement.fundedIn(
           c,
           const [],
+          const [],
           MonthRange(DateTime(2026, 10)),
         ).single.period,
         period,
@@ -200,6 +212,134 @@ void main() {
       expect(card(type: CardType.debit).hasBillingCycle, isFalse);
       expect(card(cutoff: null).hasBillingCycle, isFalse);
     });
+  });
+
+  group('Card payments', () {
+    final c = card(cutoff: 2, payment: 20);
+    // Statement Sep 2 – Oct 1, due Oct 20.
+    final movements = [cardMovement(DateTime(2026, 9, 25), 2369)];
+    CardPaymentEntity paid(double amount) => CardPaymentEntity(
+      id: 'p',
+      cardId: 'c',
+      periodStart: DateTime(2026, 9, 2),
+      amount: amount,
+      paidAt: DateTime(2026, 10, 18),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    CardStatement statement(List<CardPaymentEntity> payments) =>
+        CardStatement.of(
+          c,
+          c.billingPeriodFor(DateTime(2026, 9, 25)),
+          movements,
+          payments,
+        );
+
+    test('statuses before, on and after the due date', () {
+      final unpaid = statement(const []);
+      expect(unpaid.status(DateTime(2026, 9, 30)), StatementStatus.open);
+      expect(unpaid.status(DateTime(2026, 10, 20)), StatementStatus.pending);
+      expect(unpaid.status(DateTime(2026, 10, 21)), StatementStatus.overdue);
+    });
+
+    test('a payment, even registered late, marks it as paid', () {
+      final s = statement([paid(2369)]);
+      expect(s.status(DateTime(2026, 10, 21)), StatementStatus.paid);
+      expect(s.remaining, 0);
+    });
+
+    test('a partial payment keeps the rest overdue', () {
+      final s = statement([paid(2000)]);
+      expect(s.remaining, closeTo(369, 0.001));
+      expect(s.status(DateTime(2026, 10, 21)), StatementStatus.overdue);
+    });
+
+    test('closed period without movements has nothing to pay', () {
+      final empty = CardStatement.of(
+        c,
+        c.billingPeriodFor(DateTime(2026, 8, 10)),
+        movements,
+        const [],
+      );
+      expect(
+        empty.status(DateTime(2026, 10, 21)),
+        StatementStatus.nothingToPay,
+      );
+    });
+
+    test(
+      'pending list: overdue and upcoming with balance, never paid or \$0',
+      () {
+        final today = DateTime(2026, 10, 21);
+        final pending = UpcomingCardPayment.pending(
+          [c, _withId(card(cutoff: 29, payment: 29), 'empty')],
+          movements,
+          const [],
+          today,
+        );
+        expect(pending.single.dueDate, DateTime(2026, 10, 20));
+        expect(pending.single.statement.status(today), StatementStatus.overdue);
+
+        expect(
+          UpcomingCardPayment.pending([c], movements, [paid(2369)], today),
+          isEmpty,
+        );
+      },
+    );
+
+    test('register rejects future payment dates', () async {
+      final register = RegisterCardPayment(
+        _NoRepository(),
+        clock: () => DateTime(2026, 10, 21, 10),
+      );
+      final result = await register(
+        RegisterCardPaymentParams(
+          cardId: 'c',
+          periodStart: DateTime(2026, 9, 2),
+          amount: 10,
+          paidAt: DateTime(2026, 10, 22),
+        ),
+      );
+      expect(result.getLeft().toNullable(), isA<ValidationFailure>());
+    });
+  });
+
+  test('cash flow counts card payments instead of credit purchases', () {
+    final credit = card();
+    final debit = card(type: CardType.debit).copyWith(name: 'Débito');
+    final flow = CashFlow.of(
+      movements: [
+        movement(10000, MovementType.income, 'salary'),
+        movement(300, MovementType.expense, 'food'),
+        cardMovement(DateTime(2026, 10, 5), 2000),
+        MovementEntity(
+          id: 'd',
+          title: 't',
+          amount: 100,
+          type: MovementType.expense,
+          categoryId: 'food',
+          date: DateTime(2026, 10, 6),
+          cardId: 'debit',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+      cards: [credit, _withId(debit, 'debit')],
+      payments: [
+        CardPaymentEntity(
+          id: 'p',
+          cardId: 'c',
+          periodStart: DateTime(2026, 9, 25),
+          amount: 1500,
+          paidAt: DateTime(2026, 10, 7),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+    expect(flow.income, 10000);
+    expect(flow.expense, 300 + 100 + 1500);
+    expect(flow.balance, 8100);
   });
 
   group('Card validation', () {
@@ -289,4 +429,22 @@ void main() {
       expect(Formatters.currencyNoDecimals(3200), '\$3,200');
     });
   });
+}
+
+CardEntity _withId(CardEntity card, String id) => CardEntity(
+  id: id,
+  name: card.name,
+  type: card.type,
+  lastFourDigits: card.lastFourDigits,
+  cutoffDay: card.cutoffDay,
+  paymentDueDay: card.paymentDueDay,
+  colorValue: card.colorValue,
+  createdAt: card.createdAt,
+  updatedAt: card.updatedAt,
+);
+
+class _NoRepository implements CardPaymentRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Not expected in this test');
 }

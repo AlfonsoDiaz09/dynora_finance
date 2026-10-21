@@ -21,7 +21,11 @@ class UpcomingPaymentItem extends StatelessWidget {
   final double amount;
   final VoidCallback? onTap;
 
+  bool get isOverdue => daysLeft < 0;
+
   String get daysLeftLabel => switch (daysLeft) {
+    -1 => "Vencido ayer",
+    < 0 => "Vencido hace ${-daysLeft} días",
     0 => "Hoy",
     1 => "1 día",
     _ => "$daysLeft días",
@@ -63,7 +67,7 @@ class UpcomingPaymentItem extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    "Vence: $dueDate · ${Formatters.currency(amount)}",
+                    "${isOverdue ? 'Venció' : 'Vence'}: $dueDate · ${Formatters.currency(amount)}",
                     style: TextStyle(
                       color: AppColors.textPrimary70,
                       fontSize: 12.sp,

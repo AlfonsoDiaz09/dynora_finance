@@ -1,5 +1,7 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
 import 'package:dynora_finance/features/cards/presentation/cubit/cards_cubit.dart';
+import 'package:dynora_finance/features/cards/presentation/utils/statement_status_style.dart';
 import 'package:dynora_finance/features/cards/presentation/utils/card_labels.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:flutter/material.dart';
@@ -68,26 +70,56 @@ class CardTile extends StatelessWidget {
               children: [
                 Text(
                   upcoming != null
-                      ? Formatters.currency(upcoming.total)
+                      ? Formatters.currency(
+                          upcoming.remaining > 0
+                              ? upcoming.remaining
+                              : upcoming.total,
+                        )
                       : Formatters.currency(overview.monthExpense),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  upcoming != null
-                      ? 'Pagar el ${Formatters.shortDate(upcoming.period.paymentDate)}'
-                      : 'Gastos del mes',
-                  style: TextStyle(
-                    color: AppColors.textPrimary70,
-                    fontSize: 12.sp,
+                if (upcoming != null)
+                  _StatusText(statement: upcoming)
+                else
+                  Text(
+                    'Gastos del mes',
+                    style: TextStyle(
+                      color: AppColors.textPrimary70,
+                      fontSize: 12.sp,
+                    ),
                   ),
-                ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _StatusText extends StatelessWidget {
+  const _StatusText({required this.statement});
+
+  final CardStatement statement;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final status = statement.status(now);
+    final (label, color) = statementStatusStyle(statement, now);
+    final text = switch (status) {
+      StatementStatus.open || StatementStatus.pending =>
+        'Pagar el ${Formatters.shortDate(statement.period.paymentDate)}',
+      _ => label,
+    };
+    return Text(
+      text,
+      style: TextStyle(
+        color: status == StatementStatus.open ? AppColors.textPrimary70 : color,
+        fontSize: 12.sp,
       ),
     );
   }

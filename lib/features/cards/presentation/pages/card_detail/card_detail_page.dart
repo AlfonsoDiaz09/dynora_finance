@@ -7,6 +7,7 @@ import 'package:dynora_finance/features/cards/presentation/pages/card_detail/wid
 import 'package:dynora_finance/features/cards/presentation/pages/card_detail/widgets/period_filter.dart';
 import 'package:dynora_finance/features/cards/presentation/pages/card_detail/widgets/statement_section.dart';
 import 'package:dynora_finance/features/cards/presentation/widgets/card_form_sheet.dart';
+import 'package:dynora_finance/features/cards/presentation/widgets/card_payment_sheet.dart';
 import 'package:dynora_finance/features/movements/presentation/widgets/movement_form_sheet.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/shared/bloc/view_status.dart';
@@ -31,6 +32,7 @@ class CardDetailPage extends StatelessWidget {
         watchCards: serviceLocator(),
         watchMovements: serviceLocator(),
         watchCategories: serviceLocator(),
+        watchCardPayments: serviceLocator(),
       )..start(),
       child: BlocConsumer<CardDetailCubit, CardDetailState>(
         // Leave the page once the card is deleted from its edit form.
@@ -102,6 +104,11 @@ class CardDetailPage extends StatelessWidget {
                         categories: state.categories,
                         onMovementTap: (movement) =>
                             MovementFormSheet.show(context, movement: movement),
+                        onPaymentTap: () => CardPaymentSheet.show(
+                          context,
+                          card: card,
+                          statement: statement,
+                        ),
                       ),
                   ] else ...[
                     PeriodFilter<MonthRange>(

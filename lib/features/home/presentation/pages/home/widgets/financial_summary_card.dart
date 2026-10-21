@@ -28,7 +28,10 @@ class FinancialSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Balance total", style: TextStyle(color: AppColors.textPrimary70)),
+          Text(
+            "Balance total",
+            style: TextStyle(color: AppColors.textPrimary70),
+          ),
           SizedBox(height: 8.h),
           Text(
             Formatters.currency(balance),

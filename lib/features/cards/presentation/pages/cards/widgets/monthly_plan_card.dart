@@ -62,18 +62,24 @@ class MonthlyPlanCard extends StatelessWidget {
             for (final payment in plan.payments)
               _Row(
                 label:
+                    '${payment.amount == 0 && payment.statement.payment != null ? '✓ ' : ''}'
                     '${payment.card.shortLabel} · ${Formatters.shortDate(payment.dueDate)}',
-                value: payment.amount > 0
-                    ? '-${Formatters.currency(payment.amount)}'
-                    : Formatters.currency(payment.amount),
+                value: payment.statement.total > 0
+                    ? '-${Formatters.currency(payment.statement.total)}'
+                    : Formatters.currency(payment.statement.total),
                 color: Colors.white,
               ),
           Divider(height: 24.h, color: Colors.white24),
           _Row(
-            label: 'Total a pagar con tarjetas',
+            label: 'Total de tarjetas del mes',
             value: Formatters.currency(plan.totalPayments),
             color: Colors.white,
             bold: true,
+          ),
+          _Row(
+            label: 'Pendiente por pagar',
+            value: Formatters.currency(plan.pendingPayments),
+            color: plan.pendingPayments > 0 ? Colors.white : Colors.greenAccent,
           ),
         ],
       ),

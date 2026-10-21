@@ -19,6 +19,7 @@ Future<void> _initCore() async {
     CategoryModelSchema,
     MovementModelSchema,
     CardModelSchema,
+    CardPaymentModelSchema,
     BudgetModelSchema,
   ]);
 
@@ -32,6 +33,7 @@ Future<void> _initCore() async {
     //     CategorySyncHandler(...),
     //     MovementSyncHandler(...),
     //     CardSyncHandler(...),
+    //     CardPaymentSyncHandler(...),
     //     BudgetSyncHandler(...),
     //   ],
     //   metadata: SyncMetadataLocalDataSourceImpl(serviceLocator()),
@@ -97,7 +99,19 @@ void _initCards() {
     ..registerFactory(() => WatchCards(serviceLocator()))
     ..registerFactory(() => AddCard(serviceLocator()))
     ..registerFactory(() => UpdateCard(serviceLocator()))
-    ..registerFactory(() => DeleteCard(serviceLocator()));
+    ..registerFactory(() => DeleteCard(serviceLocator()))
+    ..registerLazySingleton<CardPaymentLocalDataSource>(
+      () => CardPaymentLocalDataSourceImpl(serviceLocator()),
+    )
+    ..registerLazySingleton<CardPaymentRepository>(
+      () => CardPaymentRepositoryImpl(
+        local: serviceLocator(),
+        syncEngine: serviceLocator(),
+      ),
+    )
+    ..registerFactory(() => WatchCardPayments(serviceLocator()))
+    ..registerFactory(() => RegisterCardPayment(serviceLocator()))
+    ..registerFactory(() => DeleteCardPayment(serviceLocator()));
 }
 
 void _initBudget() {
@@ -123,6 +137,7 @@ void _initScreens() {
         watchMovements: serviceLocator(),
         watchCategories: serviceLocator(),
         watchCards: serviceLocator(),
+        watchCardPayments: serviceLocator(),
       ),
     )
     ..registerFactory(
@@ -142,6 +157,7 @@ void _initScreens() {
       () => CardsCubit(
         watchCards: serviceLocator(),
         watchMovements: serviceLocator(),
+        watchCardPayments: serviceLocator(),
       ),
     )
     ..registerFactory(
