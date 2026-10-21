@@ -2,8 +2,8 @@ import 'package:dynora_finance/features/movements/presentation/pages/movements/w
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class TransactionsSummaryCard extends StatelessWidget {
-  const TransactionsSummaryCard({super.key});
+class MovementsSummaryCard extends StatelessWidget {
+  const MovementsSummaryCard({super.key});
 
   @override
   Widget build(BuildContext context) {

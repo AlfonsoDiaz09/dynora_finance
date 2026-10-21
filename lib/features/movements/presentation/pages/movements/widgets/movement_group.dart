@@ -1,12 +1,12 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'transaction_item.dart';
+import 'movement_item.dart';
 
-class TransactionGroup extends StatelessWidget {
+class MovementGroup extends StatelessWidget {
   final String date;
 
-  const TransactionGroup({super.key, required this.date});
+  const MovementGroup({super.key, required this.date});
 
   @override
   Widget build(BuildContext context) {
@@ -18,14 +18,14 @@ class TransactionGroup extends StatelessWidget {
           style: TextStyle(color: AppColors.textPrimary70, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 12.h),
-        TransactionItem(
+        MovementItem(
           title: "Amazon",
           category: "Compras",
           amount: 320,
           isExpense: true,
         ),
         SizedBox(height: 12.h),
-        TransactionItem(
+        MovementItem(
           title: "Nómina",
           category: "Ingreso",
           amount: 15000,

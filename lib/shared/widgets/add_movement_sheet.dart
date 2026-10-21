@@ -1,8 +1,8 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
-class AddTransactionSheet extends StatelessWidget {
-  const AddTransactionSheet({super.key});
+class AddMovementSheet extends StatelessWidget {
+  const AddMovementSheet({super.key});
 
   @override
   Widget build(BuildContext context) {

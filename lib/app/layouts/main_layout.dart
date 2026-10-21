@@ -1,6 +1,6 @@
 import 'package:dynora_finance/app/bloc/navigation_cubit/navigation_cubit.dart';
 import 'package:dynora_finance/app/theme/app_colors.dart';
-import 'package:dynora_finance/shared/widgets/add_transaction_sheet.dart';
+import 'package:dynora_finance/shared/widgets/add_movement_sheet.dart';
 import 'package:dynora_finance/shared/widgets/app_bar/custom_appbar.dart';
 import 'package:dynora_finance/shared/widgets/bottom_nav/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +35,7 @@ class MainLayout extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => AddTransactionSheet(),
+      builder: (_) => AddMovementSheet(),
     );
   }
 

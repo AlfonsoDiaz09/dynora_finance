@@ -1,0 +1,14 @@
+import 'package:dynora_finance/core/error/failures.dart';
+import 'package:fpdart/fpdart.dart';
+
+abstract interface class UseCase<T, Params> {
+  Future<Either<Failure, T>> call(Params params);
+}
+
+abstract interface class StreamUseCase<T, Params> {
+  Stream<Either<Failure, T>> call(Params params);
+}
+
+class NoParams {
+  const NoParams();
+}

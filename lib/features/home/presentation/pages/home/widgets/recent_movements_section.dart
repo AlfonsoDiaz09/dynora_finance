@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'recent_transaction_item.dart';
+import 'recent_movement_item.dart';
 
-class RecentTransactionsSection extends StatelessWidget {
-  const RecentTransactionsSection({super.key});
+class RecentMovementsSection extends StatelessWidget {
+  const RecentMovementsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,25 +19,25 @@ class RecentTransactionsSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: 16.h),
-        RecentTransactionItem(
+        RecentMovementItem(
           title: "Amazon",
           date: "Hoy",
           amount: 320,
-          type: TransactionType.expense,
+          type: MovementType.expense,
         ),
         SizedBox(height: 12.h),
-        RecentTransactionItem(
+        RecentMovementItem(
           title: "Nómina",
           date: "Ayer",
           amount: 15000,
-          type: TransactionType.income,
+          type: MovementType.income,
         ),
         SizedBox(height: 12.h),
-        RecentTransactionItem(
+        RecentMovementItem(
           title: "Asesoría flutter",
           date: "Ayer",
           amount: 1398.56,
-          type: TransactionType.payment,
+          type: MovementType.payment,
         ),
       ],
     );

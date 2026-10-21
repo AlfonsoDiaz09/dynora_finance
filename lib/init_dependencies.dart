@@ -1,4 +1,27 @@
 import 'package:dynora_finance/app/bloc/navigation_cubit/navigation_cubit.dart';
+import 'package:dynora_finance/core/database/isar_database.dart';
+import 'package:dynora_finance/core/sync/models/sync_metadata_model.dart';
+import 'package:dynora_finance/core/sync/sync_engine.dart';
+import 'package:dynora_finance/features/categories/data/datasources/local/category_local_data_source.dart';
+import 'package:dynora_finance/features/categories/data/models/category_model.dart';
+import 'package:dynora_finance/features/categories/data/repositories/category_repository_impl.dart';
+import 'package:dynora_finance/features/categories/domain/repositories/category_repository.dart';
+import 'package:dynora_finance/features/categories/domain/usecases/add_category.dart';
+import 'package:dynora_finance/features/categories/domain/usecases/delete_category.dart';
+import 'package:dynora_finance/features/categories/domain/usecases/get_categories.dart';
+import 'package:dynora_finance/features/categories/domain/usecases/update_category.dart';
+import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
+import 'package:dynora_finance/features/movements/data/datasources/local/movement_local_data_source.dart';
+import 'package:dynora_finance/features/movements/data/models/movement_model.dart';
+import 'package:dynora_finance/features/movements/data/repositories/movement_repository_impl.dart';
+import 'package:dynora_finance/features/movements/domain/repositories/movement_repository.dart';
+import 'package:dynora_finance/features/movements/domain/usecases/add_movement.dart';
+import 'package:dynora_finance/features/movements/domain/usecases/delete_movement.dart';
+import 'package:dynora_finance/features/movements/domain/usecases/get_movements.dart';
+import 'package:dynora_finance/features/movements/domain/usecases/update_movement.dart';
+import 'package:dynora_finance/features/movements/domain/usecases/watch_movements.dart';
 import 'package:get_it/get_it.dart';
+import 'package:isar_community/isar.dart';
+import 'package:uuid/uuid.dart';
 
 part 'init_dependencies.main.dart';

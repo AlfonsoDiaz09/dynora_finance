@@ -2,41 +2,58 @@ import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class TransactionItem extends StatelessWidget {
-  final String title;
-  final String category;
-  final double amount;
-  final bool isExpense;
+enum MovementType { income, expense, payment }
 
-  const TransactionItem({
+class RecentMovementItem extends StatelessWidget {
+  const RecentMovementItem({
     super.key,
     required this.title,
-    required this.category,
+    required this.date,
     required this.amount,
-    required this.isExpense,
+    required this.type,
   });
+
+  final String title;
+  final String date;
+  final double amount;
+  final MovementType type;
+
+  Color get amountColor {
+    switch (type) {
+      case MovementType.income:
+        return Colors.greenAccent;
+      case MovementType.expense:
+        return Colors.redAccent;
+      case MovementType.payment:
+        return Colors.blueAccent;
+    }
+  }
+
+  String get formattedAmount {
+    final prefix = type == MovementType.expense ? "-" : "+";
+    return "$prefix\$${amount.toStringAsFixed(2)}";
+  }
 
   @override
   Widget build(BuildContext context) {
-    final color = isExpense ? Colors.redAccent : Colors.greenAccent;
-    final prefix = isExpense ? "-" : "+";
-
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16.r),
         color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: color.withValues(alpha: 0.2),
+            backgroundColor: amountColor.withValues(alpha: 0.2),
             child: Icon(
-              isExpense ? Icons.arrow_upward : Icons.arrow_downward,
-              color: color,
+              type == MovementType.income
+                  ? Icons.arrow_downward
+                  : Icons.arrow_upward,
+              color: amountColor,
             ),
           ),
-          SizedBox(width: 14.w),
+          SizedBox(width: 14.h),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,7 +66,7 @@ class TransactionItem extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  category,
+                  date,
                   style: TextStyle(
                     color: AppColors.textPrimary70,
                     fontSize: 12.sp,
@@ -59,8 +76,8 @@ class TransactionItem extends StatelessWidget {
             ),
           ),
           Text(
-            "$prefix\$${amount.toStringAsFixed(2)}",
-            style: TextStyle(color: color, fontWeight: FontWeight.bold),
+            formattedAmount,
+            style: TextStyle(color: amountColor, fontWeight: FontWeight.bold),
           ),
         ],
       ),

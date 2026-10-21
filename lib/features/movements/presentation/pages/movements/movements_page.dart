@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'widgets/transactions_summary_card.dart';
-import 'widgets/transaction_filter_bar.dart';
-import 'widgets/transaction_group.dart';
+import 'widgets/movements_summary_card.dart';
+import 'widgets/movement_filter_bar.dart';
+import 'widgets/movement_group.dart';
 
 class MovementsPage extends StatelessWidget {
   const MovementsPage({super.key});
@@ -13,20 +13,20 @@ class MovementsPage extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: TransactionsSummaryCard(),
+          child: MovementsSummaryCard(),
         ),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: TransactionFilterBar(),
+          child: MovementFilterBar(),
         ),
         SizedBox(height: 20.h),
         Expanded(
           child: ListView(
             padding: EdgeInsets.symmetric(horizontal: 20.w),
             children: [
-              TransactionGroup(date: "Hoy"),
+              MovementGroup(date: "Hoy"),
               SizedBox(height: 20.h),
-              TransactionGroup(date: "Ayer"),
+              MovementGroup(date: "Ayer"),
               SizedBox(height: 50.h),
             ],
           ),
