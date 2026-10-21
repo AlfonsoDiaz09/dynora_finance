@@ -40,6 +40,10 @@ class Formatters {
   static String monthYear(DateTime date) =>
       '${_months[date.month - 1]} ${date.year}';
 
+  /// `Feb 2026`
+  static String shortMonthYear(DateTime date) =>
+      '${_months[date.month - 1].substring(0, 3)} ${date.year}';
+
   /// `18 Feb`, adding the year when it is not the current one.
   static String shortDate(DateTime date, {DateTime? now}) {
     final current = now ?? DateTime.now();

@@ -23,17 +23,16 @@ class CardStatement extends Equatable {
 
   /// Groups [movements] of [card] by billing period, newest period first.
   ///
-  /// The open period (containing [now]) is always included so the current
-  /// balance is visible even before any purchase. Requires
+  /// Covers every period from the oldest movement up to the open period
+  /// (containing [now]) or the newest movement, including periods without
+  /// movements, so they can be browsed as a continuous filter. Requires
   /// [CardEntity.hasBillingCycle].
   static List<CardStatement> build(
     CardEntity card,
     Iterable<MovementEntity> movements,
     DateTime now,
   ) {
-    final byPeriod = <BillingPeriod, List<MovementEntity>>{
-      card.billingPeriodFor(now): [],
-    };
+    final byPeriod = <BillingPeriod, List<MovementEntity>>{};
     for (final movement in movements) {
       if (movement.cardId != card.id) continue;
       byPeriod
@@ -41,14 +40,31 @@ class CardStatement extends Equatable {
           .add(movement);
     }
 
-    final statements = [
-      for (final entry in byPeriod.entries)
+    final open = card.billingPeriodFor(now);
+    var first = open;
+    var last = open;
+    for (final period in byPeriod.keys) {
+      if (period.start.isBefore(first.start)) first = period;
+      if (period.start.isAfter(last.start)) last = period;
+    }
+
+    final statements = <CardStatement>[];
+    for (
+      var period = first;
+      !period.start.isAfter(last.start);
+      period = card.billingPeriodFor(
+        DateTime(period.end.year, period.end.month, period.end.day + 1),
+      )
+    ) {
+      statements.add(
         CardStatement(
-          period: entry.key,
-          movements: entry.value..sort((a, b) => b.date.compareTo(a.date)),
+          period: period,
+          movements: (byPeriod[period] ?? [])
+            ..sort((a, b) => b.date.compareTo(a.date)),
         ),
-    ]..sort((a, b) => b.period.end.compareTo(a.period.end));
-    return statements;
+      );
+    }
+    return statements.reversed.toList();
   }
 
   /// Statement of the next payment of [card] (see

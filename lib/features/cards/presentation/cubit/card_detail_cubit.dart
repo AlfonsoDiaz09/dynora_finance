@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/usecase/usecase.dart';
 import 'package:dynora_finance/core/utils/month_range.dart';
+import 'package:dynora_finance/features/cards/domain/entities/billing_period.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
@@ -36,7 +37,9 @@ class CardDetailState extends Equatable {
     this.status = ViewStatus.loading,
     this.card,
     this.statements = const [],
+    this.selectedPeriod,
     this.months = const [],
+    this.selectedMonth,
     this.categories = const {},
     this.error,
   });
@@ -48,18 +51,44 @@ class CardDetailState extends Equatable {
 
   /// Billing periods, newest first (credit and departmental cards).
   final List<CardStatement> statements;
+  final BillingPeriod? selectedPeriod;
 
   /// Calendar months, newest first (debit cards).
   final List<MonthMovements> months;
+  final MonthRange? selectedMonth;
   final Map<String, CategoryEntity> categories;
   final String? error;
+
+  CardStatement? get selectedStatement =>
+      statements.where((s) => s.period == selectedPeriod).firstOrNull;
+
+  MonthMovements? get selectedMonthMovements =>
+      months.where((m) => m.month == selectedMonth).firstOrNull;
+
+  CardDetailState copyWith({
+    BillingPeriod? selectedPeriod,
+    MonthRange? selectedMonth,
+  }) {
+    return CardDetailState(
+      status: status,
+      card: card,
+      statements: statements,
+      selectedPeriod: selectedPeriod ?? this.selectedPeriod,
+      months: months,
+      selectedMonth: selectedMonth ?? this.selectedMonth,
+      categories: categories,
+      error: error,
+    );
+  }
 
   @override
   List<Object?> get props => [
     status,
     card,
     statements,
+    selectedPeriod,
     months,
+    selectedMonth,
     categories,
     error,
   ];
@@ -91,6 +120,12 @@ class CardDetailCubit extends Cubit<CardDetailState> {
     ).listen(emit);
   }
 
+  void selectPeriod(BillingPeriod period) =>
+      emit(state.copyWith(selectedPeriod: period));
+
+  void selectMonth(MonthRange month) =>
+      emit(state.copyWith(selectedMonth: month));
+
   CardDetailState _buildState(
     Either<Failure, List<CardEntity>> cards,
     Either<Failure, List<MovementEntity>> movements,
@@ -115,29 +150,70 @@ class CardDetailCubit extends Cubit<CardDetailState> {
               );
             }
 
+            final now = DateTime.now();
+            if (card.hasBillingCycle) {
+              final statements = CardStatement.build(card, data.$2, now);
+              // Keep the user's selection while it still exists (it can
+              // vanish when the cutoff day changes); otherwise show the next
+              // payment.
+              bool listed(BillingPeriod? p) =>
+                  statements.any((s) => s.period == p);
+              final previous = state.selectedPeriod;
+              final upcoming = card.upcomingPeriod(now);
+              return CardDetailState(
+                status: ViewStatus.loaded,
+                card: card,
+                statements: statements,
+                selectedPeriod: listed(previous)
+                    ? previous
+                    : listed(upcoming)
+                    ? upcoming
+                    : card.billingPeriodFor(now),
+                categories: categoriesById,
+              );
+            }
+
+            final months = _byMonth(data.$2, MonthRange(now));
+            final previous = state.selectedMonth;
+            final keep = months.any((m) => m.month == previous);
             return CardDetailState(
               status: ViewStatus.loaded,
               card: card,
-              statements: card.hasBillingCycle
-                  ? CardStatement.build(card, data.$2, DateTime.now())
-                  : const [],
-              months: card.hasBillingCycle ? const [] : _byMonth(data.$2),
+              months: months,
+              selectedMonth: keep ? previous : MonthRange(now),
               categories: categoriesById,
             );
           },
         );
   }
 
-  /// [movements] arrive sorted by date (newest first).
-  List<MonthMovements> _byMonth(List<MovementEntity> movements) {
-    final months = <MonthRange, List<MovementEntity>>{};
+  /// Every month from the oldest movement up to [current] (or the newest
+  /// movement), newest first. [movements] arrive sorted newest first.
+  List<MonthMovements> _byMonth(
+    List<MovementEntity> movements,
+    MonthRange current,
+  ) {
+    final byMonth = <MonthRange, List<MovementEntity>>{};
     for (final movement in movements) {
-      months.putIfAbsent(MonthRange(movement.date), () => []).add(movement);
+      byMonth.putIfAbsent(MonthRange(movement.date), () => []).add(movement);
     }
-    return [
-      for (final entry in months.entries)
-        MonthMovements(month: entry.key, movements: entry.value),
-    ];
+
+    var first = current;
+    var last = current;
+    for (final month in byMonth.keys) {
+      if (month.start.isBefore(first.start)) first = month;
+      if (month.start.isAfter(last.start)) last = month;
+    }
+
+    final months = <MonthMovements>[];
+    for (
+      var month = last;
+      !month.start.isBefore(first.start);
+      month = month.previous
+    ) {
+      months.add(MonthMovements(month: month, movements: byMonth[month] ?? []));
+    }
+    return months;
   }
 
   @override

@@ -63,7 +63,9 @@ class MonthlyPlanCard extends StatelessWidget {
               _Row(
                 label:
                     '${payment.card.shortLabel} · ${Formatters.shortDate(payment.dueDate)}',
-                value: '-${Formatters.currency(payment.amount)}',
+                value: payment.amount > 0
+                    ? '-${Formatters.currency(payment.amount)}'
+                    : Formatters.currency(payment.amount),
                 color: Colors.white,
               ),
           Divider(height: 24.h, color: Colors.white24),

@@ -1,12 +1,16 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
+import 'package:dynora_finance/core/utils/month_range.dart';
+import 'package:dynora_finance/features/cards/domain/entities/billing_period.dart';
 import 'package:dynora_finance/features/cards/presentation/cubit/card_detail_cubit.dart';
 import 'package:dynora_finance/features/cards/presentation/pages/card_detail/widgets/card_header.dart';
 import 'package:dynora_finance/features/cards/presentation/pages/card_detail/widgets/month_section.dart';
+import 'package:dynora_finance/features/cards/presentation/pages/card_detail/widgets/period_filter.dart';
 import 'package:dynora_finance/features/cards/presentation/pages/card_detail/widgets/statement_section.dart';
 import 'package:dynora_finance/features/cards/presentation/widgets/card_form_sheet.dart';
 import 'package:dynora_finance/features/movements/presentation/widgets/movement_form_sheet.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/shared/bloc/view_status.dart';
+import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/shared/widgets/app_bar/custom_appbar.dart';
 import 'package:dynora_finance/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +41,7 @@ class CardDetailPage extends StatelessWidget {
         listener: (context, _) => context.pop(),
         builder: (context, state) {
           final card = state.card;
+          final cubit = context.read<CardDetailCubit>();
 
           return Scaffold(
             backgroundColor: AppColors.background,
@@ -73,31 +78,47 @@ class CardDetailPage extends StatelessWidget {
                     onEdit: () => CardFormSheet.show(context, card: card),
                   ),
                   SizedBox(height: 24.h),
-                  if (card.hasBillingCycle)
-                    for (final statement in state.statements) ...[
+                  Text(
+                    card.hasBillingCycle ? 'Periodo' : 'Mes',
+                    style: TextStyle(
+                      color: AppColors.textPrimary70,
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  if (card.hasBillingCycle) ...[
+                    PeriodFilter<BillingPeriod>(
+                      items: [for (final s in state.statements) s.period],
+                      selected: state.selectedPeriod,
+                      label: (p) =>
+                          '${Formatters.shortDate(p.start)} – '
+                          '${Formatters.shortDate(p.end)}',
+                      onSelected: cubit.selectPeriod,
+                    ),
+                    SizedBox(height: 20.h),
+                    if (state.selectedStatement case final statement?)
                       StatementSection(
                         statement: statement,
                         categories: state.categories,
                         onMovementTap: (movement) =>
                             MovementFormSheet.show(context, movement: movement),
                       ),
-                      SizedBox(height: 24.h),
-                    ]
-                  else if (state.months.isEmpty)
-                    const EmptyState(
-                      icon: Icons.receipt_long_rounded,
-                      message: 'Aún no hay movimientos con esta tarjeta',
-                    )
-                  else
-                    for (final month in state.months) ...[
+                  ] else ...[
+                    PeriodFilter<MonthRange>(
+                      items: [for (final m in state.months) m.month],
+                      selected: state.selectedMonth,
+                      label: (m) => Formatters.shortMonthYear(m.start),
+                      onSelected: cubit.selectMonth,
+                    ),
+                    SizedBox(height: 20.h),
+                    if (state.selectedMonthMovements case final month?)
                       MonthSection(
                         month: month,
                         categories: state.categories,
                         onMovementTap: (movement) =>
                             MovementFormSheet.show(context, movement: movement),
                       ),
-                      SizedBox(height: 24.h),
-                    ],
+                  ],
                 ],
               ),
             },

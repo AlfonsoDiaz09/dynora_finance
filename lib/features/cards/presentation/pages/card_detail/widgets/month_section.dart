@@ -41,6 +41,14 @@ class MonthSection extends StatelessWidget {
           'Ingresos ${Formatters.currency(summary.income)}',
           style: TextStyle(color: AppColors.textPrimary70, fontSize: 12.sp),
         ),
+        if (month.movements.isEmpty)
+          Padding(
+            padding: EdgeInsets.only(top: 12.h),
+            child: Text(
+              'Sin movimientos en este mes',
+              style: TextStyle(color: AppColors.textPrimary38, fontSize: 13.sp),
+            ),
+          ),
         for (final movement in month.movements) ...[
           SizedBox(height: 12.h),
           MovementItem(

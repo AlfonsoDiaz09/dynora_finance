@@ -149,6 +149,20 @@ void main() {
     });
   });
 
+  test('statements include empty periods between movements', () {
+    final statements = CardStatement.build(card(), [
+      cardMovement(DateTime(2026, 7, 1), 10),
+      cardMovement(DateTime(2026, 9, 1), 20),
+    ], DateTime(2026, 10, 1));
+    expect(statements.map((s) => s.period.start), [
+      DateTime(2026, 9, 25),
+      DateTime(2026, 8, 25),
+      DateTime(2026, 7, 25),
+      DateTime(2026, 6, 25),
+    ]);
+    expect(statements.map((s) => s.total), [0, 20, 0, 10]);
+  });
+
   group('Billing period edge cases', () {
     test('day 31 clamps to short months without gaps', () {
       final c = card(cutoff: 31, payment: 10);
