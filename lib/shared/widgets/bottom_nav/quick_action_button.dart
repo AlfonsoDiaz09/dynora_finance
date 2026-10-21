@@ -22,8 +22,8 @@ class QuickActionButton extends StatelessWidget {
       onLongPress: onFastActionTap,
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200),
-        width: 60.w,
-        height: 60.h,
+        width: 60.r,
+        height: 60.r,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: currentIndex == 2 ? null : AppColors.surface,

@@ -3,7 +3,6 @@ import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/shared/widgets/add_transaction_sheet.dart';
 import 'package:dynora_finance/shared/widgets/app_bar/custom_appbar.dart';
 import 'package:dynora_finance/shared/widgets/bottom_nav/bottom_nav_bar.dart';
-import 'package:dynora_finance/shared/widgets/bottom_nav/quick_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -55,15 +54,10 @@ class MainLayout extends StatelessWidget {
           canBack: _canBack[currentIndex],
         ),
         body: SafeArea(child: navigationShell),
-        floatingActionButton: QuickActionButton(
-          currentIndex: navigationShell.currentIndex,
-          onTap: (index) => _onTap(context, index),
-          onFastActionTap: () => _onFastActionTap(context),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: BottomNavBar(
           currentIndex: navigationShell.currentIndex,
           onTap: (index) => _onTap(context, index),
+          onFastActionTap: () => _onFastActionTap(context),
         ),
       ),
     );
