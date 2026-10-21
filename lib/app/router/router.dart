@@ -7,6 +7,8 @@ import 'package:dynora_finance/features/cards/presentation/pages/card_detail/car
 import 'package:dynora_finance/features/cards/presentation/pages/cards/cards_page.dart';
 import 'package:dynora_finance/features/debts/presentation/pages/debts/debts_page.dart';
 import 'package:dynora_finance/features/home/presentation/pages/home/home_page.dart';
+import 'package:dynora_finance/features/loans/presentation/pages/loan_detail/loan_detail_page.dart';
+import 'package:dynora_finance/features/loans/presentation/pages/loans/loans_page.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/movements_page.dart';
 import 'package:dynora_finance/features/profile/presentation/pages/profile/profile_page.dart';
 import 'package:dynora_finance/features/splash/presentation/pages/splash/splash_page.dart';
@@ -28,6 +30,10 @@ abstract class AppRoutes {
   static const profile = '/profile';
   static const cards = '/cards';
   static const debts = '/debts';
+  static const loans = '/loans';
+  static const loanDetail = '/loans/:id';
+
+  static String loanDetailPath(String id) => '/loans/$id';
   static const cardDetail = '/cards/:id';
 
   static String cardDetailPath(String id) => '/cards/$id';
@@ -61,6 +67,17 @@ GoRouter createRouter() {
         path: AppRoutes.about,
         name: AppRoutes.about,
         builder: (_, __) => AboutPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.loans,
+        name: AppRoutes.loans,
+        builder: (_, __) => LoansPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.loanDetail,
+        name: AppRoutes.loanDetail,
+        builder: (_, state) =>
+            LoanDetailPage(loanId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: AppRoutes.debts,

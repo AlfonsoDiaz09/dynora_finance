@@ -15,6 +15,10 @@ import 'package:dynora_finance/features/movements/domain/entities/movement_filte
 import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
 import 'package:dynora_finance/features/home/domain/entities/cash_flow.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_entity.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_payment_entity.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_summary.dart';
+import 'package:dynora_finance/features/loans/domain/usecases/loan_usecases.dart';
 import 'package:dynora_finance/features/movements/domain/usecases/watch_movements.dart';
 import 'package:dynora_finance/shared/bloc/view_status.dart';
 import 'package:equatable/equatable.dart';
@@ -33,6 +37,7 @@ class HomeState extends Equatable {
     this.debtsPending = 0,
     this.debtorsCount = 0,
     this.hasDebts = false,
+    this.loans = const [],
     this.error,
   });
 
@@ -55,6 +60,9 @@ class HomeState extends Equatable {
 
   /// Any debt was ever registered (pending or paid).
   final bool hasDebts;
+
+  /// Summaries of your loans, most urgent first.
+  final List<LoanSummary> loans;
   final String? error;
 
   @override
@@ -69,6 +77,7 @@ class HomeState extends Equatable {
     debtsPending,
     debtorsCount,
     hasDebts,
+    loans,
     error,
   ];
 }
@@ -80,11 +89,15 @@ class HomeCubit extends Cubit<HomeState> {
     required WatchCards watchCards,
     required WatchCardPayments watchCardPayments,
     required WatchDebts watchDebts,
+    required WatchLoans watchLoans,
+    required WatchLoanPayments watchLoanPayments,
   }) : _watchMovements = watchMovements,
        _watchCategories = watchCategories,
        _watchCards = watchCards,
        _watchCardPayments = watchCardPayments,
        _watchDebts = watchDebts,
+       _watchLoans = watchLoans,
+       _watchLoanPayments = watchLoanPayments,
        super(const HomeState());
 
   static const int recentLimit = 5;
@@ -94,15 +107,19 @@ class HomeCubit extends Cubit<HomeState> {
   final WatchCards _watchCards;
   final WatchCardPayments _watchCardPayments;
   final WatchDebts _watchDebts;
+  final WatchLoans _watchLoans;
+  final WatchLoanPayments _watchLoanPayments;
   StreamSubscription<HomeState>? _subscription;
 
   void start() {
-    _subscription = Rx.combineLatest5(
+    _subscription = Rx.combineLatest7(
       _watchMovements(MovementFilter.all),
       _watchCategories(null),
       _watchCards(const NoParams()),
       _watchCardPayments(const NoParams()),
       _watchDebts(const NoParams()),
+      _watchLoans(const NoParams()),
+      _watchLoanPayments(const NoParams()),
       _buildState,
     ).listen(emit);
   }
@@ -113,12 +130,20 @@ class HomeCubit extends Cubit<HomeState> {
     Either<Failure, List<CardEntity>> cards,
     Either<Failure, List<CardPaymentEntity>> payments,
     Either<Failure, List<DebtEntity>> debts,
+    Either<Failure, List<LoanEntity>> loans,
+    Either<Failure, List<LoanPaymentEntity>> loanPayments,
   ) {
     return movements
         .flatMap(
           (m) => categories.flatMap(
             (c) => cards.flatMap(
-              (k) => payments.flatMap((p) => debts.map((d) => (m, c, k, p, d))),
+              (k) => payments.flatMap(
+                (p) => debts.flatMap(
+                  (d) => loans.flatMap(
+                    (l) => loanPayments.map((lp) => (m, c, k, p, d, l, lp)),
+                  ),
+                ),
+              ),
             ),
           ),
         )
@@ -136,12 +161,16 @@ class HomeCubit extends Cubit<HomeState> {
                 cards: data.$3,
                 payments: data.$4,
                 debts: data.$5,
+                loans: data.$6,
+                loanPayments: data.$7,
               ).balance,
               monthCashFlow: CashFlow.of(
                 movements: data.$1,
                 cards: data.$3,
                 payments: data.$4,
                 debts: data.$5,
+                loans: data.$6,
+                loanPayments: data.$7,
                 month: month,
               ),
               recentMovements: data.$1.take(recentLimit).toList(),
@@ -155,6 +184,9 @@ class HomeCubit extends Cubit<HomeState> {
                   if (!d.isPaid) d.personId,
               }.length,
               hasDebts: data.$5.isNotEmpty,
+              loans: [
+                for (final loan in data.$6) LoanSummary.of(loan, data.$7, now),
+              ]..sort((a, b) => b.overdueAmount.compareTo(a.overdueAmount)),
               upcomingPayments: UpcomingCardPayment.pending(
                 data.$3,
                 data.$1,

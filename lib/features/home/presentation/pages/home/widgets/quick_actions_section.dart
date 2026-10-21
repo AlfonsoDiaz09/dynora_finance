@@ -9,12 +9,16 @@ class QuickActionsSection extends StatelessWidget {
     required this.onAddIncome,
     required this.onCards,
     required this.onStats,
+    required this.onDebts,
+    required this.onLoans,
   });
 
   final VoidCallback onAddExpense;
   final VoidCallback onAddIncome;
   final VoidCallback onCards;
   final VoidCallback onStats;
+  final VoidCallback onDebts;
+  final VoidCallback onLoans;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +61,16 @@ class QuickActionsSection extends StatelessWidget {
               icon: Icons.bar_chart,
               title: "Estadísticas",
               onTap: onStats,
+            ),
+            QuickActionCard(
+              icon: Icons.handshake_rounded,
+              title: "Me deben",
+              onTap: onDebts,
+            ),
+            QuickActionCard(
+              icon: Icons.account_balance_rounded,
+              title: "Préstamos",
+              onTap: onLoans,
             ),
           ],
         ),
