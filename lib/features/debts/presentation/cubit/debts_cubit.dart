@@ -4,6 +4,7 @@ import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/usecase/usecase.dart';
 import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
 import 'package:dynora_finance/features/debts/domain/entities/person_entity.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/rename_person.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/set_debts_paid.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/watch_people.dart';
@@ -109,16 +110,19 @@ class DebtsCubit extends Cubit<DebtsState> {
     required WatchPeople watchPeople,
     required WatchMovements watchMovements,
     required SetDebtsPaid setDebtsPaid,
+    required RenamePerson renamePerson,
   }) : _watchDebts = watchDebts,
        _watchPeople = watchPeople,
        _watchMovements = watchMovements,
        _setDebtsPaid = setDebtsPaid,
+       _renamePerson = renamePerson,
        super(const DebtsState());
 
   final WatchDebts _watchDebts;
   final WatchPeople _watchPeople;
   final WatchMovements _watchMovements;
   final SetDebtsPaid _setDebtsPaid;
+  final RenamePerson _renamePerson;
   StreamSubscription<DebtsState>? _subscription;
 
   void start() {
@@ -136,6 +140,12 @@ class DebtsCubit extends Cubit<DebtsState> {
       _setPaid(ids, paidAt);
 
   Future<void> markPending(List<String> ids) => _setPaid(ids, null);
+
+  /// Returns an error message, or `null` when renamed.
+  Future<String?> renamePerson(String id, String name) async {
+    final result = await _renamePerson(RenamePersonParams(id: id, name: name));
+    return result.match((failure) => failure.message, (_) => null);
+  }
 
   Future<void> _setPaid(List<String> ids, DateTime? paidAt) async {
     final result = await _setDebtsPaid(

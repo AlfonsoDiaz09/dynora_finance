@@ -2,6 +2,8 @@ import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
 import 'package:dynora_finance/features/cards/presentation/utils/statement_status_style.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
+import 'package:dynora_finance/features/debts/domain/entities/movement_debts.dart';
+import 'package:dynora_finance/features/debts/presentation/utils/debt_labels.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_item.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
@@ -14,12 +16,14 @@ class StatementSection extends StatelessWidget {
     super.key,
     required this.statement,
     required this.categories,
+    this.debts = const {},
     required this.onMovementTap,
     required this.onPaymentTap,
   });
 
   final CardStatement statement;
   final Map<String, CategoryEntity> categories;
+  final Map<String, MovementDebts> debts;
   final ValueChanged<MovementEntity> onMovementTap;
 
   /// Opens the form to register or edit the payment of [statement].
@@ -103,6 +107,7 @@ class StatementSection extends StatelessWidget {
       categories[movement.categoryId]?.name ?? 'Sin categoría',
       if (charge.isInstallment) _installmentLabel(charge),
       Formatters.shortDate(movement.date),
+      ?debtTag(debts[movement.id]),
     ].join(' · ');
   }
 }

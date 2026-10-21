@@ -33,6 +33,7 @@ class CardDetailPage extends StatelessWidget {
         watchMovements: serviceLocator(),
         watchCategories: serviceLocator(),
         watchCardPayments: serviceLocator(),
+        watchDebts: serviceLocator(),
       )..start(),
       child: BlocConsumer<CardDetailCubit, CardDetailState>(
         // Leave the page once the card is deleted from its edit form.
@@ -105,6 +106,7 @@ class CardDetailPage extends StatelessWidget {
                       StatementSection(
                         statement: statement,
                         categories: state.categories,
+                        debts: state.debts,
                         onMovementTap: (movement) =>
                             MovementFormSheet.show(context, movement: movement),
                         onPaymentTap: () => CardPaymentSheet.show(
@@ -125,6 +127,7 @@ class CardDetailPage extends StatelessWidget {
                       MonthSection(
                         month: month,
                         categories: state.categories,
+                        debts: state.debts,
                         onMovementTap: (movement) =>
                             MovementFormSheet.show(context, movement: movement),
                       ),

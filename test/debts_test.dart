@@ -1,15 +1,21 @@
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/sync/sync_engine.dart';
 import 'package:dynora_finance/features/debts/data/datasources/local/debt_local_data_source.dart';
+import 'package:dynora_finance/features/debts/data/datasources/local/person_local_data_source.dart';
 import 'package:dynora_finance/features/debts/data/dto/debt_dto.dart';
 import 'package:dynora_finance/features/debts/data/models/debt_model.dart';
+import 'package:dynora_finance/features/debts/data/models/person_model.dart';
 import 'package:dynora_finance/features/debts/data/repositories/debt_repository_impl.dart';
+import 'package:dynora_finance/features/debts/data/repositories/person_repository_impl.dart';
 import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
 import 'package:dynora_finance/features/debts/domain/entities/debt_split.dart';
+import 'package:dynora_finance/features/debts/domain/entities/movement_debts.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/rename_person.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/set_movement_debts.dart';
 import 'package:dynora_finance/features/home/domain/entities/cash_flow.dart';
 import 'package:dynora_finance/features/movements/presentation/cubit/share_draft.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:uuid/uuid.dart';
 
 /// Stores copies, like Isar does.
 class FakeDebtLocal implements DebtLocalDataSource {
@@ -49,6 +55,44 @@ class FakeDebtLocal implements DebtLocalDataSource {
 
   @override
   Future<List<DebtModel>> getPendingSync() async => [];
+}
+
+class FakePersonLocal implements PersonLocalDataSource {
+  final Map<String, PersonModel> rows = {};
+
+  PersonModel _copy(PersonModel m) => PersonModel()
+    ..uid = m.uid
+    ..name = m.name
+    ..createdAt = m.createdAt
+    ..updatedAt = m.updatedAt
+    ..syncStatus = m.syncStatus
+    ..isDeleted = m.isDeleted;
+
+  @override
+  Stream<List<PersonModel>> watchPeople() =>
+      Stream.value(rows.values.map(_copy).toList());
+
+  @override
+  Future<PersonModel?> findByName(String name) async => rows.values
+      .where((m) => !m.isDeleted && m.name.toLowerCase() == name.toLowerCase())
+      .map(_copy)
+      .firstOrNull;
+
+  @override
+  Future<PersonModel?> getByUid(String uid) async =>
+      rows[uid] == null ? null : _copy(rows[uid]!);
+
+  @override
+  Future<void> save(PersonModel model) async => rows[model.uid] = _copy(model);
+
+  @override
+  Future<void> saveAll(List<PersonModel> models) async => models.forEach(save);
+
+  @override
+  Future<void> purgeAll(List<String> uids) async => uids.forEach(rows.remove);
+
+  @override
+  Future<List<PersonModel>> getPendingSync() async => [];
 }
 
 DebtEntity debt(String person, double amount, {DateTime? paidAt}) => DebtEntity(
@@ -183,5 +227,47 @@ void main() {
       ],
     );
     expect(flow.income, 300);
+  });
+
+  test('debts summary per movement separates owed and pending', () {
+    final summary = MovementDebts.byMovement([
+      debt('ana', 300, paidAt: DateTime(2026, 10, 20)),
+      debt('luis', 300),
+    ]);
+    expect(summary['m'], const MovementDebts(owed: 600, pending: 300));
+  });
+
+  group('Renaming people', () {
+    late PersonRepositoryImpl repository;
+
+    setUp(() {
+      repository = PersonRepositoryImpl(
+        local: FakePersonLocal(),
+        syncEngine: const OfflineSyncEngine(),
+        uuid: const Uuid(),
+      );
+    });
+
+    test('renames and rejects a name another person already has', () async {
+      final ana = (await repository.findOrCreate(
+        'Ana',
+      )).getOrElse((f) => throw f);
+      await repository.findOrCreate('Luis');
+      final rename = RenamePerson(repository);
+
+      final renamed = await rename(
+        RenamePersonParams(id: ana.id, name: '  Ana   María '),
+      );
+      expect(renamed.getOrElse((f) => throw f).name, 'Ana María');
+
+      final clash = await rename(RenamePersonParams(id: ana.id, name: 'luis'));
+      expect(clash.getLeft().toNullable(), isA<ValidationFailure>());
+
+      // Changing only the case of your own name is allowed.
+      final sameCase = await rename(
+        RenamePersonParams(id: ana.id, name: 'ana maría'),
+      );
+      expect(sameCase.isRight(), isTrue);
+    });
   });
 }

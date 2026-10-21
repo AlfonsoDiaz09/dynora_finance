@@ -1,6 +1,8 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/debts/presentation/cubit/debts_cubit.dart';
 import 'package:dynora_finance/features/debts/presentation/pages/debts/widgets/person_debts_card.dart';
+import 'package:dynora_finance/features/debts/presentation/widgets/person_name_sheet.dart';
+import 'package:dynora_finance/features/movements/presentation/widgets/movement_form_sheet.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/shared/bloc/view_status.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
@@ -100,6 +102,16 @@ class DebtsPage extends StatelessWidget {
                             if (date != null) cubit.markPaid(ids, date);
                           },
                           onMarkPending: cubit.markPending,
+                          onRename: () => PersonNameSheet.show(
+                            context,
+                            initialName: person.person.name,
+                            onSave: (name) =>
+                                cubit.renamePerson(person.person.id, name),
+                          ),
+                          onOpenMovement: (movement) => MovementFormSheet.show(
+                            context,
+                            movement: movement,
+                          ),
                         ),
                       ],
                   ],

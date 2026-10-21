@@ -45,6 +45,7 @@ import 'package:dynora_finance/features/debts/data/repositories/person_repositor
 import 'package:dynora_finance/features/debts/domain/repositories/debt_repository.dart';
 import 'package:dynora_finance/features/debts/domain/repositories/person_repository.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/add_person.dart';
+import 'package:dynora_finance/features/debts/domain/usecases/rename_person.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/set_debts_paid.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/set_movement_debts.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';

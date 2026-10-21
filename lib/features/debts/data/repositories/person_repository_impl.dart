@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dynora_finance/core/error/exceptions.dart';
 import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/error/guard.dart';
 import 'package:dynora_finance/core/sync/sync_engine.dart';
@@ -49,8 +50,35 @@ class PersonRepositoryImpl implements PersonRepository {
         ..updatedAt = now
         ..syncStatus = SyncStatus.pendingCreate;
       await _local.save(model);
-      if (_syncEngine.isEnabled) unawaited(_syncEngine.sync());
+      _requestSync();
       return model.toEntity();
     });
+  }
+
+  @override
+  Future<Either<Failure, PersonEntity>> rename(String id, String name) async {
+    final taken = await guard(() => _local.findByName(name));
+    if (taken case Right(value: final other?) when other.uid != id) {
+      return left(
+        ValidationFailure('Ya existe una persona llamada ${other.name}'),
+      );
+    }
+    return guard(() async {
+      final model = await _local.getByUid(id);
+      if (model == null || model.isDeleted) {
+        throw NotFoundException('Persona $id no encontrada');
+      }
+      model
+        ..name = name
+        ..updatedAt = DateTime.now()
+        ..syncStatus = model.syncStatus.afterLocalUpdate();
+      await _local.save(model);
+      _requestSync();
+      return model.toEntity();
+    });
+  }
+
+  void _requestSync() {
+    if (_syncEngine.isEnabled) unawaited(_syncEngine.sync());
   }
 }

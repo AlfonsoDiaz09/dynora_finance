@@ -160,7 +160,8 @@ void _initDebts() {
     ..registerFactory(() => AddPerson(serviceLocator()))
     ..registerFactory(() => WatchDebts(serviceLocator()))
     ..registerFactory(() => SetMovementDebts(serviceLocator()))
-    ..registerFactory(() => SetDebtsPaid(serviceLocator()));
+    ..registerFactory(() => SetDebtsPaid(serviceLocator()))
+    ..registerFactory(() => RenamePerson(serviceLocator()));
 }
 
 void _initScreens() {
@@ -201,6 +202,7 @@ void _initScreens() {
         watchPeople: serviceLocator(),
         watchMovements: serviceLocator(),
         setDebtsPaid: serviceLocator(),
+        renamePerson: serviceLocator(),
       ),
     )
     ..registerFactory(

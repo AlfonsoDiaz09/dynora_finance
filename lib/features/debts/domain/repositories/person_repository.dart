@@ -9,4 +9,8 @@ abstract interface class PersonRepository {
   /// Returns the person called [name] (case-insensitive), creating it when
   /// it does not exist yet.
   Future<Either<Failure, PersonEntity>> findOrCreate(String name);
+
+  /// Renames person [id]. Fails with a [ValidationFailure] when another
+  /// person already has [name].
+  Future<Either<Failure, PersonEntity>> rename(String id, String name);
 }

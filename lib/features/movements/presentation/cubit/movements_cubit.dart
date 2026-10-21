@@ -7,6 +7,7 @@ import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
+import 'package:dynora_finance/features/debts/domain/entities/movement_debts.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
@@ -27,40 +28,6 @@ class MovementDayGroup extends Equatable {
 
   @override
   List<Object?> get props => [day, movements];
-}
-
-/// What others owe you for one movement.
-class MovementDebts extends Equatable {
-  const MovementDebts({required this.owed, required this.pending});
-
-  final double owed;
-  final double pending;
-
-  static Map<String, MovementDebts> byMovement(List<DebtEntity> debts) {
-    final owed = <String, double>{};
-    final pending = <String, double>{};
-    for (final debt in debts) {
-      owed.update(
-        debt.movementId,
-        (v) => v + debt.amount,
-        ifAbsent: () => debt.amount,
-      );
-      if (!debt.isPaid) {
-        pending.update(
-          debt.movementId,
-          (v) => v + debt.amount,
-          ifAbsent: () => debt.amount,
-        );
-      }
-    }
-    return {
-      for (final id in owed.keys)
-        id: MovementDebts(owed: owed[id]!, pending: pending[id] ?? 0),
-    };
-  }
-
-  @override
-  List<Object?> get props => [owed, pending];
 }
 
 class MovementsState extends Equatable {
