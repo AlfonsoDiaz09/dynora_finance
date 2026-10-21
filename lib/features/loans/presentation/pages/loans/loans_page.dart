@@ -1,5 +1,6 @@
 import 'package:dynora_finance/app/router/router.dart';
 import 'package:dynora_finance/app/theme/app_colors.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_entity.dart';
 import 'package:dynora_finance/features/loans/domain/entities/loan_summary.dart';
 import 'package:dynora_finance/features/loans/presentation/cubit/loans_cubit.dart';
 import 'package:dynora_finance/features/loans/presentation/utils/loan_labels.dart';
@@ -9,18 +10,24 @@ import 'package:dynora_finance/shared/bloc/view_status.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/shared/widgets/app_bar/custom_appbar.dart';
 import 'package:dynora_finance/shared/widgets/empty_state.dart';
+import 'package:dynora_finance/shared/widgets/form/segment_option.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 class LoansPage extends StatelessWidget {
-  const LoansPage({super.key});
+  const LoansPage({super.key, this.initialDirection = LoanDirection.borrowed});
+
+  /// Tab selected when the page opens.
+  final LoanDirection initialDirection;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => serviceLocator<LoansCubit>()..start(),
+      create: (_) => serviceLocator<LoansCubit>()
+        ..selectDirection(initialDirection)
+        ..start(),
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: const CustomAppbar(title: 'Préstamos', canBack: true),
@@ -28,7 +35,10 @@ class LoansPage extends StatelessWidget {
           builder: (context) => FloatingActionButton(
             backgroundColor: Colors.purpleAccent,
             tooltip: 'Nuevo préstamo',
-            onPressed: () => LoanFormSheet.show(context),
+            onPressed: () => LoanFormSheet.show(
+              context,
+              direction: context.read<LoansCubit>().state.direction,
+            ),
             child: const Icon(Icons.add),
           ),
         ),
@@ -50,15 +60,31 @@ class LoansPage extends StatelessWidget {
                 return ListView(
                   padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 100.h),
                   children: [
+                    Row(
+                      children: [
+                        for (final (index, direction)
+                            in LoanDirection.values.indexed) ...[
+                          if (index > 0) SizedBox(width: 8.w),
+                          Expanded(
+                            child: SegmentOption(
+                              label: direction.tab,
+                              color: AppColors.secondary,
+                              selected: state.direction == direction,
+                              onTap: () => context
+                                  .read<LoansCubit>()
+                                  .selectDirection(direction),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    SizedBox(height: 16.h),
                     _TotalCard(state: state),
                     SizedBox(height: 24.h),
                     if (state.loans.isEmpty)
-                      const EmptyState(
+                      EmptyState(
                         icon: Icons.account_balance_rounded,
-                        message:
-                            'No tienes préstamos registrados.\n'
-                            'Toca + para agregar uno de un banco o de una '
-                            'persona.',
+                        message: state.direction.emptyMessage,
                       ),
                     for (final (index, loan) in state.active.indexed) ...[
                       if (index > 0) SizedBox(height: 12.h),
@@ -111,7 +137,7 @@ class _TotalCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Debes en total',
+            state.direction.totalTitle,
             style: TextStyle(color: AppColors.textPrimary70),
           ),
           SizedBox(height: 6.h),
@@ -125,7 +151,8 @@ class _TotalCard extends StatelessWidget {
           ),
           SizedBox(height: 10.h),
           Text(
-            'Pagos de este mes: ${Formatters.currency(dueThisMonth)}',
+            '${state.direction.monthTitle}: '
+            '${Formatters.currency(dueThisMonth)}',
             style: TextStyle(color: AppColors.textPrimary85, fontSize: 13.sp),
           ),
           if (overdue > 0)
@@ -207,7 +234,7 @@ class _LoanTile extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'restante',
+                      loan.direction.remainingShort,
                       style: TextStyle(
                         color: AppColors.textPrimary70,
                         fontSize: 12.sp,
@@ -229,7 +256,8 @@ class _LoanTile extends StatelessWidget {
             ),
             SizedBox(height: 8.h),
             Text(
-              'Pagado ${Formatters.currency(summary.paid)} de '
+              '${loan.direction.paidWord} '
+              '${Formatters.currency(summary.paid)} de '
               '${Formatters.currency(summary.total)}',
               style: TextStyle(color: AppColors.textPrimary70, fontSize: 12.sp),
             ),

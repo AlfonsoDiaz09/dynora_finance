@@ -1,5 +1,13 @@
 import 'package:equatable/equatable.dart';
 
+enum LoanDirection {
+  /// Someone lent you money: you pay it back.
+  borrowed,
+
+  /// You lent money to someone: they pay you back.
+  lent,
+}
+
 enum LoanKind {
   /// Bank or financial company: fixed payment, number of payments and date.
   institution,
@@ -25,33 +33,37 @@ class LoanInstallment extends Equatable {
   List<Object?> get props => [number, dueDate, amount];
 }
 
-/// Money you borrowed and are paying back.
+/// Money you borrowed and pay back, or money you lent and collect.
 class LoanEntity extends Equatable {
   const LoanEntity({
     required this.id,
     required this.name,
     required this.kind,
+    this.direction = LoanDirection.borrowed,
     required this.principal,
     required this.startDate,
     this.interestRate,
     this.installmentAmount,
     this.installmentCount,
     this.firstPaymentDate,
-    this.countsAsIncome = true,
+    this.affectsCash = true,
     this.note,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  /// Lender (bank or person) or a description of the loan.
+  /// Lender or borrower (bank or person), or a description of the loan.
   final String name;
   final String id;
-  final LoanKind kind;
 
-  /// Amount you received.
+  /// Always [LoanKind.personal] for [LoanDirection.lent].
+  final LoanKind kind;
+  final LoanDirection direction;
+
+  /// Amount lent.
   final double principal;
 
-  /// Day you received the money.
+  /// Day the money was handed over.
   final DateTime startDate;
 
   /// Fixed interest as a percentage of [principal]; used when the total is
@@ -69,14 +81,16 @@ class LoanEntity extends Equatable {
   /// following month.
   final DateTime? firstPaymentDate;
 
-  /// Whether the money entered your accounts (counts as income on
-  /// [startDate]).
-  final bool countsAsIncome;
+  /// Whether the money moved through your accounts: on [startDate] it is
+  /// income when borrowed and an expense when lent.
+  final bool affectsCash;
   final String? note;
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  /// What you will pay back in total, interest included.
+  bool get isLent => direction == LoanDirection.lent;
+
+  /// What will be paid back in total, interest included.
   double get totalToPay {
     final amount = installmentAmount;
     final count = installmentCount;
@@ -130,7 +144,8 @@ class LoanEntity extends Equatable {
     installmentAmount,
     installmentCount,
     firstPaymentDate,
-    countsAsIncome,
+    direction,
+    affectsCash,
     note,
     createdAt,
     updatedAt,

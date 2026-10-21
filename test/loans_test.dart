@@ -14,7 +14,8 @@ LoanEntity loan({
   double? installment = 1000,
   int? count = 12,
   DateTime? first,
-  bool countsAsIncome = true,
+  bool affectsCash = true,
+  LoanDirection direction = LoanDirection.borrowed,
 }) => LoanEntity(
   id: 'l',
   name: 'Banco',
@@ -27,7 +28,8 @@ LoanEntity loan({
   firstPaymentDate: installment == null
       ? null
       : (first ?? DateTime(2026, 10, 5)),
-  countsAsIncome: countsAsIncome,
+  affectsCash: affectsCash,
+  direction: direction,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
 );
@@ -176,10 +178,47 @@ void main() {
       movements: const [],
       cards: const [],
       payments: const [],
-      loans: [loan(), loan(countsAsIncome: false)],
+      loans: [loan(), loan(affectsCash: false)],
       loanPayments: [paid(1000, DateTime(2026, 10, 5))],
     );
     expect(flow.income, 10000);
     expect(flow.expense, 1000);
+  });
+
+  group('Loans you made (lent)', () {
+    LoanEntity lent({double? installment = 1000, int? count = 6}) => loan(
+      kind: LoanKind.personal,
+      direction: LoanDirection.lent,
+      principal: 6000,
+      installment: installment,
+      count: count,
+    );
+
+    test('lending is an expense and collections are income', () {
+      final flow = CashFlow.of(
+        movements: const [],
+        cards: const [],
+        payments: const [],
+        loans: [lent()],
+        loanPayments: [paid(1000, DateTime(2026, 10, 5))],
+      );
+      expect(flow.expense, 6000);
+      expect(flow.income, 1000);
+    });
+
+    test('collections late against the calendar are overdue', () {
+      final summary = LoanSummary.of(lent(), [
+        paid(1000, DateTime(2026, 10, 5)),
+      ], DateTime(2026, 11, 20));
+      expect(summary.overdueAmount, 1000);
+      expect(summary.remaining, 5000);
+    });
+
+    test('a loan you made cannot be from an institution', () async {
+      final result = await SaveLoan(_NoRepository())(
+        loan(direction: LoanDirection.lent),
+      );
+      expect(result.getLeft().toNullable(), isA<ValidationFailure>());
+    });
   });
 }

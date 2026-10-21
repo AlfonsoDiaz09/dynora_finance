@@ -16,14 +16,24 @@ import 'package:rxdart/rxdart.dart';
 class LoansState extends Equatable {
   const LoansState({
     this.status = ViewStatus.loading,
-    this.loans = const [],
+    this.all = const [],
+    this.direction = LoanDirection.borrowed,
     this.error,
   });
 
   final ViewStatus status;
 
   /// Active loans first (overdue, then by next due date), settled last.
-  final List<LoanSummary> loans;
+  final List<LoanSummary> all;
+
+  /// Tab shown: loans you owe or loans you made.
+  final LoanDirection direction;
+
+  /// Loans of the selected [direction].
+  List<LoanSummary> get loans => [
+    for (final l in all)
+      if (l.loan.direction == direction) l,
+  ];
   final String? error;
 
   List<LoanSummary> get active => [
@@ -54,7 +64,7 @@ class LoansState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, loans, error];
+  List<Object?> get props => [status, all, direction, error];
 }
 
 class LoansCubit extends Cubit<LoansState> {
@@ -68,6 +78,15 @@ class LoansCubit extends Cubit<LoansState> {
   final WatchLoans _watchLoans;
   final WatchLoanPayments _watchLoanPayments;
   StreamSubscription<LoansState>? _subscription;
+
+  void selectDirection(LoanDirection direction) => emit(
+    LoansState(
+      status: state.status,
+      all: state.all,
+      direction: direction,
+      error: state.error,
+    ),
+  );
 
   void start() {
     _subscription = Rx.combineLatest2(
@@ -89,7 +108,11 @@ class LoansCubit extends Cubit<LoansState> {
         final summaries = [
           for (final loan in data.$1) LoanSummary.of(loan, data.$2, now),
         ]..sort(_byUrgency);
-        return LoansState(status: ViewStatus.loaded, loans: summaries);
+        return LoansState(
+          status: ViewStatus.loaded,
+          all: summaries,
+          direction: state.direction,
+        );
       },
     );
   }

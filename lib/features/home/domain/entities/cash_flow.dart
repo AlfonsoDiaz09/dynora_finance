@@ -13,8 +13,9 @@ import 'package:dynora_finance/features/movements/domain/entities/movement_entit
 /// so they are excluded; the cash leaves when the card is paid, through the
 /// registered [CardPaymentEntity]s. Cash, transfer and debit movements count
 /// on their date, money people pay you back ([DebtEntity]) counts as income
-/// on the day they paid, loans you receive count as income ([LoanEntity],
-/// when the money entered your accounts) and their payments as expenses.
+/// on the day they paid. Loans ([LoanEntity], when the money moved through
+/// your accounts) are income when borrowed and expenses when lent; their
+/// payments the other way around.
 class CashFlow {
   const CashFlow({required this.income, required this.expense});
 
@@ -51,13 +52,19 @@ class CashFlow {
       final paidAt = debt.paidAt;
       if (paidAt != null && inRange(paidAt)) income += debt.amount;
     }
+    final lentIds = <String>{};
     for (final loan in loans) {
-      if (loan.countsAsIncome && inRange(loan.startDate)) {
-        income += loan.principal;
-      }
+      if (loan.isLent) lentIds.add(loan.id);
+      if (!loan.affectsCash || !inRange(loan.startDate)) continue;
+      // Borrowed money comes in; lent money goes out.
+      loan.isLent ? expense += loan.principal : income += loan.principal;
     }
     for (final payment in loanPayments) {
-      if (inRange(payment.paidAt)) expense += payment.amount;
+      if (!inRange(payment.paidAt)) continue;
+      // You pay what you borrowed; you collect what you lent.
+      lentIds.contains(payment.loanId)
+          ? income += payment.amount
+          : expense += payment.amount;
     }
 
     return CashFlow(income: income, expense: expense);

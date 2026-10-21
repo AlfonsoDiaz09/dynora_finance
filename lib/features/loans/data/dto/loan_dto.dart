@@ -8,13 +8,14 @@ class LoanDto {
     required this.id,
     required this.name,
     required this.kind,
+    required this.direction,
     required this.principal,
     required this.startDate,
     this.interestRate,
     this.installmentAmount,
     this.installmentCount,
     this.firstPaymentDate,
-    required this.countsAsIncome,
+    required this.affectsCash,
     this.note,
     required this.createdAt,
     required this.updatedAt,
@@ -24,6 +25,7 @@ class LoanDto {
   final String id;
   final String name;
   final String kind;
+  final String direction;
   final double principal;
 
   /// Calendar dates (`yyyy-MM-dd`), not instants.
@@ -32,7 +34,7 @@ class LoanDto {
   final double? installmentAmount;
   final int? installmentCount;
   final DateTime? firstPaymentDate;
-  final bool countsAsIncome;
+  final bool affectsCash;
   final String? note;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -44,13 +46,14 @@ class LoanDto {
       id: json['id'] as String,
       name: json['name'] as String,
       kind: json['kind'] as String,
+      direction: json['direction'] as String? ?? 'borrowed',
       principal: (json['principal'] as num).toDouble(),
       startDate: _parseDate(json['start_date'] as String),
       interestRate: (json['interest_rate'] as num?)?.toDouble(),
       installmentAmount: (json['installment_amount'] as num?)?.toDouble(),
       installmentCount: json['installment_count'] as int?,
       firstPaymentDate: first == null ? null : _parseDate(first),
-      countsAsIncome: json['counts_as_income'] as bool? ?? true,
+      affectsCash: json['affects_cash'] as bool? ?? true,
       note: json['note'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -64,13 +67,14 @@ class LoanDto {
       'id': id,
       'name': name,
       'kind': kind,
+      'direction': direction,
       'principal': principal,
       'start_date': _formatDate(startDate),
       'interest_rate': interestRate,
       'installment_amount': installmentAmount,
       'installment_count': installmentCount,
       'first_payment_date': first == null ? null : _formatDate(first),
-      'counts_as_income': countsAsIncome,
+      'affects_cash': affectsCash,
       'note': note,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
@@ -83,13 +87,14 @@ class LoanDto {
       id: model.uid,
       name: model.name,
       kind: model.kind.name,
+      direction: model.direction.name,
       principal: model.principal,
       startDate: model.startDate,
       interestRate: model.interestRate,
       installmentAmount: model.installmentAmount,
       installmentCount: model.installmentCount,
       firstPaymentDate: model.firstPaymentDate,
-      countsAsIncome: model.countsAsIncome,
+      affectsCash: model.countsAsIncome,
       note: model.note,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
@@ -103,13 +108,14 @@ class LoanDto {
       ..uid = id
       ..name = name
       ..kind = LoanKind.values.byName(kind)
+      ..direction = LoanDirection.values.byName(direction)
       ..principal = principal
       ..startDate = startDate
       ..interestRate = interestRate
       ..installmentAmount = installmentAmount
       ..installmentCount = installmentCount
       ..firstPaymentDate = firstPaymentDate
-      ..countsAsIncome = countsAsIncome
+      ..countsAsIncome = affectsCash
       ..note = note
       ..createdAt = createdAt.toLocal()
       ..updatedAt = updatedAt.toLocal()

@@ -7,12 +7,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class LoansSummaryCard extends StatelessWidget {
   const LoansSummaryCard({
     super.key,
+    required this.title,
+    required this.amountLabel,
     required this.remaining,
     required this.status,
     required this.statusColor,
     required this.onTap,
   });
 
+  final String title;
+
+  /// `debes` or `te deben`.
+  final String amountLabel;
   final double remaining;
   final String status;
   final Color statusColor;
@@ -40,8 +46,8 @@ class LoansSummaryCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Préstamos',
+                  Text(
+                    title,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -65,7 +71,7 @@ class LoansSummaryCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'debes',
+                  amountLabel,
                   style: TextStyle(
                     color: AppColors.textPrimary70,
                     fontSize: 12.sp,

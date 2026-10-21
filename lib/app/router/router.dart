@@ -7,6 +7,7 @@ import 'package:dynora_finance/features/cards/presentation/pages/card_detail/car
 import 'package:dynora_finance/features/cards/presentation/pages/cards/cards_page.dart';
 import 'package:dynora_finance/features/debts/presentation/pages/debts/debts_page.dart';
 import 'package:dynora_finance/features/home/presentation/pages/home/home_page.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_entity.dart';
 import 'package:dynora_finance/features/loans/presentation/pages/loan_detail/loan_detail_page.dart';
 import 'package:dynora_finance/features/loans/presentation/pages/loans/loans_page.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/movements_page.dart';
@@ -34,6 +35,9 @@ abstract class AppRoutes {
   static const loanDetail = '/loans/:id';
 
   static String loanDetailPath(String id) => '/loans/$id';
+
+  /// Loans page opened on the "Presté" tab.
+  static const lentLoans = '/loans?tab=lent';
   static const cardDetail = '/cards/:id';
 
   static String cardDetailPath(String id) => '/cards/$id';
@@ -71,7 +75,11 @@ GoRouter createRouter() {
       GoRoute(
         path: AppRoutes.loans,
         name: AppRoutes.loans,
-        builder: (_, __) => LoansPage(),
+        builder: (_, state) => LoansPage(
+          initialDirection: state.uri.queryParameters['tab'] == 'lent'
+              ? LoanDirection.lent
+              : LoanDirection.borrowed,
+        ),
       ),
       GoRoute(
         path: AppRoutes.loanDetail,

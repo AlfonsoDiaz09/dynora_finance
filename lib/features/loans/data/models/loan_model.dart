@@ -20,12 +20,19 @@ class LoanModel {
   @Enumerated(EnumType.name)
   LoanKind kind = LoanKind.personal;
 
+  /// Records stored before this field existed read as borrowed.
+  @Enumerated(EnumType.name)
+  @Index()
+  LoanDirection direction = LoanDirection.borrowed;
+
   late double principal;
   late DateTime startDate;
   double? interestRate;
   double? installmentAmount;
   int? installmentCount;
   DateTime? firstPaymentDate;
+
+  /// [LoanEntity.affectsCash] (column name kept for stored data).
   bool countsAsIncome = true;
   String? note;
   late DateTime createdAt;
@@ -46,13 +53,14 @@ class LoanModel {
       id: uid,
       name: name,
       kind: kind,
+      direction: direction,
       principal: principal,
       startDate: startDate,
       interestRate: interestRate,
       installmentAmount: installmentAmount,
       installmentCount: installmentCount,
       firstPaymentDate: firstPaymentDate,
-      countsAsIncome: countsAsIncome,
+      affectsCash: countsAsIncome,
       note: note,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -63,13 +71,14 @@ class LoanModel {
   void applyEntity(LoanEntity entity) {
     name = entity.name;
     kind = entity.kind;
+    direction = entity.direction;
     principal = entity.principal;
     startDate = entity.startDate;
     interestRate = entity.interestRate;
     installmentAmount = entity.installmentAmount;
     installmentCount = entity.installmentCount;
     firstPaymentDate = entity.firstPaymentDate;
-    countsAsIncome = entity.countsAsIncome;
+    countsAsIncome = entity.affectsCash;
     note = entity.note;
   }
 }

@@ -2,6 +2,7 @@ import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/loans/domain/entities/loan_payment_entity.dart';
 import 'package:dynora_finance/features/loans/domain/entities/loan_summary.dart';
 import 'package:dynora_finance/features/loans/presentation/cubit/loan_form_cubit.dart';
+import 'package:dynora_finance/features/loans/presentation/utils/loan_labels.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/shared/bloc/form_status.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
@@ -77,9 +78,10 @@ class _LoanPaymentSheetState extends State<LoanPaymentSheet> {
       },
       builder: (context, state) {
         final submitting = state.status == FormStatus.submitting;
+        final words = summary.loan.direction;
 
         return FormSheet(
-          title: isEditing ? 'Editar pago' : 'Registrar pago',
+          title: isEditing ? words.editPayment : words.registerPayment,
           children: [
             Text(
               summary.loan.name,
@@ -90,14 +92,14 @@ class _LoanPaymentSheetState extends State<LoanPaymentSheet> {
             ),
             SizedBox(height: 4.h),
             Text(
-              'Restan ${Formatters.currency(summary.remaining)} '
+              '${words.remaining} ${Formatters.currency(summary.remaining)} '
               'de ${Formatters.currency(summary.total)}',
               style: TextStyle(color: AppColors.textPrimary70, fontSize: 13.sp),
             ),
             SizedBox(height: 16.h),
             AppTextField(
               controller: _amount,
-              hint: 'Monto pagado',
+              hint: words.paymentAmountHint,
               icon: Icons.attach_money_rounded,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -105,7 +107,7 @@ class _LoanPaymentSheetState extends State<LoanPaymentSheet> {
               inputFormatters: amountInputFormatters,
             ),
             SizedBox(height: 16.h),
-            const FormLabel('Fecha en que pagaste'),
+            FormLabel(words.paymentDateLabel),
             DateField(
               date: state.paidAt,
               lastDate: DateTime.now(),
@@ -121,7 +123,7 @@ class _LoanPaymentSheetState extends State<LoanPaymentSheet> {
             FormError(state.error),
             SizedBox(height: 20.h),
             PrimaryActionButton(
-              text: 'Guardar pago',
+              text: words.savePayment,
               loading: submitting,
               onPressed: () =>
                   cubit.submit(parseAmount(_amount.text), _note.text),

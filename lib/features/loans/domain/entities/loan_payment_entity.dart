@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// A payment you made towards a loan.
+/// A payment towards a loan: made by you (borrowed) or received (lent).
 class LoanPaymentEntity extends Equatable {
   const LoanPaymentEntity({
     required this.id,

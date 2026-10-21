@@ -1,6 +1,7 @@
 import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/features/loans/domain/entities/loan_entity.dart';
 import 'package:dynora_finance/features/loans/presentation/cubit/loan_form_cubit.dart';
+import 'package:dynora_finance/features/loans/presentation/utils/loan_labels.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/shared/bloc/form_status.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
@@ -19,7 +20,11 @@ class LoanFormSheet extends StatefulWidget {
   final LoanEntity? loan;
 
   /// Opens the form to register a loan, or to edit [loan].
-  static Future<void> show(BuildContext context, {LoanEntity? loan}) {
+  static Future<void> show(
+    BuildContext context, {
+    LoanEntity? loan,
+    LoanDirection direction = LoanDirection.borrowed,
+  }) {
     return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -28,6 +33,7 @@ class LoanFormSheet extends StatefulWidget {
         create: (_) => LoanFormCubit(
           saveLoan: serviceLocator(),
           deleteLoan: serviceLocator(),
+          direction: direction,
           editing: loan,
         ),
         child: LoanFormSheet(loan: loan),
@@ -78,35 +84,39 @@ class _LoanFormSheetState extends State<LoanFormSheet> {
       builder: (context, state) {
         final submitting = state.status == FormStatus.submitting;
         final institution = state.kind == LoanKind.institution;
+        final lent = state.direction == LoanDirection.lent;
 
         return FormSheet(
-          title: isEditing ? 'Editar préstamo' : 'Nuevo préstamo',
+          title: isEditing ? 'Editar préstamo' : state.direction.newTitle,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: SegmentOption(
-                    label: 'Institución',
-                    color: AppColors.secondary,
-                    selected: institution,
-                    onTap: () => cubit.selectKind(LoanKind.institution),
+            if (!lent)
+              Row(
+                children: [
+                  Expanded(
+                    child: SegmentOption(
+                      label: 'Institución',
+                      color: AppColors.secondary,
+                      selected: institution,
+                      onTap: () => cubit.selectKind(LoanKind.institution),
+                    ),
                   ),
-                ),
-                SizedBox(width: 8.w),
-                Expanded(
-                  child: SegmentOption(
-                    label: 'Persona',
-                    color: AppColors.secondary,
-                    selected: !institution,
-                    onTap: () => cubit.selectKind(LoanKind.personal),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: SegmentOption(
+                      label: 'Persona',
+                      color: AppColors.secondary,
+                      selected: !institution,
+                      onTap: () => cubit.selectKind(LoanKind.personal),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16.h),
+                ],
+              ),
+            if (!lent) SizedBox(height: 16.h),
             AppTextField(
               controller: _name,
-              hint: institution ? 'Banco o financiera' : '¿Quién te prestó?',
+              hint: institution
+                  ? 'Banco o financiera'
+                  : state.direction.personHint,
               icon: institution
                   ? Icons.account_balance_rounded
                   : Icons.person_rounded,
@@ -122,14 +132,14 @@ class _LoanFormSheetState extends State<LoanFormSheet> {
               inputFormatters: amountInputFormatters,
             ),
             SizedBox(height: 16.h),
-            const FormLabel('¿Cuándo lo recibiste?'),
+            FormLabel(lent ? '¿Cuándo lo prestaste?' : '¿Cuándo lo recibiste?'),
             DateField(
               date: state.startDate,
               lastDate: DateTime.now(),
               onChanged: cubit.changeStartDate,
             ),
             _SwitchRow(
-              label: 'El dinero entró a mi cuenta',
+              label: state.direction.cashSwitch,
               value: state.countsAsIncome,
               onChanged: cubit.setCountsAsIncome,
             ),

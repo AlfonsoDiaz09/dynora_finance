@@ -27,63 +27,69 @@ const LoanModelSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'firstPaymentDate': PropertySchema(
+    r'direction': PropertySchema(
       id: 2,
+      name: r'direction',
+      type: IsarType.string,
+      enumMap: _LoanModeldirectionEnumValueMap,
+    ),
+    r'firstPaymentDate': PropertySchema(
+      id: 3,
       name: r'firstPaymentDate',
       type: IsarType.dateTime,
     ),
     r'installmentAmount': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'installmentAmount',
       type: IsarType.double,
     ),
     r'installmentCount': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'installmentCount',
       type: IsarType.long,
     ),
     r'interestRate': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'interestRate',
       type: IsarType.double,
     ),
     r'isDeleted': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'kind': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'kind',
       type: IsarType.string,
       enumMap: _LoanModelkindEnumValueMap,
     ),
     r'lastSyncedAt': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'lastSyncedAt',
       type: IsarType.dateTime,
     ),
-    r'name': PropertySchema(id: 9, name: r'name', type: IsarType.string),
-    r'note': PropertySchema(id: 10, name: r'note', type: IsarType.string),
+    r'name': PropertySchema(id: 10, name: r'name', type: IsarType.string),
+    r'note': PropertySchema(id: 11, name: r'note', type: IsarType.string),
     r'principal': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'principal',
       type: IsarType.double,
     ),
     r'startDate': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'startDate',
       type: IsarType.dateTime,
     ),
     r'syncStatus': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'syncStatus',
       type: IsarType.string,
       enumMap: _LoanModelsyncStatusEnumValueMap,
     ),
-    r'uid': PropertySchema(id: 14, name: r'uid', type: IsarType.string),
+    r'uid': PropertySchema(id: 15, name: r'uid', type: IsarType.string),
     r'updatedAt': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -103,6 +109,19 @@ const LoanModelSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'uid',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+      ],
+    ),
+    r'direction': IndexSchema(
+      id: -4378097054569869819,
+      name: r'direction',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'direction',
           type: IndexType.hash,
           caseSensitive: true,
         ),
@@ -150,6 +169,7 @@ int _loanModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.direction.name.length * 3;
   bytesCount += 3 + object.kind.name.length * 3;
   bytesCount += 3 + object.name.length * 3;
   {
@@ -171,20 +191,21 @@ void _loanModelSerialize(
 ) {
   writer.writeBool(offsets[0], object.countsAsIncome);
   writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeDateTime(offsets[2], object.firstPaymentDate);
-  writer.writeDouble(offsets[3], object.installmentAmount);
-  writer.writeLong(offsets[4], object.installmentCount);
-  writer.writeDouble(offsets[5], object.interestRate);
-  writer.writeBool(offsets[6], object.isDeleted);
-  writer.writeString(offsets[7], object.kind.name);
-  writer.writeDateTime(offsets[8], object.lastSyncedAt);
-  writer.writeString(offsets[9], object.name);
-  writer.writeString(offsets[10], object.note);
-  writer.writeDouble(offsets[11], object.principal);
-  writer.writeDateTime(offsets[12], object.startDate);
-  writer.writeString(offsets[13], object.syncStatus.name);
-  writer.writeString(offsets[14], object.uid);
-  writer.writeDateTime(offsets[15], object.updatedAt);
+  writer.writeString(offsets[2], object.direction.name);
+  writer.writeDateTime(offsets[3], object.firstPaymentDate);
+  writer.writeDouble(offsets[4], object.installmentAmount);
+  writer.writeLong(offsets[5], object.installmentCount);
+  writer.writeDouble(offsets[6], object.interestRate);
+  writer.writeBool(offsets[7], object.isDeleted);
+  writer.writeString(offsets[8], object.kind.name);
+  writer.writeDateTime(offsets[9], object.lastSyncedAt);
+  writer.writeString(offsets[10], object.name);
+  writer.writeString(offsets[11], object.note);
+  writer.writeDouble(offsets[12], object.principal);
+  writer.writeDateTime(offsets[13], object.startDate);
+  writer.writeString(offsets[14], object.syncStatus.name);
+  writer.writeString(offsets[15], object.uid);
+  writer.writeDateTime(offsets[16], object.updatedAt);
 }
 
 LoanModel _loanModelDeserialize(
@@ -196,25 +217,28 @@ LoanModel _loanModelDeserialize(
   final object = LoanModel();
   object.countsAsIncome = reader.readBool(offsets[0]);
   object.createdAt = reader.readDateTime(offsets[1]);
-  object.firstPaymentDate = reader.readDateTimeOrNull(offsets[2]);
-  object.installmentAmount = reader.readDoubleOrNull(offsets[3]);
-  object.installmentCount = reader.readLongOrNull(offsets[4]);
-  object.interestRate = reader.readDoubleOrNull(offsets[5]);
-  object.isDeleted = reader.readBool(offsets[6]);
+  object.direction =
+      _LoanModeldirectionValueEnumMap[reader.readStringOrNull(offsets[2])] ??
+      LoanDirection.borrowed;
+  object.firstPaymentDate = reader.readDateTimeOrNull(offsets[3]);
+  object.installmentAmount = reader.readDoubleOrNull(offsets[4]);
+  object.installmentCount = reader.readLongOrNull(offsets[5]);
+  object.interestRate = reader.readDoubleOrNull(offsets[6]);
+  object.isDeleted = reader.readBool(offsets[7]);
   object.isarId = id;
   object.kind =
-      _LoanModelkindValueEnumMap[reader.readStringOrNull(offsets[7])] ??
+      _LoanModelkindValueEnumMap[reader.readStringOrNull(offsets[8])] ??
       LoanKind.institution;
-  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[8]);
-  object.name = reader.readString(offsets[9]);
-  object.note = reader.readStringOrNull(offsets[10]);
-  object.principal = reader.readDouble(offsets[11]);
-  object.startDate = reader.readDateTime(offsets[12]);
+  object.lastSyncedAt = reader.readDateTimeOrNull(offsets[9]);
+  object.name = reader.readString(offsets[10]);
+  object.note = reader.readStringOrNull(offsets[11]);
+  object.principal = reader.readDouble(offsets[12]);
+  object.startDate = reader.readDateTime(offsets[13]);
   object.syncStatus =
-      _LoanModelsyncStatusValueEnumMap[reader.readStringOrNull(offsets[13])] ??
+      _LoanModelsyncStatusValueEnumMap[reader.readStringOrNull(offsets[14])] ??
       SyncStatus.synced;
-  object.uid = reader.readString(offsets[14]);
-  object.updatedAt = reader.readDateTime(offsets[15]);
+  object.uid = reader.readString(offsets[15]);
+  object.updatedAt = reader.readDateTime(offsets[16]);
   return object;
 }
 
@@ -230,44 +254,58 @@ P _loanModelDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (_LoanModeldirectionValueEnumMap[reader.readStringOrNull(
+                offset,
+              )] ??
+              LoanDirection.borrowed)
+          as P;
     case 3:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
-      return (reader.readLongOrNull(offset)) as P;
-    case 5:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 5:
+      return (reader.readLongOrNull(offset)) as P;
     case 6:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 7:
+      return (reader.readBool(offset)) as P;
+    case 8:
       return (_LoanModelkindValueEnumMap[reader.readStringOrNull(offset)] ??
               LoanKind.institution)
           as P;
-    case 8:
-      return (reader.readDateTimeOrNull(offset)) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 10:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 11:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 13:
+      return (reader.readDateTime(offset)) as P;
+    case 14:
       return (_LoanModelsyncStatusValueEnumMap[reader.readStringOrNull(
                 offset,
               )] ??
               SyncStatus.synced)
           as P;
-    case 14:
-      return (reader.readString(offset)) as P;
     case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
+const _LoanModeldirectionEnumValueMap = {
+  r'borrowed': r'borrowed',
+  r'lent': r'lent',
+};
+const _LoanModeldirectionValueEnumMap = {
+  r'borrowed': LoanDirection.borrowed,
+  r'lent': LoanDirection.lent,
+};
 const _LoanModelkindEnumValueMap = {
   r'institution': r'institution',
   r'personal': r'personal',
@@ -500,6 +538,60 @@ extension LoanModelQueryWhere
     });
   }
 
+  QueryBuilder<LoanModel, LoanModel, QAfterWhereClause> directionEqualTo(
+    LoanDirection direction,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'direction', value: [direction]),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterWhereClause> directionNotEqualTo(
+    LoanDirection direction,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'direction',
+                lower: [],
+                upper: [direction],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'direction',
+                lower: [direction],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'direction',
+                lower: [direction],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'direction',
+                lower: [],
+                upper: [direction],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+
   QueryBuilder<LoanModel, LoanModel, QAfterWhereClause> syncStatusEqualTo(
     SyncStatus syncStatus,
   ) {
@@ -673,6 +765,154 @@ extension LoanModelQueryFilter
           upper: upper,
           includeUpper: includeUpper,
         ),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition> directionEqualTo(
+    LoanDirection value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'direction',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition>
+  directionGreaterThan(
+    LoanDirection value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'direction',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition> directionLessThan(
+    LoanDirection value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'direction',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition> directionBetween(
+    LoanDirection lower,
+    LoanDirection upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'direction',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition> directionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'direction',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition> directionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'direction',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition> directionContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'direction',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition> directionMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'direction',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition> directionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'direction', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterFilterCondition>
+  directionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'direction', value: ''),
       );
     });
   }
@@ -2120,6 +2360,18 @@ extension LoanModelQuerySortBy on QueryBuilder<LoanModel, LoanModel, QSortBy> {
     });
   }
 
+  QueryBuilder<LoanModel, LoanModel, QAfterSortBy> sortByDirection() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'direction', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterSortBy> sortByDirectionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'direction', Sort.desc);
+    });
+  }
+
   QueryBuilder<LoanModel, LoanModel, QAfterSortBy> sortByFirstPaymentDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'firstPaymentDate', Sort.asc);
@@ -2315,6 +2567,18 @@ extension LoanModelQuerySortThenBy
   QueryBuilder<LoanModel, LoanModel, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterSortBy> thenByDirection() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'direction', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanModel, QAfterSortBy> thenByDirectionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'direction', Sort.desc);
     });
   }
 
@@ -2516,6 +2780,14 @@ extension LoanModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<LoanModel, LoanModel, QDistinct> distinctByDirection({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'direction', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<LoanModel, LoanModel, QDistinct> distinctByFirstPaymentDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'firstPaymentDate');
@@ -2628,6 +2900,12 @@ extension LoanModelQueryProperty
   QueryBuilder<LoanModel, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<LoanModel, LoanDirection, QQueryOperations> directionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'direction');
     });
   }
 

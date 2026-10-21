@@ -43,7 +43,14 @@ class SaveLoan implements UseCase<LoanEntity, LoanEntity> {
     bool invalid(double? v) => v != null && (v <= 0 || v.isNaN || v.isInfinite);
 
     if (loan.name.trim().isEmpty) {
-      return const ValidationFailure('Escribe quién te prestó');
+      return ValidationFailure(
+        loan.isLent
+            ? 'Escribe a quién le prestaste'
+            : 'Escribe quién te prestó',
+      );
+    }
+    if (loan.isLent && loan.kind == LoanKind.institution) {
+      return const ValidationFailure('Los préstamos que haces son a personas');
     }
     if (invalid(loan.principal)) {
       return const ValidationFailure('El monto prestado debe ser mayor a 0');

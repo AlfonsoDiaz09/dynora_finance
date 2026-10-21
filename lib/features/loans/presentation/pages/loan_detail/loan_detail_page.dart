@@ -50,7 +50,7 @@ class LoanDetailPage extends StatelessWidget {
                     onPressed: () =>
                         LoanPaymentSheet.show(context, summary: summary),
                     icon: const Icon(Icons.payments_rounded),
-                    label: const Text('Registrar pago'),
+                    label: Text(summary.loan.direction.registerPayment),
                   ),
             body: switch (state.status) {
               ViewStatus.loading => const Center(
@@ -83,12 +83,12 @@ class LoanDetailPage extends StatelessWidget {
                       ),
                   ],
                   SizedBox(height: 24.h),
-                  const _Title('Pagos realizados'),
+                  _Title(summary.loan.direction.paymentsTitle),
                   if (summary.payments.isEmpty)
                     Padding(
                       padding: EdgeInsets.only(top: 8.h),
                       child: Text(
-                        'Aún no registras pagos',
+                        summary.loan.direction.noPayments,
                         style: TextStyle(
                           color: AppColors.textPrimary38,
                           fontSize: 13.sp,
@@ -163,7 +163,7 @@ class _Header extends StatelessWidget {
               SizedBox(width: 6.w),
               Expanded(
                 child: Text(
-                  loan.kind.label,
+                  loan.isLent ? 'Préstamo que hiciste' : loan.kind.label,
                   style: TextStyle(color: AppColors.textPrimary85),
                 ),
               ),
@@ -180,7 +180,7 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Restante',
+                  loan.direction.remaining,
                   style: TextStyle(color: AppColors.textPrimary85),
                 ),
                 Text.rich(
@@ -216,7 +216,7 @@ class _Header extends StatelessWidget {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  '${(summary.progress * 100).round()}% pagado · '
+                  '${(summary.progress * 100).round()}% ${loan.direction.paidPercent} · '
                   '${Formatters.currency(summary.paid)}',
                   style: TextStyle(
                     color: AppColors.textPrimary85,
@@ -246,7 +246,7 @@ class _Header extends StatelessWidget {
                     if (loan.firstPaymentDate case final first?)
                       _Chip('Día de pago ${first.day}'),
                     _Chip(
-                      'Recibido ${loan.startDate.day} '
+                      '${loan.direction.receivedChip} ${loan.startDate.day} '
                       '${Formatters.shortMonthYear(loan.startDate)}',
                     ),
                   ],

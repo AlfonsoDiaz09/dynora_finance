@@ -4,6 +4,8 @@ import 'package:dynora_finance/app/router/router.dart';
 import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/features/home/presentation/cubit/home_cubit.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_entity.dart';
+import 'package:dynora_finance/features/loans/presentation/utils/loan_labels.dart';
 import 'package:dynora_finance/features/movements/presentation/widgets/movement_form_sheet.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:dynora_finance/shared/bloc/view_status.dart';
@@ -26,38 +28,43 @@ class HomePage extends StatelessWidget {
   static const int _statsBranch = 1;
 
   /// Préstamos card while some loan is not paid off.
-  Widget? _loansCard(BuildContext context, HomeState state) {
+  /// Loans card of [direction] while some loan of it is not settled.
+  Widget? _loansCard(
+    BuildContext context,
+    HomeState state,
+    LoanDirection direction,
+  ) {
     final active = [
       for (final l in state.loans)
-        if (!l.isSettled) l,
+        if (!l.isSettled && l.loan.direction == direction) l,
     ];
     if (active.isEmpty) return null;
 
     final overdue = active.fold<double>(0, (sum, l) => sum + l.overdueAmount);
-    final nextDue =
-        [
-          for (final l in active)
-            if (l.nextInstallment case final next?) (l, next),
-        ]..sort(
-          (a, b) =>
-              a.$2.installment.dueDate.compareTo(b.$2.installment.dueDate),
-        );
+    final nextDue = [
+      for (final l in active)
+        if (l.nextInstallment case final next?) next,
+    ]..sort((a, b) => a.installment.dueDate.compareTo(b.installment.dueDate));
 
     final (String status, Color color) = overdue > 0
         ? ('Vencido ${Formatters.currency(overdue)}', AppColors.error)
         : nextDue.isNotEmpty
         ? (
-            'Próximo pago ${Formatters.shortDate(nextDue.first.$2.installment.dueDate)} · '
-                '${Formatters.currency(nextDue.first.$2.missing)}',
+            '${direction.nextPayment} '
+                '${Formatters.shortDate(nextDue.first.installment.dueDate)} · '
+                '${Formatters.currency(nextDue.first.missing)}',
             AppColors.warning,
           )
         : ('Sin pagos fijos', AppColors.textPrimary70);
 
+    final lent = direction == LoanDirection.lent;
     return LoansSummaryCard(
+      title: lent ? 'Préstamos que hiciste' : 'Préstamos que debes',
+      amountLabel: lent ? 'te deben' : 'debes',
       remaining: active.fold(0, (sum, l) => sum + l.remaining),
       status: status,
       statusColor: color,
-      onTap: () => context.push(AppRoutes.loans),
+      onTap: () => context.push(lent ? AppRoutes.lentLoans : AppRoutes.loans),
     );
   }
 
@@ -109,10 +116,12 @@ class HomePage extends StatelessWidget {
                     onTap: () => context.push(AppRoutes.debts),
                   ),
                 ],
-                if (_loansCard(context, state) case final card?) ...[
-                  SizedBox(height: 20.h),
-                  card,
-                ],
+                for (final direction in LoanDirection.values)
+                  if (_loansCard(context, state, direction)
+                      case final card?) ...[
+                    SizedBox(height: 20.h),
+                    card,
+                  ],
                 SizedBox(height: 28.h),
                 RecentMovementsSection(
                   movements: state.recentMovements,

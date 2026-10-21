@@ -9,6 +9,7 @@ import 'package:fpdart/fpdart.dart';
 
 class LoanFormState extends Equatable {
   const LoanFormState({
+    required this.direction,
     required this.kind,
     required this.startDate,
     this.firstPaymentDate,
@@ -18,6 +19,9 @@ class LoanFormState extends Equatable {
     this.error,
   });
 
+  final LoanDirection direction;
+
+  /// Always personal when [direction] is lent.
   final LoanKind kind;
   final DateTime startDate;
   final DateTime? firstPaymentDate;
@@ -41,6 +45,7 @@ class LoanFormState extends Equatable {
     String? Function()? error,
   }) {
     return LoanFormState(
+      direction: direction,
       kind: kind ?? this.kind,
       startDate: startDate ?? this.startDate,
       firstPaymentDate: firstPaymentDate != null
@@ -55,6 +60,7 @@ class LoanFormState extends Equatable {
 
   @override
   List<Object?> get props => [
+    direction,
     kind,
     startDate,
     firstPaymentDate,
@@ -69,16 +75,22 @@ class LoanFormCubit extends Cubit<LoanFormState> {
   LoanFormCubit({
     required SaveLoan saveLoan,
     required DeleteLoan deleteLoan,
+    LoanDirection direction = LoanDirection.borrowed,
     this.editing,
   }) : _saveLoan = saveLoan,
        _deleteLoan = deleteLoan,
        super(
          LoanFormState(
-           kind: editing?.kind ?? LoanKind.institution,
+           direction: editing?.direction ?? direction,
+           kind:
+               editing?.kind ??
+               (direction == LoanDirection.lent
+                   ? LoanKind.personal
+                   : LoanKind.institution),
            startDate: editing?.startDate ?? DateTime.now(),
            firstPaymentDate: editing?.firstPaymentDate,
            fixedPayments: editing?.installmentAmount != null,
-           countsAsIncome: editing?.countsAsIncome ?? true,
+           countsAsIncome: editing?.affectsCash ?? true,
          ),
        );
 
@@ -117,6 +129,7 @@ class LoanFormCubit extends Cubit<LoanFormState> {
       id: editing?.id ?? '',
       name: name.trim(),
       kind: state.kind,
+      direction: state.direction,
       principal: principal,
       startDate: state.startDate,
       interestRate: state.kind == LoanKind.personal && (interestRate ?? 0) > 0
@@ -125,7 +138,7 @@ class LoanFormCubit extends Cubit<LoanFormState> {
       installmentAmount: fixed ? installmentAmount : null,
       installmentCount: fixed ? installmentCount : null,
       firstPaymentDate: fixed ? state.firstPaymentDate : null,
-      countsAsIncome: state.countsAsIncome,
+      affectsCash: state.countsAsIncome,
       note: note == null || note.trim().isEmpty ? null : note.trim(),
       createdAt: editing?.createdAt ?? now,
       updatedAt: editing?.updatedAt ?? now,
