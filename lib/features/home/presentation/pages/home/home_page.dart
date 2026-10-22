@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'widgets/financial_summary_card.dart';
+import 'widgets/debts_and_loans_section.dart';
 import 'widgets/debts_summary_card.dart';
 import 'widgets/loans_summary_card.dart';
 import 'widgets/upcoming_payments_section.dart';
@@ -26,6 +27,9 @@ class HomePage extends StatelessWidget {
 
   /// Branch index of the stats tab in the bottom navigation.
   static const int _statsBranch = 1;
+
+  /// Branch index of the movements tab.
+  static const int _movementsBranch = 0;
 
   /// Préstamos card while some loan is not paid off.
   /// Loans card of [direction] while some loan of it is not settled.
@@ -68,9 +72,25 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  void _openStats(BuildContext context) {
-    context.read<NavigationCubit>().changeIndex(_statsBranch);
-    StatefulNavigationShell.of(context).goBranch(_statsBranch);
+  /// Rows of the "Deudas y préstamos" section that have something to show.
+  List<Widget> _debtsAndLoans(BuildContext context, HomeState state) {
+    return [
+      if (state.hasDebts)
+        DebtsSummaryCard(
+          total: state.debtsPending,
+          people: state.debtorsCount,
+          onTap: () => context.push(AppRoutes.debts),
+        ),
+      for (final direction in LoanDirection.values)
+        ?_loansCard(context, state, direction),
+    ];
+  }
+
+  void _openStats(BuildContext context) => _openBranch(context, _statsBranch);
+
+  void _openBranch(BuildContext context, int branch) {
+    context.read<NavigationCubit>().changeIndex(branch);
+    StatefulNavigationShell.of(context).goBranch(branch);
   }
 
   @override
@@ -104,25 +124,21 @@ class HomePage extends StatelessWidget {
                   onCardTap: (card) =>
                       context.push(AppRoutes.cardDetailPath(card.id)),
                 ),
-                if (state.hasDebts) ...[
-                  SizedBox(height: 20.h),
-                  DebtsSummaryCard(
-                    total: state.debtsPending,
-                    people: state.debtorsCount,
-                    onTap: () => context.push(AppRoutes.debts),
+                if (_debtsAndLoans(context, state) case final rows
+                    when rows.isNotEmpty) ...[
+                  SizedBox(height: 28.h),
+                  DebtsAndLoansSection(
+                    rows: rows,
+                    onSeeLoans: () => context.push(AppRoutes.loans),
                   ),
                 ],
-                for (final direction in LoanDirection.values)
-                  if (_loansCard(context, state, direction)
-                      case final card?) ...[
-                    SizedBox(height: 20.h),
-                    card,
-                  ],
                 SizedBox(height: 28.h),
                 RecentMovementsSection(
                   movements: state.recentMovements,
+                  categories: state.categories,
                   onMovementTap: (movement) =>
                       MovementFormSheet.show(context, movement: movement),
+                  onSeeAll: () => _openBranch(context, _movementsBranch),
                 ),
                 SizedBox(height: 28.h),
                 QuickActionsSection(

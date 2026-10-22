@@ -1,7 +1,6 @@
-import 'package:dynora_finance/app/theme/app_colors.dart';
 import 'package:dynora_finance/shared/utils/formatters.dart';
+import 'package:dynora_finance/shared/widgets/info_row_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class UpcomingPaymentItem extends StatelessWidget {
   const UpcomingPaymentItem({
@@ -23,9 +22,9 @@ class UpcomingPaymentItem extends StatelessWidget {
 
   bool get isOverdue => daysLeft < 0;
 
+  /// Short label for the pill: `Hoy`, `1 día`, `12 días`, `Vencido`.
   String get daysLeftLabel => switch (daysLeft) {
-    -1 => "Vencido ayer",
-    < 0 => "Vencido hace ${-daysLeft} días",
+    < 0 => "Vencido",
     0 => "Hoy",
     1 => "1 día",
     _ => "$daysLeft días",
@@ -39,53 +38,15 @@ class UpcomingPaymentItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return InfoRowCard(
+      icon: Icons.credit_card_rounded,
+      color: urgencyColor,
+      title: cardName,
+      subtitle:
+          "${isOverdue ? 'Venció' : 'Vence'} $dueDate · "
+          "${Formatters.currency(amount)}",
+      trailing: StatusPill(label: daysLeftLabel, color: urgencyColor),
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18.r),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(18.r),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: urgencyColor.withValues(alpha: 0.2),
-              child: Icon(Icons.credit_card, color: urgencyColor),
-            ),
-            SizedBox(width: 14.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    cardName,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    "${isOverdue ? 'Venció' : 'Vence'}: $dueDate · ${Formatters.currency(amount)}",
-                    style: TextStyle(
-                      color: AppColors.textPrimary70,
-                      fontSize: 12.sp,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              daysLeftLabel,
-              style: TextStyle(
-                color: urgencyColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

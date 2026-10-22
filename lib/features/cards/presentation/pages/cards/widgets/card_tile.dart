@@ -42,6 +42,8 @@ class CardTile extends StatelessWidget {
                 children: [
                   Text(
                     card.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -65,6 +67,7 @@ class CardTile extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(width: 12.w),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [

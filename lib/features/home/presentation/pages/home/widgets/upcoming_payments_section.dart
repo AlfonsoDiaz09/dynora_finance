@@ -5,6 +5,7 @@ import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/shared/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'section_header.dart';
 import 'upcoming_payment_item.dart';
 
 class UpcomingPaymentsSection extends StatelessWidget {
@@ -26,22 +27,10 @@ class UpcomingPaymentsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                "Próximos pagos",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            TextButton(onPressed: onSeeCards, child: Text("Ver tarjetas")),
-          ],
+        SectionHeader(
+          title: "Próximos pagos",
+          actionLabel: "Ver tarjetas",
+          onAction: onSeeCards,
         ),
         SizedBox(height: 8.h),
         if (payments.isEmpty)
@@ -52,7 +41,7 @@ class UpcomingPaymentsSection extends StatelessWidget {
           )
         else
           for (final (index, payment) in payments.indexed) ...[
-            if (index > 0) SizedBox(height: 12.h),
+            if (index > 0) SizedBox(height: 10.h),
             UpcomingPaymentItem(
               cardName: payment.card.shortLabel,
               dueDate: Formatters.shortDate(payment.dueDate),

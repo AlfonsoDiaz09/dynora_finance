@@ -1,5 +1,6 @@
 import 'package:dynora_finance/app/theme/app_theme.dart';
 import 'package:dynora_finance/features/home/presentation/pages/home/home_page.dart';
+import 'package:dynora_finance/features/home/presentation/pages/home/widgets/recent_movement_item.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/movements_page.dart';
 import 'package:dynora_finance/features/stats/presentation/pages/stats/stats_page.dart';
 import 'package:dynora_finance/shared/widgets/form/segment_option.dart';
@@ -69,6 +70,15 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Disponible para gastar'), findsOneWidget);
       expect(find.text('Por pagar en tarjetas'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Ver movimientos'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Deudas y préstamos'), findsOneWidget);
+      expect(find.text('Te deben'), findsOneWidget);
+      expect(find.byType(RecentMovementItem), findsNWidgets(3));
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('stats screen at ${width.toInt()}px', (tester) async {

@@ -98,7 +98,8 @@ class HomeCubit extends Cubit<HomeState> {
        _watchLoanPayments = watchLoanPayments,
        super(const HomeState());
 
-  static const int recentLimit = 5;
+  static const int recentLimit = 3;
+  static const int upcomingLimit = 3;
 
   final WatchMovements _watchMovements;
   final WatchCategories _watchCategories;
@@ -181,7 +182,7 @@ class HomeCubit extends Cubit<HomeState> {
                 data.$1,
                 data.$4,
                 now,
-              ),
+              ).take(upcomingLimit).toList(),
             );
           },
         );

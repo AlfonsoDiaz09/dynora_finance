@@ -208,6 +208,8 @@ class _LoanTile extends StatelessWidget {
                     children: [
                       Text(
                         loan.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -223,6 +225,7 @@ class _LoanTile extends StatelessWidget {
                     ],
                   ),
                 ),
+                SizedBox(width: 12.w),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
