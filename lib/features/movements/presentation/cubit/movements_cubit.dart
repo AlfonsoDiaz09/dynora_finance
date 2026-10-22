@@ -4,15 +4,18 @@ import 'package:dynora_finance/core/error/failures.dart';
 import 'package:dynora_finance/core/usecase/usecase.dart';
 import 'package:dynora_finance/core/utils/month_range.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_payment_entity.dart';
+import 'package:dynora_finance/features/cards/domain/entities/card_statement.dart';
+import 'package:dynora_finance/features/cards/domain/usecases/watch_card_payments.dart';
 import 'package:dynora_finance/features/cards/domain/usecases/watch_cards.dart';
 import 'package:dynora_finance/features/categories/domain/entities/category_entity.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/watch_categories.dart';
 import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
 import 'package:dynora_finance/features/debts/domain/entities/movement_debts.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
+import 'package:dynora_finance/features/movements/domain/entities/month_ledger.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_filter.dart';
-import 'package:dynora_finance/features/movements/domain/entities/movement_summary.dart';
 import 'package:dynora_finance/features/movements/domain/usecases/watch_movements.dart';
 import 'package:dynora_finance/shared/bloc/view_status.dart';
 import 'package:equatable/equatable.dart';
@@ -23,11 +26,23 @@ import 'package:rxdart/rxdart.dart';
 /// Which movements the list shows.
 enum MovementTypeFilter { all, expenses, incomes }
 
-class MovementDayGroup extends Equatable {
+/// A block of the monthly list: a day or a card statement.
+sealed class MovementListGroup extends Equatable {
+  const MovementListGroup();
+
+  /// Date used to order the blocks (newest first).
+  DateTime get sortDate;
+}
+
+/// Cash, transfer and debit movements of one day.
+class MovementDayGroup extends MovementListGroup {
   const MovementDayGroup({required this.day, required this.movements});
 
   final DateTime day;
   final List<MovementEntity> movements;
+
+  @override
+  DateTime get sortDate => day;
 
   /// What came in minus what went out that day (withdrawals count as in).
   double get net => movements.fold(
@@ -40,24 +55,47 @@ class MovementDayGroup extends Equatable {
   List<Object?> get props => [day, movements];
 }
 
+/// Charges of a credit card statement paid this month.
+class MovementStatementGroup extends MovementListGroup {
+  const MovementStatementGroup({
+    required this.card,
+    required this.statement,
+    required this.charges,
+  });
+
+  final CardEntity card;
+
+  /// Whole statement (its total and status don't depend on filters).
+  final CardStatement statement;
+
+  /// Charges shown, after filters.
+  final List<StatementCharge> charges;
+
+  @override
+  DateTime get sortDate => statement.period.paymentDate;
+
+  @override
+  List<Object?> get props => [card, statement, charges];
+}
+
 class MovementsState extends Equatable {
-  const MovementsState({
+  MovementsState({
     required this.month,
     this.status = ViewStatus.loading,
-    this.movements = const [],
+    MonthLedger? ledger,
     this.categories = const {},
     this.cards = const {},
     this.debts = const {},
     this.typeFilter = MovementTypeFilter.all,
     this.query = '',
     this.error,
-  });
+  }) : ledger = ledger ?? MonthLedger.empty;
 
   final MonthRange month;
   final ViewStatus status;
 
-  /// Every movement of [month], newest first.
-  final List<MovementEntity> movements;
+  /// What belongs to [month] by payment method (see [MonthLedger]).
+  final MonthLedger ledger;
   final Map<String, CategoryEntity> categories;
   final Map<String, CardEntity> cards;
 
@@ -69,27 +107,44 @@ class MovementsState extends Equatable {
   final String query;
   final String? error;
 
-  /// Totals of the whole month (filters don't change them).
-  MovementSummary get summary => MovementSummary.of(movements);
-
   bool get isFiltered =>
       typeFilter != MovementTypeFilter.all || query.trim().isNotEmpty;
 
-  /// Movements matching the filters, grouped by day (newest first).
-  List<MovementDayGroup> get groups {
-    final groups = <DateTime, List<MovementEntity>>{};
-    for (final movement in movements.where(_matches)) {
+  /// Days and card statements matching the filters, newest first.
+  List<MovementListGroup> get groups {
+    final byDay = <DateTime, List<MovementEntity>>{};
+    for (final movement in ledger.direct.where(_matches)) {
       final day = DateTime(
         movement.date.year,
         movement.date.month,
         movement.date.day,
       );
-      groups.putIfAbsent(day, () => []).add(movement);
+      byDay.putIfAbsent(day, () => []).add(movement);
     }
-    return [
-      for (final entry in groups.entries)
+
+    final statements = <MovementStatementGroup>[];
+    if (typeFilter != MovementTypeFilter.incomes) {
+      for (final entry in ledger.statements) {
+        final charges = [
+          for (final c in entry.statement.charges)
+            if (_matchesText(c.movement)) c,
+        ];
+        if (charges.isEmpty) continue;
+        statements.add(
+          MovementStatementGroup(
+            card: entry.card,
+            statement: entry.statement,
+            charges: charges,
+          ),
+        );
+      }
+    }
+
+    return <MovementListGroup>[
+      for (final entry in byDay.entries)
         MovementDayGroup(day: entry.key, movements: entry.value),
-    ];
+      ...statements,
+    ]..sort((a, b) => b.sortDate.compareTo(a.sortDate));
   }
 
   bool _matches(MovementEntity movement) {
@@ -99,8 +154,10 @@ class MovementsState extends Equatable {
       MovementTypeFilter.expenses => isOut,
       MovementTypeFilter.incomes => !isOut,
     };
-    if (!typeOk) return false;
+    return typeOk && _matchesText(movement);
+  }
 
+  bool _matchesText(MovementEntity movement) {
     final text = _normalize(query);
     if (text.isEmpty) return true;
     final haystack = _normalize(
@@ -120,9 +177,8 @@ class MovementsState extends Equatable {
   static String _normalize(String value) {
     const from = 'áéíóúüñ';
     const to = 'aeiouun';
-    final lower = value.trim().toLowerCase();
     final buffer = StringBuffer();
-    for (final char in lower.split('')) {
+    for (final char in value.trim().toLowerCase().split('')) {
       final index = from.indexOf(char);
       buffer.write(index >= 0 ? to[index] : char);
     }
@@ -132,14 +188,14 @@ class MovementsState extends Equatable {
   MovementsState copyWith({
     MonthRange? month,
     ViewStatus? status,
-    List<MovementEntity>? movements,
+    MonthLedger? ledger,
     MovementTypeFilter? typeFilter,
     String? query,
   }) {
     return MovementsState(
       month: month ?? this.month,
       status: status ?? this.status,
-      movements: movements ?? this.movements,
+      ledger: ledger ?? this.ledger,
       categories: categories,
       cards: cards,
       debts: debts,
@@ -153,7 +209,7 @@ class MovementsState extends Equatable {
   List<Object?> get props => [
     month,
     status,
-    movements,
+    ledger,
     categories,
     cards,
     debts,
@@ -168,16 +224,19 @@ class MovementsCubit extends Cubit<MovementsState> {
     required WatchMovements watchMovements,
     required WatchCategories watchCategories,
     required WatchCards watchCards,
+    required WatchCardPayments watchCardPayments,
     required WatchDebts watchDebts,
   }) : _watchMovements = watchMovements,
        _watchCategories = watchCategories,
        _watchCards = watchCards,
+       _watchCardPayments = watchCardPayments,
        _watchDebts = watchDebts,
        super(MovementsState(month: MonthRange(DateTime.now())));
 
   final WatchMovements _watchMovements;
   final WatchCategories _watchCategories;
   final WatchCards _watchCards;
+  final WatchCardPayments _watchCardPayments;
   final WatchDebts _watchDebts;
   late final BehaviorSubject<MonthRange> _month = BehaviorSubject.seeded(
     state.month,
@@ -185,18 +244,21 @@ class MovementsCubit extends Cubit<MovementsState> {
   StreamSubscription<MovementsState>? _subscription;
 
   void start() {
-    _subscription = _month
-        .switchMap(
-          (month) => Rx.combineLatest4(
-            _watchMovements(MovementFilter(from: month.start, to: month.end)),
-            _watchCategories(null),
-            _watchCards(const NoParams()),
-            _watchDebts(const NoParams()),
-            (movements, categories, cards, debts) =>
-                _buildState(month, movements, categories, cards, debts),
-          ),
-        )
-        .listen(emit);
+    // All movements: installments of older purchases land in later months.
+    final data = Rx.combineLatest5(
+      _watchMovements(MovementFilter.all),
+      _watchCategories(null),
+      _watchCards(const NoParams()),
+      _watchCardPayments(const NoParams()),
+      _watchDebts(const NoParams()),
+      (movements, categories, cards, payments, debts) =>
+          (movements, categories, cards, payments, debts),
+    );
+    _subscription = Rx.combineLatest2(
+      _month,
+      data,
+      (month, d) => _buildState(month, d.$1, d.$2, d.$3, d.$4, d.$5),
+    ).listen(emit);
   }
 
   void previousMonth() => _changeMonth(state.month.previous);
@@ -212,13 +274,6 @@ class MovementsCubit extends Cubit<MovementsState> {
 
   void _changeMonth(MonthRange month) {
     if (month == state.month) return;
-    emit(
-      state.copyWith(
-        month: month,
-        status: ViewStatus.loading,
-        movements: const [],
-      ),
-    );
     _month.add(month);
   }
 
@@ -227,12 +282,15 @@ class MovementsCubit extends Cubit<MovementsState> {
     Either<Failure, List<MovementEntity>> movements,
     Either<Failure, List<CategoryEntity>> categories,
     Either<Failure, List<CardEntity>> cards,
+    Either<Failure, List<CardPaymentEntity>> payments,
     Either<Failure, List<DebtEntity>> debts,
   ) {
     return movements
         .flatMap(
           (m) => categories.flatMap(
-            (c) => cards.flatMap((k) => debts.map((d) => (m, c, k, d))),
+            (c) => cards.flatMap(
+              (k) => payments.flatMap((p) => debts.map((d) => (m, c, k, p, d))),
+            ),
           ),
         )
         .match(
@@ -246,10 +304,15 @@ class MovementsCubit extends Cubit<MovementsState> {
           (data) => MovementsState(
             month: month,
             status: ViewStatus.loaded,
-            movements: data.$1,
+            ledger: MonthLedger.build(
+              month: month,
+              movements: data.$1,
+              cards: data.$3,
+              cardPayments: data.$4,
+            ),
             categories: {for (final c in data.$2) c.id: c},
             cards: {for (final k in data.$3) k.id: k},
-            debts: MovementDebts.byMovement(data.$4),
+            debts: MovementDebts.byMovement(data.$5),
             typeFilter: state.typeFilter,
             query: state.query,
           ),

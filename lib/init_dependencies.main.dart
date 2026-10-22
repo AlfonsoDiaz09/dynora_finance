@@ -214,6 +214,7 @@ void _initScreens() {
         watchMovements: serviceLocator(),
         watchCategories: serviceLocator(),
         watchCards: serviceLocator(),
+        watchCardPayments: serviceLocator(),
         watchDebts: serviceLocator(),
       ),
     )

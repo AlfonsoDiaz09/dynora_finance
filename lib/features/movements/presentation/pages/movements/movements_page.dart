@@ -1,3 +1,4 @@
+import 'package:dynora_finance/app/router/router.dart';
 import 'package:dynora_finance/features/movements/presentation/cubit/movements_cubit.dart';
 import 'package:dynora_finance/features/movements/presentation/widgets/movement_form_sheet.dart';
 import 'package:dynora_finance/init_dependencies.dart';
@@ -7,8 +8,10 @@ import 'package:dynora_finance/shared/widgets/month_switcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'widgets/movement_filters.dart';
 import 'widgets/movement_group.dart';
+import 'widgets/movement_statement_group.dart';
 import 'widgets/movements_summary_card.dart';
 
 class MovementsPage extends StatelessWidget {
@@ -36,8 +39,8 @@ class MovementsPage extends StatelessWidget {
                     ),
                     SizedBox(height: 12.h),
                     MovementsSummaryCard(
-                      income: state.summary.income,
-                      expense: state.summary.expense,
+                      income: state.ledger.income,
+                      expense: state.ledger.expense,
                     ),
                     SizedBox(height: 16.h),
                     MovementFilters(
@@ -107,14 +110,25 @@ class MovementsPage extends StatelessWidget {
             sliver: SliverList.separated(
               itemCount: groups.length,
               separatorBuilder: (_, __) => SizedBox(height: 20.h),
-              itemBuilder: (context, index) => MovementGroup(
-                group: groups[index],
-                categories: state.categories,
-                cards: state.cards,
-                debts: state.debts,
-                onMovementTap: (movement) =>
-                    MovementFormSheet.show(context, movement: movement),
-              ),
+              itemBuilder: (context, index) => switch (groups[index]) {
+                final MovementDayGroup group => MovementGroup(
+                  group: group,
+                  categories: state.categories,
+                  cards: state.cards,
+                  debts: state.debts,
+                  onMovementTap: (movement) =>
+                      MovementFormSheet.show(context, movement: movement),
+                ),
+                final MovementStatementGroup group => MovementStatementView(
+                  group: group,
+                  categories: state.categories,
+                  debts: state.debts,
+                  onMovementTap: (movement) =>
+                      MovementFormSheet.show(context, movement: movement),
+                  onCardTap: () =>
+                      context.push(AppRoutes.cardDetailPath(group.card.id)),
+                ),
+              },
             ),
           ),
         ];

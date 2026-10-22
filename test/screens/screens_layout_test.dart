@@ -2,6 +2,7 @@ import 'package:dynora_finance/app/theme/app_theme.dart';
 import 'package:dynora_finance/features/home/presentation/pages/home/home_page.dart';
 import 'package:dynora_finance/features/home/presentation/pages/home/widgets/recent_movement_item.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/movements_page.dart';
+import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_statement_group.dart';
 import 'package:dynora_finance/features/stats/presentation/pages/stats/stats_page.dart';
 import 'package:dynora_finance/shared/widgets/form/segment_option.dart';
 import 'package:flutter/material.dart';
@@ -89,6 +90,28 @@ void main() {
       expect(find.text('Hogar'), findsOneWidget);
     });
   }
+
+  testWidgets('credit purchases show in the month their statement is paid', (
+    tester,
+  ) async {
+    await pumpScreen(tester, const MovementsPage(), 320);
+    // The motorcycle was bought this month on credit: not a direct movement.
+    expect(find.text('Moto'), findsNothing);
+
+    for (var i = 0; i < 3 && find.text('Moto').evaluate().isEmpty; i++) {
+      await tester.tap(find.byTooltip('Mes siguiente'));
+      await settle(tester);
+    }
+    expect(
+      find.ancestor(
+        of: find.text('Moto'),
+        matching: find.byType(MovementStatementView),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('1/12'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('movement filters and search', (tester) async {
     await pumpScreen(tester, const MovementsPage(), 360);
