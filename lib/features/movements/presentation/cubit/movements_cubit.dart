@@ -13,6 +13,9 @@ import 'package:dynora_finance/features/categories/domain/usecases/watch_categor
 import 'package:dynora_finance/features/debts/domain/entities/debt_entity.dart';
 import 'package:dynora_finance/features/debts/domain/entities/movement_debts.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/watch_debts.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_entity.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_payment_entity.dart';
+import 'package:dynora_finance/features/loans/domain/usecases/loan_usecases.dart';
 import 'package:dynora_finance/features/movements/domain/entities/month_ledger.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_filter.dart';
@@ -78,6 +81,26 @@ class MovementStatementGroup extends MovementListGroup {
   List<Object?> get props => [card, statement, charges];
 }
 
+/// Loan installments due this month, to pay or to collect.
+class MovementLoanGroup extends MovementListGroup {
+  const MovementLoanGroup({required this.installments});
+
+  /// Latest due date first.
+  final List<LedgerLoanInstallment> installments;
+
+  @override
+  DateTime get sortDate => installments.first.dueDate;
+
+  /// Collections minus payments.
+  double get net => installments.fold(
+    0,
+    (sum, l) => l.isIncome ? sum + l.amount : sum - l.amount,
+  );
+
+  @override
+  List<Object?> get props => [installments];
+}
+
 class MovementsState extends Equatable {
   MovementsState({
     required this.month,
@@ -140,10 +163,16 @@ class MovementsState extends Equatable {
       }
     }
 
+    final loans = [
+      for (final l in ledger.loanInstallments)
+        if (_matchesLoan(l)) l,
+    ];
+
     return <MovementListGroup>[
       for (final entry in byDay.entries)
         MovementDayGroup(day: entry.key, movements: entry.value),
       ...statements,
+      if (loans.isNotEmpty) MovementLoanGroup(installments: loans),
     ]..sort((a, b) => b.sortDate.compareTo(a.sortDate));
   }
 
@@ -157,20 +186,33 @@ class MovementsState extends Equatable {
     return typeOk && _matchesText(movement);
   }
 
-  bool _matchesText(MovementEntity movement) {
+  bool _matchesLoan(LedgerLoanInstallment installment) {
+    final typeOk = switch (typeFilter) {
+      MovementTypeFilter.all => true,
+      MovementTypeFilter.expenses => !installment.isIncome,
+      MovementTypeFilter.incomes => installment.isIncome,
+    };
+    return typeOk &&
+        _containsQuery([
+          installment.loan.name,
+          installment.loan.note ?? '',
+          'Préstamo',
+        ]);
+  }
+
+  bool _matchesText(MovementEntity movement) => _containsQuery([
+    movement.title,
+    movement.note ?? '',
+    movement.isCashWithdrawal
+        ? 'Disposición de efectivo'
+        : categories[movement.categoryId]?.name ?? '',
+    cards[movement.cardId]?.name ?? '',
+  ]);
+
+  bool _containsQuery(List<String> fields) {
     final text = _normalize(query);
     if (text.isEmpty) return true;
-    final haystack = _normalize(
-      [
-        movement.title,
-        movement.note ?? '',
-        movement.isCashWithdrawal
-            ? 'Disposición de efectivo'
-            : categories[movement.categoryId]?.name ?? '',
-        cards[movement.cardId]?.name ?? '',
-      ].join(' '),
-    );
-    return haystack.contains(text);
+    return _normalize(fields.join(' ')).contains(text);
   }
 
   /// Lowercase without accents, so "nomina" finds "Nómina".
@@ -226,11 +268,15 @@ class MovementsCubit extends Cubit<MovementsState> {
     required WatchCards watchCards,
     required WatchCardPayments watchCardPayments,
     required WatchDebts watchDebts,
+    required WatchLoans watchLoans,
+    required WatchLoanPayments watchLoanPayments,
   }) : _watchMovements = watchMovements,
        _watchCategories = watchCategories,
        _watchCards = watchCards,
        _watchCardPayments = watchCardPayments,
        _watchDebts = watchDebts,
+       _watchLoans = watchLoans,
+       _watchLoanPayments = watchLoanPayments,
        super(MovementsState(month: MonthRange(DateTime.now())));
 
   final WatchMovements _watchMovements;
@@ -238,6 +284,8 @@ class MovementsCubit extends Cubit<MovementsState> {
   final WatchCards _watchCards;
   final WatchCardPayments _watchCardPayments;
   final WatchDebts _watchDebts;
+  final WatchLoans _watchLoans;
+  final WatchLoanPayments _watchLoanPayments;
   late final BehaviorSubject<MonthRange> _month = BehaviorSubject.seeded(
     state.month,
   );
@@ -254,10 +302,17 @@ class MovementsCubit extends Cubit<MovementsState> {
       (movements, categories, cards, payments, debts) =>
           (movements, categories, cards, payments, debts),
     );
-    _subscription = Rx.combineLatest2(
+    final loans = Rx.combineLatest2(
+      _watchLoans(const NoParams()),
+      _watchLoanPayments(const NoParams()),
+      (loans, payments) => (loans, payments),
+    );
+    _subscription = Rx.combineLatest3(
       _month,
       data,
-      (month, d) => _buildState(month, d.$1, d.$2, d.$3, d.$4, d.$5),
+      loans,
+      (month, d, l) =>
+          _buildState(month, d.$1, d.$2, d.$3, d.$4, d.$5, l.$1, l.$2),
     ).listen(emit);
   }
 
@@ -284,12 +339,20 @@ class MovementsCubit extends Cubit<MovementsState> {
     Either<Failure, List<CardEntity>> cards,
     Either<Failure, List<CardPaymentEntity>> payments,
     Either<Failure, List<DebtEntity>> debts,
+    Either<Failure, List<LoanEntity>> loans,
+    Either<Failure, List<LoanPaymentEntity>> loanPayments,
   ) {
     return movements
         .flatMap(
           (m) => categories.flatMap(
             (c) => cards.flatMap(
-              (k) => payments.flatMap((p) => debts.map((d) => (m, c, k, p, d))),
+              (k) => payments.flatMap(
+                (p) => debts.flatMap(
+                  (d) => loans.flatMap(
+                    (l) => loanPayments.map((lp) => (m, c, k, p, d, l, lp)),
+                  ),
+                ),
+              ),
             ),
           ),
         )
@@ -309,6 +372,8 @@ class MovementsCubit extends Cubit<MovementsState> {
               movements: data.$1,
               cards: data.$3,
               cardPayments: data.$4,
+              loans: data.$6,
+              loanPayments: data.$7,
             ),
             categories: {for (final c in data.$2) c.id: c},
             cards: {for (final k in data.$3) k.id: k},

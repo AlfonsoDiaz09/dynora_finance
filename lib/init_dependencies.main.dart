@@ -216,6 +216,8 @@ void _initScreens() {
         watchCards: serviceLocator(),
         watchCardPayments: serviceLocator(),
         watchDebts: serviceLocator(),
+        watchLoans: serviceLocator(),
+        watchLoanPayments: serviceLocator(),
       ),
     )
     ..registerFactory(

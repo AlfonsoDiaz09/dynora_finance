@@ -2,6 +2,7 @@ import 'package:dynora_finance/app/theme/app_theme.dart';
 import 'package:dynora_finance/features/home/presentation/pages/home/home_page.dart';
 import 'package:dynora_finance/features/home/presentation/pages/home/widgets/recent_movement_item.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/movements_page.dart';
+import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_loan_group.dart';
 import 'package:dynora_finance/features/movements/presentation/pages/movements/widgets/movement_statement_group.dart';
 import 'package:dynora_finance/features/stats/presentation/pages/stats/stats_page.dart';
 import 'package:dynora_finance/shared/widgets/form/segment_option.dart';
@@ -110,6 +111,33 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('1/12'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('loan installments due this month are listed', (tester) async {
+    await pumpScreen(tester, const MovementsPage(), 320);
+
+    // A payment you make is not an income.
+    await tester.tap(find.widgetWithText(SegmentOption, 'Ingresos'));
+    await tester.pump();
+    expect(find.byType(MovementLoanGroupView), findsNothing);
+    await tester.tap(find.widgetWithText(SegmentOption, 'Todos'));
+    await tester.pump();
+
+    await tester.tap(find.byTooltip('Buscar'));
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), 'azteca');
+    await tester.pump();
+
+    expect(
+      find.ancestor(
+        of: find.textContaining('Banco Azteca'),
+        matching: find.byType(MovementLoanGroupView),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Pago 1/10'), findsOneWidget);
+    expect(find.text('Pendiente'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

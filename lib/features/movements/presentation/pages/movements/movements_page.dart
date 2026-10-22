@@ -11,6 +11,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'widgets/movement_filters.dart';
 import 'widgets/movement_group.dart';
+import 'widgets/movement_loan_group.dart';
 import 'widgets/movement_statement_group.dart';
 import 'widgets/movements_summary_card.dart';
 
@@ -127,6 +128,11 @@ class MovementsPage extends StatelessWidget {
                       MovementFormSheet.show(context, movement: movement),
                   onCardTap: () =>
                       context.push(AppRoutes.cardDetailPath(group.card.id)),
+                ),
+                final MovementLoanGroup group => MovementLoanGroupView(
+                  group: group,
+                  onLoanTap: (loan) =>
+                      context.push(AppRoutes.loanDetailPath(loan.id)),
                 ),
               },
             ),

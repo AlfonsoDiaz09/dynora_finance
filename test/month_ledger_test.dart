@@ -2,6 +2,9 @@ import 'package:dynora_finance/core/enums/movement_type.dart';
 import 'package:dynora_finance/core/utils/month_range.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_entity.dart';
 import 'package:dynora_finance/features/cards/domain/entities/card_type.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_entity.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_payment_entity.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_summary.dart';
 import 'package:dynora_finance/features/movements/domain/entities/month_ledger.dart';
 import 'package:dynora_finance/features/movements/domain/entities/movement_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -145,4 +148,67 @@ void main() {
       expect(november.expense, 5000);
     },
   );
+
+  group('loans with a payment calendar', () {
+    LoanEntity loan(String id, LoanDirection direction, {DateTime? first}) =>
+        LoanEntity(
+          id: id,
+          name: id,
+          kind: LoanKind.personal,
+          direction: direction,
+          principal: 3000,
+          startDate: DateTime(2026, 9, 1),
+          installmentAmount: 1000,
+          installmentCount: 3,
+          firstPaymentDate: first,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+
+    final loans = [
+      loan('bank', LoanDirection.borrowed, first: DateTime(2026, 10, 15)),
+      loan('ana', LoanDirection.lent, first: DateTime(2026, 11, 5)),
+      // No calendar: nothing to place in a month.
+      loan('open', LoanDirection.borrowed),
+    ];
+    final payments = [
+      LoanPaymentEntity(
+        id: 'p1',
+        loanId: 'bank',
+        amount: 1000,
+        paidAt: DateTime(2026, 10, 14),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    ];
+
+    MonthLedger month(int m) => MonthLedger.build(
+      month: MonthRange(DateTime(2026, m)),
+      movements: const [],
+      cards: const [],
+      cardPayments: const [],
+      loans: loans,
+      loanPayments: payments,
+      now: DateTime(2026, 10, 22),
+    );
+
+    test('installments land in the month they are due', () {
+      final october = month(10);
+      expect(october.loanInstallments, hasLength(1));
+      final bank = october.loanInstallments.single;
+      expect(bank.loan.id, 'bank');
+      expect(bank.installment.installment.number, 1);
+      expect(bank.installmentCount, 3);
+      expect(bank.installment.status, InstallmentStatus.paid);
+      expect(october.expense, 1000);
+      expect(october.income, 0);
+
+      final november = month(11);
+      expect(november.loanInstallments.map((l) => l.loan.id), ['bank', 'ana']);
+      expect(november.expense, 1000);
+      expect(november.income, 1000);
+
+      expect(month(2).loanInstallments, isEmpty);
+    });
+  });
 }

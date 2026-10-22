@@ -9,6 +9,8 @@ import 'package:dynora_finance/features/cards/domain/usecases/add_card.dart';
 import 'package:dynora_finance/features/categories/domain/usecases/ensure_default_categories.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/add_person.dart';
 import 'package:dynora_finance/features/debts/domain/usecases/set_movement_debts.dart';
+import 'package:dynora_finance/features/loans/domain/entities/loan_entity.dart';
+import 'package:dynora_finance/features/loans/domain/usecases/loan_usecases.dart';
 import 'package:dynora_finance/features/movements/domain/usecases/add_movement.dart';
 import 'package:dynora_finance/init_dependencies.dart';
 import 'package:isar_community/isar.dart';
@@ -128,4 +130,20 @@ Future<void> seedSampleData(DateTime today) async {
       shares: {ana.id: 6799.5},
     ),
   );
+
+  (await serviceLocator<SaveLoan>()(
+    LoanEntity(
+      id: '',
+      name: 'Crédito personal Banco Azteca con un nombre largo',
+      kind: LoanKind.institution,
+      principal: 12000,
+      startDate: today.subtract(const Duration(days: 40)),
+      installmentAmount: 1500,
+      installmentCount: 10,
+      firstPaymentDate: today,
+      affectsCash: false,
+      createdAt: today,
+      updatedAt: today,
+    ),
+  )).getOrElse((f) => throw f);
 }
