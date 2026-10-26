@@ -14,6 +14,7 @@ class RecentMovementItem extends StatelessWidget {
     this.icon,
     this.iconColor,
     this.onTap,
+    this.onLongPress,
   });
 
   final String title;
@@ -27,6 +28,9 @@ class RecentMovementItem extends StatelessWidget {
   final IconData? icon;
   final Color? iconColor;
   final VoidCallback? onTap;
+
+  /// Opens the movement's options.
+  final VoidCallback? onLongPress;
 
   Color get amountColor => switch (type) {
     MovementType.income => Colors.greenAccent,
@@ -58,6 +62,7 @@ class RecentMovementItem extends StatelessWidget {
         ),
       ),
       onTap: onTap,
+      onLongPress: onLongPress,
     );
   }
 }

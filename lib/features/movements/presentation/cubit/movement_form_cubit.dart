@@ -155,6 +155,7 @@ class MovementFormCubit extends Cubit<MovementFormState> {
     MovementType initialType = MovementType.expense,
     String? initialCardId,
     this.editing,
+    this.template,
   }) : _watchCategories = watchCategories,
        _watchCards = watchCards,
        _addMovement = addMovement,
@@ -164,26 +165,34 @@ class MovementFormCubit extends Cubit<MovementFormState> {
        _addPerson = addPerson,
        _watchDebts = watchDebts,
        _setMovementDebts = setMovementDebts,
-       super(
-         MovementFormState(
-           type: editing?.type ?? initialType,
-           date: editing?.date ?? DateTime.now(),
-           categoryId: editing?.categoryId,
-           cardId: editing != null ? editing.cardId : initialCardId,
-           paymentMethod:
-               editing?.paymentMethod ??
-               (initialCardId != null
-                   ? PaymentMethod.card
-                   : PaymentMethod.cash),
-           installmentMode: _modeOf(editing),
-           installmentCount: (editing?.installmentCount ?? 1) > 1
-               ? editing!.installmentCount!
-               : (editing?.isCashWithdrawal ?? false)
-               ? 1
-               : 3,
-           isWithdrawal: editing?.isCashWithdrawal ?? false,
-         ),
-       );
+       super(_initialState(editing, template, initialType, initialCardId));
+
+  /// Filled from the movement edited or duplicated; a duplicate is dated
+  /// today.
+  static MovementFormState _initialState(
+    MovementEntity? editing,
+    MovementEntity? template,
+    MovementType initialType,
+    String? initialCardId,
+  ) {
+    final source = editing ?? template;
+    return MovementFormState(
+      type: source?.type ?? initialType,
+      date: editing?.date ?? DateTime.now(),
+      categoryId: source?.categoryId,
+      cardId: source != null ? source.cardId : initialCardId,
+      paymentMethod:
+          source?.paymentMethod ??
+          (initialCardId != null ? PaymentMethod.card : PaymentMethod.cash),
+      installmentMode: _modeOf(source),
+      installmentCount: (source?.installmentCount ?? 1) > 1
+          ? source!.installmentCount!
+          : (source?.isCashWithdrawal ?? false)
+          ? 1
+          : 3,
+      isWithdrawal: source?.isCashWithdrawal ?? false,
+    );
+  }
 
   final WatchCategories _watchCategories;
   final WatchCards _watchCards;
@@ -198,6 +207,9 @@ class MovementFormCubit extends Cubit<MovementFormState> {
   /// Movement being edited, `null` when creating a new one.
   final MovementEntity? editing;
 
+  /// Movement whose data pre-fills a new one (duplicate); saved as new.
+  final MovementEntity? template;
+
   StreamSubscription<void>? _subscription;
   StreamSubscription<void>? _peopleSubscription;
 
@@ -208,8 +220,9 @@ class MovementFormCubit extends Cubit<MovementFormState> {
         (people) => emit(state.copyWith(people: people)),
       ),
     );
-    final current = editing;
-    if (current != null) _loadShare(current);
+    // A duplicate keeps who owes you and how much, all still pending.
+    final source = editing ?? template;
+    if (source != null) _loadShare(source);
 
     _subscription =
         Rx.combineLatest2(

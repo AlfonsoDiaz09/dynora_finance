@@ -20,15 +20,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MovementFormSheet extends StatefulWidget {
-  const MovementFormSheet({super.key, this.movement});
+  const MovementFormSheet({super.key, this.movement, this.template});
 
   final MovementEntity? movement;
 
-  /// Opens the form to create a movement, or to edit [movement].
+  /// Movement being duplicated: its data pre-fills a new movement.
+  final MovementEntity? template;
+
+  /// Opens the form to create a movement, to edit [movement], or to create
+  /// a copy of [template].
   static Future<void> show(
     BuildContext context, {
     MovementType initialType = MovementType.expense,
     MovementEntity? movement,
+    MovementEntity? template,
     String? initialCardId,
   }) {
     return showModalBottomSheet(
@@ -49,8 +54,9 @@ class MovementFormSheet extends StatefulWidget {
           initialType: initialType,
           initialCardId: initialCardId,
           editing: movement,
+          template: template,
         )..start(),
-        child: MovementFormSheet(movement: movement),
+        child: MovementFormSheet(movement: movement, template: template),
       ),
     );
   }
@@ -79,7 +85,7 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
   @override
   void initState() {
     super.initState();
-    final movement = widget.movement;
+    final movement = widget.movement ?? widget.template;
     _title = TextEditingController(text: movement?.title);
     _amount = TextEditingController(text: movement?.amount.toStringAsFixed(2));
     _note = TextEditingController(text: movement?.note);
@@ -125,7 +131,11 @@ class _MovementFormSheetState extends State<MovementFormSheet> {
         final submitting = state.status == FormStatus.submitting;
 
         return FormSheet(
-          title: isEditing ? 'Editar transacción' : 'Nueva Transacción',
+          title: isEditing
+              ? 'Editar transacción'
+              : widget.template != null
+              ? 'Duplicar transacción'
+              : 'Nueva Transacción',
           children: [
             Row(
               children: [

@@ -12,6 +12,7 @@ import 'package:dynora_finance/shared/utils/group_by_day.dart';
 import 'package:dynora_finance/shared/widgets/day_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:dynora_finance/features/movements/presentation/widgets/movement_actions_sheet.dart';
 
 /// Movements of a debit card in one calendar month.
 class MonthSection extends StatelessWidget {
@@ -72,6 +73,7 @@ class MonthSection extends StatelessWidget {
               icon: movement.categoryIcon(categories),
               iconColor: movement.categoryColor(categories),
               onTap: () => onMovementTap(movement),
+              onLongPress: () => MovementActionsSheet.show(context, movement),
               footer: switch (debtors[movement.id]) {
                 final list? when list.isNotEmpty => DebtorAvatars(
                   debtors: list,

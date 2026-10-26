@@ -14,6 +14,7 @@ class InfoRowCard extends StatelessWidget {
     this.subtitleColor,
     this.trailing,
     this.onTap,
+    this.onLongPress,
   });
 
   final IconData icon;
@@ -25,6 +26,7 @@ class InfoRowCard extends StatelessWidget {
   final Color? subtitleColor;
   final Widget? trailing;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +35,7 @@ class InfoRowCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16.r),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(16.r),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),

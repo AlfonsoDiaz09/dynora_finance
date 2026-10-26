@@ -10,6 +10,7 @@ import 'package:dynora_finance/features/movements/presentation/utils/movement_la
 import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:dynora_finance/features/movements/presentation/widgets/movement_actions_sheet.dart';
 import 'movement_item.dart';
 
 /// One day: its date, net total and movements.
@@ -71,6 +72,7 @@ class MovementGroup extends StatelessWidget {
             icon: movement.categoryIcon(categories),
             iconColor: movement.categoryColor(categories),
             onTap: () => onMovementTap(movement),
+            onLongPress: () => MovementActionsSheet.show(context, movement),
           ),
         ],
       ],

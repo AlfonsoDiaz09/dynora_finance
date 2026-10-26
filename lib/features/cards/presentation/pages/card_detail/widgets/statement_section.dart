@@ -13,6 +13,7 @@ import 'package:dynora_finance/shared/utils/group_by_day.dart';
 import 'package:dynora_finance/shared/widgets/day_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:dynora_finance/features/movements/presentation/widgets/movement_actions_sheet.dart';
 
 /// One billing period: dates, payment info, total and its movements.
 class StatementSection extends StatelessWidget {
@@ -117,6 +118,8 @@ class StatementSection extends StatelessWidget {
                 icon: charge.movement.categoryIcon(categories),
                 iconColor: charge.movement.categoryColor(categories),
                 onTap: () => onMovementTap(charge.movement),
+                onLongPress: () =>
+                    MovementActionsSheet.show(context, charge.movement),
                 footer: _avatarsFor(context, charge.movement),
               ),
             ],

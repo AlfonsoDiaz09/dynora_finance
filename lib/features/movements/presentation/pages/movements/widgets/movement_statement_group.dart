@@ -12,6 +12,7 @@ import 'package:dynora_finance/shared/utils/formatters.dart';
 import 'package:dynora_finance/shared/widgets/info_row_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:dynora_finance/features/movements/presentation/widgets/movement_actions_sheet.dart';
 import 'movement_item.dart';
 
 /// A credit card statement paid this month: card, period, payment date,
@@ -132,6 +133,8 @@ class MovementStatementView extends StatelessWidget {
               icon: charge.movement.categoryIcon(categories),
               iconColor: charge.movement.categoryColor(categories),
               onTap: () => onMovementTap(charge.movement),
+              onLongPress: () =>
+                  MovementActionsSheet.show(context, charge.movement),
             ),
           ],
         ],

@@ -10,6 +10,9 @@ class MovementItem extends StatelessWidget {
   final bool isExpense;
   final VoidCallback? onTap;
 
+  /// Opens the movement's options.
+  final VoidCallback? onLongPress;
+
   /// Category icon and color; an in/out arrow when not given.
   final IconData? icon;
   final Color? iconColor;
@@ -24,6 +27,7 @@ class MovementItem extends StatelessWidget {
     required this.amount,
     required this.isExpense,
     this.onTap,
+    this.onLongPress,
     this.icon,
     this.iconColor,
     this.footer,
@@ -40,6 +44,7 @@ class MovementItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(16.r),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(16.r),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
